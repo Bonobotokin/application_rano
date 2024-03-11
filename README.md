@@ -1,16 +1,11 @@
-# application_rano
+application_rano
+Une application pour des agents de terrain pour la recolte des donne
 
-A new Flutter project.
+# Feature : Ammelioraton du crud Locale
+L'application est srictement locale donc
+les crud doit etres bien ajuster.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+# Modification des enregistrement Mission et releves.
+  - Status (Reussit) .
+  - fichier changer : 
+    - data/repositories/missions_repository.dart b/lib/data/repositories/missions_repository.dart

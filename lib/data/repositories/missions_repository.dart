@@ -208,46 +208,47 @@ class MissionsRepository {
       // Obtenir la date actuelle
       DateTime currentDate = DateTime.now();
 
-      // Formatter la date au format 'YYYY-MM'
+      // Récupérer la date du mois précédent
+      DateTime previousMonthDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
+
+      String formattedPreviousMonthDate = DateFormat('yyyy-MM').format(previousMonthDate);
+      print("moiss $formattedPreviousMonthDate");
+      // Récupérer le dernier relevé avec le compteur_id donné pour le mois en cours
+      Map<String, dynamic>? latestMonthReleve = await db.query(
+        'releves',
+        where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
+        whereArgs: [compteurId, formattedPreviousMonthDate],
+      ).then((value) => value.isNotEmpty ? value.last : null);
+
+      print("Laste Relves $latestMonthReleve");
       String formattedCurrentDate = DateFormat('yyyy-MM').format(currentDate);
 
-      // Récupérer le dernier relevé avec le compteur_id donné pour le mois en cours
-      Map<String, dynamic>? latestReleve = await db.query(
+      List<Map<String, dynamic>>  RelevesNow = await db.query(
         'releves',
         where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
         whereArgs: [compteurId, formattedCurrentDate],
-      ).then((value) => value.isNotEmpty ? value.last : null);
+      );
 
-      if (latestReleve != null) {
-        // Convertir la valeur du volume du dernier relevé en type int
-        int latestVolume = latestReleve['volume'].toInt();
+      if (RelevesNow.isNotEmpty && latestMonthReleve != null && latestMonthReleve.isNotEmpty) {
+        int RelevesNowId = RelevesNow.last['id'] ?? 0; // Utilisation de l'opérateur de null-aware pour éviter les erreurs si 'RelevesNow' ou 'latestMonthReleve' est null
+        int latestMonthReleveId = latestMonthReleve['id'] ?? 0; // Utilisation de l'opérateur de null-aware pour éviter les erreurs si 'RelevesNow' ou 'latestMonthReleve' est null
 
-        // Calculer la consommation en soustrayant le nouveau volume du volume du dernier relevé
-        int consoValue = int.parse(volumeValue) - latestVolume;
-        if (consoValue >= 0) {
-          // Mettre à jour les données de relevé existantes avec les nouvelles valeurs
-          await db.update(
-            'releves',
-            {
-              'date_releve': date,
-              'volume': volumeValue,
-              'conso': consoValue,
-              // Ajoutez d'autres champs à mettre à jour si nécessaire
-            },
-            where: 'id = ?',
-            whereArgs: [
-              latestReleve['id']
-            ], // Mettez à jour uniquement le dernier relevé du mois en cours
-          );
-          print('Mise à jour du relevé à partir du dernier relevé réussie.');
-        } else {
-          // La différence est négative, arrêtez l'insertion ou la mise à jour
-          print('La différence entre le nouveau volume et le volume du dernier relevé est négative. Arrêt de l\'insertion ou de la mise à jour.');
-        }
-      } else {
-        // Le dernier relevé n'existe pas, traiter ce cas en conséquence
-        print('Aucun relevé trouvé pour le compteur avec l\'ID: $compteurId');
+        int consoValue = (int.parse(volumeValue) - latestMonthReleve['volume']).toInt();
+        await db.update(
+          'releves',
+          {
+            'date_releve': date,
+            'volume': volumeValue,
+            'conso': consoValue,
+            // Ajoutez d'autres champs à mettre à jour si nécessaire
+          },
+          where: 'id = ?',
+          whereArgs: [RelevesNowId],
+        );
+        print('Mise à jour du relevé à partir du dernier relevé réussie.');
       }
+
+
     } catch (e) {
       throw Exception('Failed to update releve from existing data: $e');
     }
