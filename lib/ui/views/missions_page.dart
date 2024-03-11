@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
@@ -14,7 +15,7 @@ import 'package:application_rano/blocs/clients/client_event.dart';
 import 'package:intl/intl.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 import 'package:get/get.dart';
-
+import '../shared/MaskedTextField.dart';
 class MissionsPage extends StatefulWidget {
   @override
   _MissionsPageState createState() => _MissionsPageState();
@@ -275,6 +276,8 @@ class _MissionsPageState extends State<MissionsPage> {
     String formattedDate = DateFormat('yyyy-MM-dd').format(currentDate);
     String dateValue = formattedDate;
 
+    final _formKey = GlobalKey<FormState>(); // Ajout de la clé pour le formulaire
+
     showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -285,6 +288,7 @@ class _MissionsPageState extends State<MissionsPage> {
           ),
           content: SingleChildScrollView(
             child: Form(
+              key: _formKey, // Utilisation de la clé pour le formulaire
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -292,14 +296,24 @@ class _MissionsPageState extends State<MissionsPage> {
                     controller: volumeController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(labelText: 'Volumes'),
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // Autoriser uniquement les chiffres
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Veuillez entrer un volume';
+                      }
+                      return null;
+                    },
                   ),
+
                   SizedBox(height: 10),
-                  TextFormField(
+                  MaskedTextField(
+                    mask: 'xxxx-xx-xx', // Adapté pour le format de date 'yyyy-MM-dd'
                     controller: dateController,
-                    readOnly: false,
-                    decoration: InputDecoration(
+                    inputDecoration: InputDecoration(
                       labelText: 'Date',
-                      hintText: 'AAAA-MM-JJ',
+                      hintText: 'YYYY-MM-DD',
                     ),
                   ),
                   SizedBox(height: 10),
@@ -314,42 +328,44 @@ class _MissionsPageState extends State<MissionsPage> {
                   SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () async {
-                      String voluemeValue = volumeController.text;
-                      String dateValue = dateController.text;
+                      if (_formKey.currentState!.validate()) { // Validation du formulaire
+                        String volumeValue = volumeController.text;
+                        String dateValue = dateController.text;
 
-                      try {
-                        // Ajouter ou mettre à jour la mission avec les détails fournis
-                        if (isUpdate) {
-                          BlocProvider.of<MissionsBloc>(context).add(UpdateMission(
-                            missionId: mission.numCompteur.toString(),
-                            adresseClient: mission.adresseClient.toString(),
-                            consoValue: voluemeValue,
-                            date: dateValue,
-                            accessToken: authState is AuthSuccess
-                                ? authState.userInfo.lastToken ?? ''
-                                : '',
-                          ));
-                        } else {
-                          BlocProvider.of<MissionsBloc>(context).add(AddMission(
-                            missionId: mission.numCompteur.toString(),
-                            adresseClient: mission.adresseClient.toString(),
-                            consoValue: voluemeValue,
-                            date: dateValue,
-                            accessToken: authState is AuthSuccess
-                                ? authState.userInfo.lastToken ?? ''
-                                : '',
-                          ));
+                        try {
+                          // Ajouter ou mettre à jour la mission avec les détails fournis
+                          if (isUpdate) {
+                            BlocProvider.of<MissionsBloc>(context).add(UpdateMission(
+                              missionId: mission.numCompteur.toString(),
+                              adresseClient: mission.adresseClient.toString(),
+                              consoValue: volumeValue,
+                              date: dateValue,
+                              accessToken: authState is AuthSuccess
+                                  ? authState.userInfo.lastToken ?? ''
+                                  : '',
+                            ));
+                          } else {
+                            BlocProvider.of<MissionsBloc>(context).add(AddMission(
+                              missionId: mission.numCompteur.toString(),
+                              adresseClient: mission.adresseClient.toString(),
+                              consoValue: volumeValue,
+                              date: dateValue,
+                              accessToken: authState is AuthSuccess
+                                  ? authState.userInfo.lastToken ?? ''
+                                  : '',
+                            ));
+                          }
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Mission ${isUpdate ? 'modifiée' : 'créée'} avec succès')),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'Erreur lors de la ${isUpdate ? 'modification' : 'création'} de la mission: $e')),
+                          );
                         }
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Mission ${isUpdate ? 'modifiée' : 'créée'} avec succès')),
-                        );
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  'Erreur lors de la ${isUpdate ? 'modification' : 'création'} de la mission: $e')),
-                        );
                       }
                     },
                     child: Text(isUpdate ? 'Modifier' : 'Enregistrer'),
