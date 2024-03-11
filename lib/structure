@@ -1,0 +1,21 @@
+- lib/
+  - blocs/
+    - auth/
+      - auth_bloc.dart
+      - auth_event.dart
+      - auth_state.dart
+  - data/
+    - models/
+      - local_data_model.dart
+      - remote_data_model.dart
+    - repositories/
+      - local_repository.dart
+      - remote_repository.dart
+    - services/
+      - api_service.dart
+      - database_service.dart
+  - ui/
+    - screens/
+    - widgets/
+    - pages/
+  - utils/

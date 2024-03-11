@@ -1,0 +1,160 @@
+import 'package:flutter/material.dart';
+
+class PayementFacture extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Confirmation de commande'),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            buildHeader(),
+            buildOrderDetails(),
+            buildTotal(),
+            buildInformation(),
+            buildFooter(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildHeader() {
+    return Container(
+      color: Colors.grey[200],
+      padding: EdgeInsets.symmetric(vertical: 20.0),
+      child: Center(
+        child: Text(
+          'Confirmation de commande',
+          style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+
+  Widget buildOrderDetails() {
+    return Card(
+      margin: EdgeInsets.all(20.0),
+      child: Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Détails de la commande',
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 20.0),
+            buildOrderItem('Casque audio Beats Studio', 'MH792AM/A', '1', '\$299.95'),
+            buildOrderItem('Câble Beats RemoteTalk', 'MHDV2G/A', '1', '\$29.95'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildOrderItem(String item, String sku, String quantity, String subtotal) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(item),
+        SizedBox(height: 5.0),
+        Text('SKU: $sku'),
+        SizedBox(height: 5.0),
+        Text('Quantité: $quantity'),
+        SizedBox(height: 5.0),
+        Text('Sous-total: $subtotal'),
+        Divider(),
+      ],
+    );
+  }
+
+  Widget buildTotal() {
+    return Container(
+      color: Colors.grey[200],
+      padding: EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          buildTotalRow('Sous-total', '\$329.90'),
+          buildTotalRow('Frais de port', '\$15.00'),
+          buildTotalRow('Total général (TTC)', '\$344.90'),
+          buildTotalRow('Taxe', '\$72.40'),
+        ],
+      ),
+    );
+  }
+
+  Widget buildTotalRow(String title, String amount) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title),
+          Text(amount),
+        ],
+      ),
+    );
+  }
+
+  Widget buildInformation() {
+    return Card(
+      margin: EdgeInsets.all(20.0),
+      child: Padding(
+        padding: EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Informations de facturation',
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10.0),
+            Text('Philip Brooks\nPublic Wales, Somewhere\nNew York NY\n4468, United States\nT: 202-555-0133'),
+            SizedBox(height: 20.0),
+            Text(
+              'Moyen de paiement',
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10.0),
+            Text(
+              'Carte de crédit\nType de carte de crédit: Visa\nID de transaction Worldpay: 4185939336\nDroit de rétractation',
+            ),
+            SizedBox(height: 20.0),
+            Text(
+              'Informations de livraison',
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10.0),
+            Text('Sup Inc\nAnother Place, Somewhere\nNew York NY\n4468, United States\nT: 202-555-0171'),
+            SizedBox(height: 20.0),
+            Text(
+              'Méthode de livraison',
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10.0),
+            Text('UPS: Services de livraison aux États-Unis'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildFooter() {
+    return Container(
+      padding: EdgeInsets.all(20.0),
+      color: Colors.grey[200],
+      child: Column(
+        children: [
+          Text(
+            'Bonne journée.',
+            style: TextStyle(fontSize: 18.0, color: Colors.grey),
+          ),
+          SizedBox(height: 50.0),
+        ],
+      ),
+    );
+  }
+}
