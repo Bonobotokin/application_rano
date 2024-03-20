@@ -8,6 +8,7 @@ abstract class AuthEvent extends Equatable {
 }
 
 class AppStarted extends AuthEvent {} // Ajoutez cet événement
+
 class LoginRequested extends AuthEvent {
   final String phoneNumber;
   final String password;
@@ -16,4 +17,23 @@ class LoginRequested extends AuthEvent {
 
   @override
   List<Object> get props => [phoneNumber, password];
+}
+
+// Événement pour indiquer que la synchronisation des données est demandée
+class SynchronizeDataRequested extends AuthEvent {
+  final String accessToken;
+
+  const SynchronizeDataRequested({required this.accessToken});
+
+  @override
+  List<Object> get props => [accessToken];
+}
+
+// Événement pour indiquer que la synchronisation avec le serveur est réussie
+class LoadingSynchronisationSuccess extends AuthEvent {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'LoadingSynchronisationSuccess';
 }

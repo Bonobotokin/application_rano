@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
 import 'package:application_rano/data/models/contrat_model.dart';
@@ -91,4 +89,63 @@ class ClientRepository {
       throw Exception('Failed to fetch client data: $error');
     }
   }
+
+  Future<Map<String, List<RelevesModel>>> getReleverByDate(int numCompteur, String date) async {
+    try {
+      final Database db = await _niaDatabases.database;
+
+      // 1. Récupérer d'abord les relevés pour la date spécifique
+      List<Map<String, dynamic>> specificDateRows = await db.rawQuery('''
+      SELECT * FROM releves
+      WHERE compteur_id = ? AND date_releve = ?
+    ''', [numCompteur, date]);
+
+      // 2. Récupérer ensuite les relevés antérieurs à la date spécifique
+      List<Map<String, dynamic>> previousDateRows = await db.rawQuery('''
+      SELECT * FROM releves
+      WHERE compteur_id = ? AND date_releve < ?
+      ORDER BY date_releve DESC
+      LIMIT 1
+    ''', [numCompteur, date]);
+
+
+      List<RelevesModel> specificDateReleves = [];
+      List<RelevesModel> previousDateReleves = [];
+
+      // Convertir les résultats de la requête en objets RelevesModel
+      specificDateReleves = specificDateRows.map((row) => RelevesModel(
+        id: row['id'],
+        compteurId: int.parse(row['compteur_id'].toString()),
+        contratId: row['contrat_id'],
+        clientId: row['client_id'],
+        dateReleve: row['date_releve'] ?? '',
+        volume: row['volume'] ?? 0,
+        conso: row['conso'] ?? 0,
+      )).toList();
+
+      previousDateReleves = previousDateRows.map((row) => RelevesModel(
+        id: row['id'],
+        compteurId: int.parse(row['compteur_id'].toString()),
+        contratId: row['contrat_id'],
+        clientId: row['client_id'],
+        dateReleve: row['date_releve'] ?? '',
+        volume: row['volume'] ?? 0,
+        conso: row['conso'] ?? 0,
+      )).toList();
+
+      // Créer un map contenant les deux listes de relevés
+      Map<String, List<RelevesModel>> relevesMap = {
+        'specificDateReleves': specificDateReleves,
+        'previousDateReleves': previousDateReleves,
+      };
+
+      return relevesMap;
+    } catch (e) {
+      print('Error fetching releves: $e');
+      throw Exception('Failed to get releves data by date from local database: $e');
+    }
+  }
+
+
+
 }

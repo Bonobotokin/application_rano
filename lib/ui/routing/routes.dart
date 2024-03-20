@@ -15,8 +15,7 @@ class AppRoutes {
   static const String missions = '/missions';
   static const String detailsReleverCompteur = '/detailReleveCompt';
   static const String clientInfo = '/clientInfo';
-  static const String facturePayed =
-      '/facturePayed'; // Définir la route facturePayed
+  static const String facturePayed = '/facturePayed'; // Définir la route facturePayed
 }
 
 List<GetPage> getAppRoutes() {

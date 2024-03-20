@@ -1,13 +1,12 @@
 class FactureModel {
-  int releveCompteurId;
+  int id;
+  int relevecompteurId;
   String numFacture;
-  String numCompteur;
+  int numCompteur;
   String dateFacture;
   double totalConsoHT;
-  double totalTaxeCoHT;
-  double totalRedevanceBsHT;
-  double totalRedevanceFrHT;
   double tarifM3;
+  // List<dynamic> taxes;
   double avoirAvant;
   double avoirUtilise;
   double restantPrecedant;
@@ -15,15 +14,14 @@ class FactureModel {
   String statut;
 
   FactureModel({
-    required this.releveCompteurId,
+    required this.id,
+    required this.relevecompteurId,
     required this.numFacture,
     required this.numCompteur,
     required this.dateFacture,
     required this.totalConsoHT,
-    required this.totalTaxeCoHT,
-    required this.totalRedevanceBsHT,
-    required this.totalRedevanceFrHT,
     required this.tarifM3,
+    // required this.taxes,
     required this.avoirAvant,
     required this.avoirUtilise,
     required this.restantPrecedant,
@@ -31,22 +29,80 @@ class FactureModel {
     required this.statut,
   });
 
+  factory FactureModel.fromMap(Map<String, dynamic> map) {
+    return FactureModel(
+      id: map['id'],
+      relevecompteurId: map['relevecompteur_id'],
+      numFacture: map['num_facture'],
+      numCompteur: map['num_compteur'], // Convertir en chaîne
+      dateFacture: map['date_facture'],
+      totalConsoHT: map['total_conso_ht'],
+      tarifM3: map['tarif_m3'],
+      // taxes: map['taxes'],
+      avoirAvant: map['avoir_avant'] ?? 0, // Valeur par défaut si nulle
+      avoirUtilise: map['avoir_utilise'] ?? 0,
+      restantPrecedant: map['restant_precedant'] ?? 0,
+      montantTotalTTC: map['montant_total_ttc'] ?? 0,
+      statut: map['statut'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'relevecompteur_id': relevecompteurId,
+      'num_facture': numFacture,
+      'num_compteur': numCompteur,
+      'date_facture': dateFacture,
+      'total_conso_ht': totalConsoHT,
+      'tarif_m3': tarifM3,
+      // 'taxes': jsonEncode(taxes), // Convertir en chaîne JSON
+      'avoir_avant': avoirAvant,
+      'avoir_utilise': avoirUtilise,
+      'restant_precedant': restantPrecedant,
+      'montant_total_ttc': montantTotalTTC,
+      'statut': statut,
+    };
+  }
+
   factory FactureModel.fromJson(Map<String, dynamic> json) {
     return FactureModel(
-      releveCompteurId: json['facture']['relevecompteur_id'],
-      numFacture: json['facture']['num_facture'],
-      numCompteur: json['facture']['num_compteur'],
-      dateFacture: json['facture']['date_facture'],
-      totalConsoHT: json['facture']['total_conso_ht'],
-      totalTaxeCoHT: json['facture']['total_taxe_co_ht'],
-      totalRedevanceBsHT: json['facture']['total_redevance_bs_ht'],
-      totalRedevanceFrHT: json['facture']['total_redevance_fr_ht'],
-      tarifM3: json['facture']['tarif_m3'],
-      avoirAvant: json['facture']['avoir_avant'],
-      avoirUtilise: json['facture']['avoir_utilise'],
-      restantPrecedant: json['facture']['restant_precedant'],
-      montantTotalTTC: json['facture']['montant_total_ttc'],
-      statut: json['facture']['statut'],
+      id: json['id'],
+      relevecompteurId: json['relevecompteur_id'],
+      numFacture: json['num_facture'],
+      numCompteur: json['num_compteur'],
+      dateFacture: json['date_facture'],
+      totalConsoHT: json['total_conso_ht'],
+      tarifM3: json['tarif_m3'],
+      avoirAvant: json['avoir_avant'] ?? 0,
+      avoirUtilise: json['avoir_utilise'] ?? 0,
+      restantPrecedant: json['restant_precedant'] ?? 0,
+      montantTotalTTC: json['montant_total_ttc'] ?? 0,
+      statut: json['statut'],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'relevecompteur_id': relevecompteurId,
+      'num_facture': numFacture,
+      'num_compteur': numCompteur,
+      'date_facture': dateFacture,
+      'total_conso_ht': totalConsoHT,
+      'tarif_m3': tarifM3,
+      'avoir_avant': avoirAvant,
+      'avoir_utilise': avoirUtilise,
+      'restant_precedant': restantPrecedant,
+      'montant_total_ttc': montantTotalTTC,
+      'statut': statut,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'FactureModel{id: $id, nomClient: $relevecompteurId, num_facture: $numFacture, num_compteur: $numCompteur, date_facture: $dateFacture, '
+        'total_conso_ht: $totalConsoHT, tarif_m3: $tarifM3, avoir_avant: $avoirAvant, avoir_utilise: $avoirUtilise, '
+        'restant_precedant: $restantPrecedant, montant_total_ttc: $montantTotalTTC, statut: $statut }';
   }
 }

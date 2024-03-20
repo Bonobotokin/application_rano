@@ -1,17 +1,17 @@
 import 'dart:math';
-import 'package:application_rano/blocs/payements/payement_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/clients/client_bloc.dart';
 import 'package:application_rano/blocs/clients/client_state.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 import 'package:application_rano/blocs/payements/payement_bloc.dart';
+import 'package:application_rano/blocs/payements/payement_event.dart';
+import 'package:application_rano/blocs/payements/payement_state.dart';
 import 'package:application_rano/data/models/releves_model.dart';
 import 'package:application_rano/data/models/facture_model.dart';
-import 'package:application_rano/ui/layouts/app_layout.dart';
-import 'package:application_rano/ui/layouts/app_layout.dart';
-import 'package:application_rano/blocs/auth/auth_bloc.dart';
-import 'package:application_rano/blocs/auth/auth_state.dart';
+  import 'package:application_rano/ui/layouts/app_layout.dart';
+  import 'package:application_rano/blocs/auth/auth_bloc.dart';
+  import 'package:application_rano/blocs/auth/auth_state.dart';
 
 class DetailCompteurPage extends StatelessWidget {
   @override
@@ -41,7 +41,7 @@ class DetailCompteurPage extends StatelessWidget {
                 if (state is ClientLoading) {
                   return Center(child: CircularProgressIndicator());
                 } else if (state is ClientLoaded) {
-                  return _buildClientData(context, state);
+                  return _buildClientData(context, state, authState);
                 } else if (state is ClientError) {
                   return Center(child: Text(state.message));
                 } else {
@@ -60,7 +60,7 @@ class DetailCompteurPage extends StatelessWidget {
       builder: (context, state) {
         if (state is ClientLoaded) {
           final client = state.client;
-          final clientName = '${client.nom} ${client.prenom}';
+          final clientName = '${client.nom}';
           return Row(
             children: [
               CircleAvatar(
@@ -86,7 +86,7 @@ class DetailCompteurPage extends StatelessWidget {
     );
   }
 
-  Widget _buildClientData(BuildContext context, ClientLoaded state) {
+  Widget _buildClientData(BuildContext context, ClientLoaded state, AuthState authState) {
     if (state.client == null) {
       return Center(child: Text('Aucune donnée client disponible'));
     }
@@ -96,14 +96,14 @@ class DetailCompteurPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SizedBox(height: 20.0),
-          _buildReleveCard(context, state.releves),
+          _buildReleveCard(context, state.releves, authState),
           // Autres widgets pour afficher les autres informations du client, du compteur, etc.
         ],
       ),
     );
   }
 
-  Widget _buildReleveCard(BuildContext context, List<RelevesModel> releves) {
+  Widget _buildReleveCard(BuildContext context, List<RelevesModel> releves, AuthState authState) {
     if (releves.isEmpty) {
       return Center(child: Text('Aucun relevé disponible'));
     }
@@ -125,7 +125,17 @@ class DetailCompteurPage extends StatelessWidget {
           child: GestureDetector(
             onTap: () {
               // Envoi de l'événement MakePayment au PaymentBloc
-              Navigator.pushNamed(context, AppRoutes.facturePayed);
+
+              if (authState is AuthSuccess) {
+                BlocProvider.of<PaymentBloc>(context).add(LoadPayment(
+                    accessToken: authState.userInfo.lastToken ?? '',
+                    relevecompteurId : releve.compteurId ?? 0,
+                    numCompteur: releve.compteurId,
+                    date: releve.dateReleve
+
+                ));
+                Navigator.pushNamed(context, AppRoutes.facturePayed);
+              }
             },
             child: Card(
               color: Color(0xFFFFFFFF), // Couleur de fond plus claire

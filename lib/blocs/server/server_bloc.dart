@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:application_rano/data/services/config/api_configue.dart';
 import 'package:application_rano/blocs/server/server_event.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
-import 'package:application_rano/data/services/sync_service.dart';
+import 'package:application_rano/data/services/synchronisation/sync_service.dart';
 import 'package:application_rano/data/models/user.dart';
 
 enum ServerStatus {

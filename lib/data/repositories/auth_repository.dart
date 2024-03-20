@@ -68,6 +68,7 @@ class AuthRepository {
           Uri.parse('$baseUrl/accueil'),
           headers: {'Authorization': 'Bearer $accessToken'},
         );
+        print(response);
         if (response.statusCode == 200) {
           final homeModel = HomeModel.fromJson(jsonDecode(response.body));
           await saveDataRepositoryLocale.saveHomeDataToLocalDatabase(
@@ -83,40 +84,6 @@ class AuthRepository {
     }
   }
 
-  Future<Map<String, dynamic>> fetchMissionsDataFromEndpoint(
-      String? accessToken) async {
-    try {
-      if (accessToken == null) {
-        throw Exception("Access token is null");
-      }
-
-      if (baseUrl == null || baseUrl.isEmpty) {
-        return {
-          'data': 'locale data',
-        };
-      } else {
-        final response = await http.get(
-          Uri.parse('$baseUrl/missions'),
-          headers: {'Authorization': 'Bearer $accessToken'},
-        );
-        if (response.statusCode == 200) {
-          final missionsData = jsonDecode(response.body);
-          final List<MissionModel> missions =
-              (missionsData['compteurs_liste'] as List<dynamic>)
-                  .map((missionData) => MissionModel.fromJson(missionData))
-                  .toList();
-          await saveDataRepositoryLocale.saveMissionsDataToLocalDatabase(
-              missions); // Enregistrer les données de mission localement
-          return missionsData;
-        } else {
-          throw Exception(
-              'Failed to fetch missions data: ${response.statusCode}');
-        }
-      }
-    } catch (error) {
-      throw Exception('Failed to fetch missions data: $error');
-    }
-  }
 
   Future<Map<String, dynamic>> fetchDataClientDetails(
       int? numCompteur, String? accessToken) async {

@@ -1,3 +1,4 @@
+import 'package:application_rano/data/repositories/relever_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/server/server_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
@@ -11,7 +12,9 @@ import 'package:application_rano/data/repositories/client_repository.dart';
 import 'package:application_rano/blocs/payements/payement_bloc.dart';
 import 'package:application_rano/ui/views/clients/detail_compteur_page.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
-import 'package:application_rano/data/services/sync_service.dart'; // Importer le SyncService
+import 'package:application_rano/data/services/synchronisation/sync_service.dart';
+import 'package:application_rano/data/repositories/local/facture_local_repository.dart';
+import 'package:path/path.dart'; // Importer le SyncService
 
 List<BlocProvider> createBlocProviders(String baseUrl) {
   return [
@@ -40,8 +43,11 @@ List<BlocProvider> createBlocProviders(String baseUrl) {
       child: DetailCompteurPage(),
     ),
     BlocProvider<PaymentBloc>(
-      create: (context) => PaymentBloc(),
-      child: DetailCompteurPage(),
+      create: (context) => PaymentBloc(
+          factureLocalRepository: FactureLocalRepository(), 
+          clientRepository: ClientRepository(baseUrl: baseUrl), 
+          releverRepository: ReleverRepository()),
+      // child: ,
     ),
   ];
 }

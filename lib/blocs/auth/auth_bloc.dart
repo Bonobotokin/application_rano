@@ -2,16 +2,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_event.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
+import 'package:application_rano/data/models/user.dart'; // Importez la classe User
 import 'package:application_rano/data/models/user_info.dart'; // Importez le modèle UserInfo
 import 'package:application_rano/data/services/saveData/save_data_service_locale.dart';
+import 'package:application_rano/data/services/synchronisation/sync_service.dart';
 
+enum SynchroDetails{
+  synchronizing,
+  synchronizationSuccess,
+  synchronizationError,
+}
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   String? accessToken;
   final UserInfo? userInfo;
   final SaveDataRepositoryLocale saveDataRepositoryLocale =
-      SaveDataRepositoryLocale();
+  SaveDataRepositoryLocale();
 
   AuthBloc({required this.authRepository, this.userInfo})
       : super(AuthInitial()) {
@@ -19,16 +26,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         emit(AuthLoading());
         final user =
-            await authRepository.login(event.phoneNumber, event.password);
+        await authRepository.login(event.phoneNumber, event.password);
 
         if (user != null) {
           final accessToken = user.lastToken;
-          final homeData = await authRepository.fetchHomeDataFromEndpoint(accessToken);
+          final homeData =
+          await authRepository.fetchHomeDataFromEndpoint(accessToken);
 
           if (homeData['data'] == 0) {
             emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
           } else {
-            await _processMissionsData(accessToken);
+            // await _processMissionsData(accessToken);
+            print('Eto...');
+            await _onLoadingSynchronisation(accessToken);
           }
 
           emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
@@ -48,6 +58,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Stream<AuthState> mapEventToState(AuthEvent event) async* {
     if (event is LoginRequested) {
       yield* _mapLoginRequestedToState(event);
+    }else if (event is LoadingSynchronisationSuccess) {
+      yield LoadingSynchronisationSuccessState(); // Mettez à jour l'état pour indiquer que la synchronisation est réussie
     }
   }
 
@@ -56,7 +68,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       yield AuthLoading();
 
       final user =
-          await authRepository.login(event.phoneNumber, event.password);
+      await authRepository.login(event.phoneNumber, event.password);
       if (user != null) {
         emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
       } else {
@@ -67,19 +79,35 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _processMissionsData(String? accessToken) async {
-    final missionsData = await authRepository.fetchMissionsDataFromEndpoint(accessToken);
+  // Future<void> _processMissionsData(String? accessToken) async {
+  //   final missionsData =
+  //   await authRepository.fetchMissionsDataFromEndpoint(accessToken);
+  //
+  //   for (var mission in missionsData['compteurs_liste']) {
+  //     final int numCompteur = int.parse(mission['num_compteur']);
+  //     final clientDetails =
+  //     await authRepository.fetchDataClientDetails(numCompteur, accessToken);
+  //
+  //     await Future.wait([
+  //       saveDataRepositoryLocale.saveCompteurDetailsRelever(
+  //           clientDetails['compteur']),
+  //       saveDataRepositoryLocale.saveContraDetailsRelever(
+  //           clientDetails['contrat']),
+  //       saveDataRepositoryLocale.saveClientDetailsRelever(
+  //           clientDetails['client']),
+  //       saveDataRepositoryLocale.saveReleverDetailsRelever(
+  //           clientDetails['releves'])
+  //     ]);
+  //   }
+  // }
 
-    for (var mission in missionsData['compteurs_liste']) {
-      final int numCompteur = int.parse(mission['num_compteur']);
-      final clientDetails = await authRepository.fetchDataClientDetails(numCompteur, accessToken);
-
-      await Future.wait([
-        saveDataRepositoryLocale.saveCompteurDetailsRelever(clientDetails['compteur']),
-        saveDataRepositoryLocale.saveContraDetailsRelever(clientDetails['contrat']),
-        saveDataRepositoryLocale.saveClientDetailsRelever(clientDetails['client']),
-        saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves'])
-      ]);
+  // Méthode pour la synchronisation des données avec le serveur
+  Future<void> _onLoadingSynchronisation(String? accessToken) async {
+    try {
+      await SyncService().syncDataWithServer(accessToken);
+    } catch (error) {
+      print('Erreur lors de la synchronisation: $error');
     }
   }
+
 }

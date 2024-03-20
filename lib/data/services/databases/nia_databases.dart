@@ -10,6 +10,8 @@ import 'package:application_rano/data/services/databases/contratDb.dart';
 import 'package:application_rano/data/services/databases/clientDb.dart';
 import 'package:application_rano/data/services/databases/relevesDb.dart';
 import 'package:application_rano/data/services/databases/last_connectedDb.dart';
+import 'package:application_rano/data/services/databases/synchroDb.dart';
+import 'package:application_rano/data/services/databases/factureDb.dart';
 
 class NiADatabases {
   Database? _database;
@@ -62,6 +64,8 @@ class NiADatabases {
       await contrat_db().createTable(db);
       await releves_db().createTable(db);
       await last_connected_db().createTable(db);
+      await synchro_db().createTable(db);
+      await facture_db().createTable(db);
     } catch (e) {
       throw Exception("Failed to create tables: $e");
     }

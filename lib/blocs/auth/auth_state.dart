@@ -42,3 +42,11 @@ class AuthFailure extends AuthState {
   @override
   List<Object> get props => [error];
 }
+
+class LoadingSynchronisationSuccessState extends AuthState {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'LoadingSynchronisationSuccessState';
+}

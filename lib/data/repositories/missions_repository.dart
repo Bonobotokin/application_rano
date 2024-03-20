@@ -72,7 +72,7 @@ class MissionsRepository {
             volumeValue,
             date,
           );
-
+          await _updateNombreReleverEffectue(db);
           print(
               'Mission mise à jour avec succès dans la base de données locale');
         } else {
@@ -129,6 +129,22 @@ class MissionsRepository {
     }
   }
 
+
+  Future<void> _updateNombreReleverEffectue(Database db) async {
+    try {
+      // Récupérer le nombre total de missions avec le statut 1 ou 0
+      final missionsCount = Sqflite.firstIntValue(await db.rawQuery('''
+      SELECT COUNT(*) FROM missions WHERE statut IN (1)
+    '''));
+      // print("MissionCOunt $missionsCount");
+      // Mettre à jour le nombre de relevés effectués dans la table "acceuil"
+      await db.rawUpdate('''
+      UPDATE acceuil SET nombre_relever_effectuer = ?
+    ''', [missionsCount]);
+    } catch (e) {
+      throw Exception('Failed to update nombre_relever_effectuer: $e');
+    }
+  }
   /*
   * Update Mission and Relver
   * */

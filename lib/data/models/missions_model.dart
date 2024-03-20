@@ -49,4 +49,22 @@ class MissionModel {
       'statut': statut,
     };
   }
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'nom_client': nomClient,
+      'prenom_client': prenomClient,
+      'adresse_client': adresseClient,
+      'num_compteur': numCompteur,
+      'conso_dernier_releve': consoDernierReleve,
+      'volume_dernier_releve': volumeDernierReleve,
+      'date_releve': dateReleve,
+      'statut': statut,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'MissionModel{id: $id, nomClient: $nomClient, prenomClient: $prenomClient, adresseClient: $adresseClient, numCompteur: $numCompteur, consoDernierReleve: $consoDernierReleve, volumeDernierReleve: $volumeDernierReleve, dateReleve: $dateReleve, statut: $statut';
+  }
 }
