@@ -6,6 +6,7 @@ class releves_db {
       await db.execute('''
         CREATE TABLE IF NOT EXISTS releves (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          id_releve INTEGER,
           compteur_id TEXT,
           contrat_id INTEGER,
           client_id INTEGER,

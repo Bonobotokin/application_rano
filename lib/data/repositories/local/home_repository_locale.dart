@@ -12,10 +12,14 @@ class HomeRepositoryLocale {
 
       return List.generate(maps.length, (i) {
         return HomeModel(
+          nonTraite: maps[i]['non_traite'],
+          enCours: maps[i]['en_cours'],
           totaleAnomalie: maps[i]['totale_anomalie'],
           realise: maps[i]['realise'],
           nombreTotalCompteur: maps[i]['nombre_total_compteur'],
           nombreReleverEffectuer: maps[i]['nombre_relever_effectuer'],
+          nombreTotalFactureImpayer: maps[i]['nombre_total_facture_impayer'],
+          nombreTotalFacturePayer: maps[i]['nombre_total_facture_payer'],
         );
       });
     } catch (e) {

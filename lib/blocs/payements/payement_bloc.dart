@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/models/facture_payment_model.dart';
 import '../../data/models/releves_model.dart';
 import 'payement_state.dart';
 import 'payement_event.dart';
@@ -28,14 +29,18 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     try {
       print("teste locale ${event.numCompteur}");
 
-      final factureData = await factureLocalRepository.getFactureById(event.numCompteur);
+      final factureData = await factureLocalRepository.getFactureById(event.relevecompteurId);
       final factures = factureData['factures'];
+
+      final statusPayment = await factureLocalRepository.getStatuPaymentFacture(factures.id);
+
+      print("Status Facture ${statusPayment['payment']}");
+      final paymentData = statusPayment['payment'];
 
       final clientData = await clientRepository.fetchClientData(
           event.numCompteur, event.accessToken);
       final client = clientData['client'];
 
-      print("tokin ${event.numCompteur} et ${event.date}");
       final releverData = await clientRepository.getReleverByDate(event.numCompteur, event.date);
       print("Zandry $releverData");
 
@@ -44,7 +49,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       final previousDateReleves = releverData['previousDateReleves'] ?? <RelevesModel>[];
 
       emit(PayementLoading());
-      emit(PayementLoaded(client, specificDateReleves, previousDateReleves, factures));
+      emit(PayementLoaded(client, specificDateReleves, previousDateReleves, factures, paymentData)); // Passer les données de paiement de la facture ici
     } catch (e) {
       print(e.toString());
       emit(PaymentFailure(e.toString()));
@@ -54,6 +59,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   void _onUpdateFacture(UpdateFacture event, Emitter<PaymentState> emit) async {
     try {
       // Effectuez les opérations nécessaires pour mettre à jour la facture ici
+      await factureLocalRepository.savePayementFactureLocal(event.idFacture, event.montant);
       // Émettez ensuite un nouvel état pour indiquer que la mise à jour est terminée avec succès
       emit(PaymentSuccess()); // Par exemple
     } catch (e) {

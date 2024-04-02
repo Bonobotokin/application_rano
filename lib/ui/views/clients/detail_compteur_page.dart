@@ -149,7 +149,7 @@ class DetailCompteurPage extends StatelessWidget {
                   child: Icon(Icons.data_usage, color: Colors.white),
                 ),
                 title: Text(
-                  'Relevé du ${releve.dateReleve}',
+                  'Relevé du ${releve.id}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: randomColor,

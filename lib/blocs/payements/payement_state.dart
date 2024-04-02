@@ -3,6 +3,8 @@ import 'package:application_rano/data/models/facture_model.dart';
 import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/models/releves_model.dart';
 
+import '../../data/models/facture_payment_model.dart';
+
 // États
 abstract class PaymentState extends Equatable {
   const PaymentState();
@@ -27,16 +29,18 @@ class PayementLoaded extends PaymentState {
   final List<RelevesModel> specificDateReleves;
   final List<RelevesModel> previousDateReleves;
   final FactureModel factures;
+  final FacturePaymentModel payment; // Ajouter un champ pour les données de paiement de la facture
 
   const PayementLoaded(
       this.client,
       this.specificDateReleves,
       this.previousDateReleves,
-      this.factures
+      this.factures,
+      this.payment, // Ajouter les données de paiement de la facture ici
       );
 
   @override
-  List<Object> get props => [client, specificDateReleves, previousDateReleves, factures];
+  List<Object> get props => [client, specificDateReleves, previousDateReleves, factures, payment];
 }
 
 

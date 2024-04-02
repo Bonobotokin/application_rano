@@ -1,3 +1,4 @@
+import 'package:application_rano/data/models/facture_payment_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/models/facture_model.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
@@ -32,13 +33,46 @@ class FactureLocalRepository {
     }
   }
 
+  Future<Map<String, dynamic>> getStatuPaymentFacture(int idFacture) async {
+    try{
+      print("iddddddd $idFacture");
+      final Database db = await _niaDatabases.database;
+      print("numCompteur : $idFacture");
+      List<Map<String, dynamic>> rows = await db.rawQuery('''
+        SELECT * FROM facture_paiment
+        WHERE facture_id = ? 
+      ''',[idFacture]);
+
+      print("getStatuPaymentFacture datas : $rows");
+      if (rows.isNotEmpty) {
+        final row = rows[0];
+        final payment =  FacturePaymentModel(
+          id: row['id'],
+          factureId: row['facture_id'],
+          relevecompteurId: row['relevecompteur_id'],
+          paiement: row['paiement'],
+          datePaiement: row['date_paiement'],
+        );
+
+        return {'payment': payment};
+
+      } else {
+        // Si aucune donnée n'a été trouvée, lancez une exception
+        throw Exception('Aucune donnée trouvée.');
+      }
+    } catch (e) {
+      throw Exception("Failed to get Statut payment facture data from local database: $e");
+    }
+  }
+
   Future<Map<String, dynamic>>  getFactureById(int relevecompteurId) async {
     try {
+      print("ID releveCOmpteur $relevecompteurId");
       final Database db = await _niaDatabases.database;
       print("numCompteur : $relevecompteurId");
       List<Map<String, dynamic>> rows = await db.rawQuery('''
         SELECT * FROM facture
-        WHERE num_compteur = ?
+        WHERE relevecompteur_id  = ?
       ''',[relevecompteurId]);
 
       print("factures data : $rows");
@@ -62,13 +96,79 @@ class FactureLocalRepository {
         return {'factures': factures};
 
       } else {
-      // Si aucune donnée n'a été trouvée, lancez une exception
-      throw Exception('Aucune donnée trouvée.');
+        // Si aucune donnée n'a été trouvée, lancez une exception
+        throw Exception('Aucune donnée trouvée.');
       }
 
     } catch (e) {
       throw Exception("Failed to get facture data by ID from local database: $e");
     }
   }
+
+  Future<void> savePayementFactureLocal(int idFacture, double mountant) async {
+    try {
+      final Database db = await _niaDatabases.database;
+      // Vérifier si la facture existe déjà dans la base de données
+      final existingFacture = await db.query(
+        'facture',
+        where: 'id = ?',
+        whereArgs: [idFacture],
+      );
+      if (existingFacture.isNotEmpty) {
+        await db.update(
+          'facture',
+          {
+            'statut': 'Payé',
+            // Ajoutez d'autres champs à mettre à jour si nécessaire
+          },
+          where: 'id = ?',
+          whereArgs: [idFacture],
+        );
+        final DateTime now = DateTime.now();
+        int relevecompteurId = existingFacture.first['id'] as int;
+        int relevecompteur = existingFacture.first['relevecompteur_id'] as int;
+
+        await db.update(
+          'facture_paiment',
+          {
+            'facture_id': idFacture,
+            'relevecompteur_id': relevecompteur,
+            'paiement': mountant,
+            'date_paiement': DateFormat('yyyy-MM-dd').format(now).toString(),
+            // Ajoutez d'autres champs si nécessaire
+          },
+          where: 'facture_id = ?',
+          whereArgs: [idFacture],
+        );
+        await _updateNombreReleverEffectue(db);
+        print('Facture mise à jour avec succès dans la base de données locale');
+      } else {
+        // La facture n'existe pas, traiter ce cas en conséquence
+        print('Aucune facture trouvée dans la table avec l\'ID: $idFacture');
+      }
+      print('Insertion du paiement de la facture réussie.');
+    } catch (e) {
+      print('Erreur lors de l\'enregistrement de la facture dans la base de données locale: $e');
+      throw Exception('Erreur lors de l\'enregistrement de la facture dans la base de données locale: $e');
+    }
+  }
+
+  Future<void> _updateNombreReleverEffectue(Database db) async {
+    try {
+      // Récupérer le nombre total de missions avec le statut 1 ou 0
+      final factureCount = Sqflite.firstIntValue(await db.rawQuery('''
+        SELECT COUNT(*) FROM facture WHERE statut IN ('Payé')
+      '''));
+      print("FactureCount $factureCount");
+      // Mettre à jour le nombre de relevés effectués dans la table "acceuil"
+      await db.rawUpdate('''
+      UPDATE acceuil SET nombre_total_facture_payer = ?
+    ''', [factureCount]);
+    } catch (e) {
+      throw Exception('Failed to update nombre_relever_effectuer: $e');
+    }
+  }
+
+
 }
 

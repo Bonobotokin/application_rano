@@ -15,6 +15,7 @@ class ReleverRepository {
       if (rows.isNotEmpty) {
         final releves = rows.map((row) => RelevesModel(
           id: row['id'],
+          idReleve: row['id_releve'],
           compteurId: int.parse(row['compteur_id'].toString()),
           contratId: row['contrat_id'],
           clientId: row['client_id'],

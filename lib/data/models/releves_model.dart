@@ -1,5 +1,6 @@
 class RelevesModel {
   final int? id;
+  final int idReleve;
   final int compteurId;
   final int contratId;
   final int clientId;
@@ -9,6 +10,7 @@ class RelevesModel {
 
   RelevesModel({
     this.id,
+    required this.idReleve,
     required this.compteurId,
     required this.contratId,
     required this.clientId,
@@ -20,6 +22,7 @@ class RelevesModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+      'id_releve': idReleve,
       'compteur_id': compteurId,
       'contrat_id': contratId,
       'client_id': clientId,
@@ -31,6 +34,7 @@ class RelevesModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'id_releve': idReleve,
       'compteur_id': compteurId,
       'contrat_id': contratId,
       'client_id': clientId,
@@ -42,7 +46,8 @@ class RelevesModel {
 
   factory RelevesModel.fromJson(Map<String, dynamic> json) {
     return RelevesModel(
-      id: json['id_releve'] != null ? json['id_releve'] : 0,
+      id: json['id'] != null ? json['id'] : 0,
+      idReleve: json['id_releve'] != null ? json['id_releve'] : 0,
       compteurId: json['compteur_id'] != null ? json['compteur_id'] : 0,
       contratId: json['contrat_id'] != null ? json['contrat_id'] : 0,
       clientId: json['client_id'] != null ? json['client_id'] : 0,
@@ -55,6 +60,6 @@ class RelevesModel {
 
 
   String toString() {
-    return 'RelevesModel{id: $id, compteur_id: $compteurId, contrat_id: $contratId, client_id: $clientId, date_releve: $dateReleve, volume: $volume, conso: $conso}';
+    return 'RelevesModel{id: $id, idReleve: $idReleve, compteur_id: $compteurId, contrat_id: $contratId, client_id: $clientId, date_releve: $dateReleve, volume: $volume, conso: $conso}';
   }
 }

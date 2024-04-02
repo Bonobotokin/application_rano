@@ -1,15 +1,19 @@
 import 'dart:convert';
 
+import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
 import 'package:application_rano/data/models/contrat_model.dart';
 import 'package:application_rano/data/models/facture_model.dart';
+import 'package:application_rano/data/models/facture_payment_model.dart';
 import 'package:application_rano/data/models/home_model.dart';
 import 'package:application_rano/data/models/last_connected_model.dart';
 import 'package:application_rano/data/models/missions_model.dart';
 import 'package:application_rano/data/models/releves_model.dart';
 import 'package:application_rano/data/models/user.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 
 class SaveDataRepositoryLocale {
@@ -244,12 +248,14 @@ class SaveDataRepositoryLocale {
 
   Future<void> saveReleverDetailsRelever(List<RelevesModel> relevesModels) async {
     try {
+      print("teste $relevesModels");
       final db = await NiADatabases().database;
       for (final releve in relevesModels) {
         final List<Map<String, dynamic>> existingRows = await db.query(
           'releves',
-          where: 'compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ?',
+          where: '  id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ?',
           whereArgs: [
+            releve.idReleve,
             releve.compteurId,
             releve.contratId,
             releve.clientId,
@@ -281,6 +287,7 @@ class SaveDataRepositoryLocale {
 
   Future<void> saveFactureData(FactureModel factureModel) async {
     try {
+
       final db = await NiADatabases().database;
       final List<Map<String, dynamic>> existingRows = await db.query(
         'facture',
@@ -313,36 +320,83 @@ class SaveDataRepositoryLocale {
       if (existingRows.isNotEmpty) {
         print('Les données de facture existent déjà dans la base de données locale.');
         return;
+      } else {
+        final factureId = await db.insert(
+          'facture',
+          factureModel.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+        final DateTime now = DateTime.now();
+        await db.insert(
+          'facture_paiment',
+          {
+            'facture_id': factureModel.id,
+            'relevecompteur_id': factureModel.relevecompteurId is int ? factureModel.relevecompteurId : 0,
+            'paiement': 0.0, // Utilisez un entier au lieu d'un double
+            'date_paiement': DateFormat('yyyy-MM-dd').format(now).toString(),
+            // Ajoutez d'autres champs si nécessaire
+          },
+        );
+
+
+        print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
       }
-      await db.insert(
-        'facture',
-        factureModel.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace,
-      );
-
-      print('Données du facture enregistrées avec succès dans la base de données locale : $factureModel');
-
     } catch (e) {
       throw Exception("Failed to save facture data to local database: $e");
     }
   }
 
+  Future<void> saveAnomalieData(List<AnomalieModel> anomalie) async {
+    try {
+      print(anomalie);
+      final db = await NiADatabases().database;
+      for (final anomalies in anomalie) {
+        final List<Map<String, dynamic>> existingRows = await db.query(
+          'anomalie',
+          where: 'id = ? AND '
+              'id_mc = ? AND '
+              'type_mc = ? AND '
+              'date_declaration = ? AND '
+              'longitude_mc = ? AND '
+              'latitude_mc = ? AND '
+              'description_mc = ? AND '
+              'client_declare = ? AND '
+              'cp_commune = ? AND '
+              'commune = ? AND '
+              'status = ?',
+          whereArgs: [
+            anomalies.id,
+            anomalies.idMc,
+            anomalies.typeMc,
+            anomalies.dateDeclaration,
+            anomalies.longitudeMc,
+            anomalies.latitudeMc,
+            anomalies.descriptionMc,
+            anomalies.clientDeclare,
+            anomalies.cpCommune,
+            anomalies.commune,
+            anomalies.status
+          ],
+        );
 
+        if (existingRows.isNotEmpty) {
+          print(
+              'Les données de facture existent déjà dans la base de données locale.');
+          return;
+        } else {
+          await db.insert(
+            'anomalie',
+            anomalies.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
 
-// Future<void> saveFactureData(List<FactureModel> factureData) async {
-  //   final db = await NiADatabases().database;
-  //   await db.transaction((txn) async {
-  //     for (final facture in factureData) {
-  //       // Vérifier si la facture existe déjà localement
-  //       final existingFacture = await _factureLocalRepository.getFactureById(facture.id);
-  //       if (existingFacture == null) {
-  //         // Si la facture n'existe pas déjà, l'insérer dans la base de données locale
-  //         await _saveDataRepositoryLocale.saveFactureData(facture);
-  //       } else {
-  //         // Si la facture existe déjà, passer à la suivante
-  //         print("Facture with ID ${facture.id} already exists locally. Skipping insertion.");
-  //       }
-  //     }
-  //   });
-  // }
+          print(
+              'Données de Anomalie enregistrées avec succès dans la base de données locale : $anomalies');
+        }
+      }
+    } catch (e) {
+      throw Exception("Échec de l'enregistrement des données d'anomalie dans la base de données locale : $e");
+    }
+  }
+
 }

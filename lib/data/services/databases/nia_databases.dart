@@ -12,6 +12,8 @@ import 'package:application_rano/data/services/databases/relevesDb.dart';
 import 'package:application_rano/data/services/databases/last_connectedDb.dart';
 import 'package:application_rano/data/services/databases/synchroDb.dart';
 import 'package:application_rano/data/services/databases/factureDb.dart';
+import 'package:application_rano/data/services/databases/facturePaymentDb.dart';
+import 'package:application_rano/data/services/databases/anomalieDb.dart';
 
 class NiADatabases {
   Database? _database;
@@ -66,6 +68,8 @@ class NiADatabases {
       await last_connected_db().createTable(db);
       await synchro_db().createTable(db);
       await facture_db().createTable(db);
+      await facture_payment_db().createTable(db);
+      await anomalie_db().createTable(db);
     } catch (e) {
       throw Exception("Failed to create tables: $e");
     }

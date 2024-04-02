@@ -6,10 +6,12 @@ class synchro_db {
       await db.execute('''
         CREATE TABLE IF NOT EXISTS synchro_status (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          mission_id INTEGER,
+          mission_id INTEGER NUL,
+          facture_id INTEGER NUL,
           status INTEGER,
           last_sync TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (mission_id) REFERENCES missions(id)
+          FOREIGN KEY (mission_id) REFERENCES missions(id),
+          FOREIGN KEY (facture_id) REFERENCES facture(id)
         );
       ''');
     } catch (e) {

@@ -1,3 +1,5 @@
+import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
+import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -71,6 +73,11 @@ class AppLayout extends StatelessWidget {
                 break;
               case 2: // Correspond à l'icône de notification
                 // Ajoutez ici la logique pour gérer les notifications
+                if (authState is AuthSuccess) {
+                  BlocProvider.of<AnomalieBLoc>(context).add(LoadAnomalie(
+                      accessToken: authState.userInfo.lastToken ?? ''));
+                  Get.offNamed(AppRoutes.anomaliePage);
+                }
                 break;
               case 5: // Correspond à l'icône de profil
                 if (authState is AuthSuccess) {

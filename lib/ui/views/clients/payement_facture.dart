@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
@@ -10,7 +11,9 @@ import 'package:application_rano/blocs/payements/payement_bloc.dart';
 import 'package:application_rano/blocs/payements/payement_event.dart';
 import 'package:application_rano/blocs/payements/payement_state.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
+import 'package:path/path.dart';
 
+import '../../../data/models/facture_payment_model.dart';
 import '../../widgets/PaymentFormPopup.dart';
 
 class PaymentFacture extends StatelessWidget {
@@ -46,6 +49,7 @@ class PaymentFacture extends StatelessWidget {
                       children: [
                         _buildHeader(context, state),
                         _buildOrderDetails(context, state),
+                        buildDetails(context, state),
                         buildTotal(context, state),
                         buildPayButton(context, state, authState),
                       ],
@@ -91,10 +95,29 @@ class PaymentFacture extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Détails de la facture',
-            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Détails de la facture',
+                  style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                ),
+              ),
+              SizedBox(width: 20), // Espacement entre les deux textes
+              Expanded(
+                child: Text(
+                  '${state.factures.statut}',
+                  style: TextStyle(
+                    fontSize: 18.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green, // Couleur verte
+                  ),
+                ),
+              ),
+
+            ],
           ),
+
           SizedBox(height: 20.0),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,6 +134,7 @@ class PaymentFacture extends StatelessWidget {
                 buildOrderItem(context, releve.dateReleve, releve.volume.toString(), releve.conso.toString()),
             ],
           ),
+
         ],
       ),
     );
@@ -166,8 +190,44 @@ class PaymentFacture extends StatelessWidget {
     );
   }
 
+  Widget buildDetails(BuildContext context, PayementLoaded state) {
+    final payment = state.payment;
+    return ExpansionTile(
+
+      title: Text('Détails du paiement'),
+      children: [
+        Row(
+          children: [
+            SizedBox(width: 20),
+            Expanded(
+              child: Text(
+                'ID: ${payment.relevecompteurId} / Date : ${payment.datePaiement}',
+                style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+              ),
+            ),
+            SizedBox(width: 10), // Espacement entre les deux textes
+            Expanded(
+              child: Text(
+                'Paiement: ${payment.paiement} Ar',
+                style: TextStyle(
+                  fontSize: 14.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.orange, // Couleur verte
+                ),
+              ),
+            ),
+
+          ],
+        ),
+      ],
+    );
+  }
+
+
   Widget buildTotal(BuildContext context, PayementLoaded state) {
     final factures = state.factures;
+    final payment = state.payment;
+    final payed = factures.montantTotalTTC - payment.paiement;
     return Container(
       color: Colors.blue,
       padding: EdgeInsets.all(20.0),
@@ -175,7 +235,7 @@ class PaymentFacture extends StatelessWidget {
         children: [
           buildTotalRow('Prix par m3', '${factures.tarifM3} Ar'),
           buildTotalRow('Total général (Incl. Taxe)', '${factures.montantTotalTTC} Ar'),
-          buildTotalRow('Total', '${factures.totalConsoHT} Ar'),
+          buildTotalRow('Total', '${payed} Ar'),
         ],
       ),
     );
@@ -232,27 +292,43 @@ class PaymentFacture extends StatelessWidget {
   }
 
 
-  void _showFormDialog(BuildContext context) {
+  void _showFormDialog(BuildContext context, state, authState) {
     TextEditingController _amountController = TextEditingController();
+    GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: Text('Paiement'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Montant à payer ${widget.facture.totalConsoHT} Ar :'),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  hintText: 'Entrez le montant',
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Montant à payer : ${state.factures.montantTotalTTC}'),
+                TextFormField(
+                  controller: _amountController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    hintText: 'Entrez le montant',
+                  ),
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // Autoriser uniquement les chiffres
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Veuillez entrer un montant';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Veuillez entrer un nombre valide';
+                    }
+                    return null;
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -263,15 +339,20 @@ class PaymentFacture extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () {
-                double amount = double.tryParse(_amountController.text) ?? 0.0;
-                if (widget.authState is AuthSuccess) {
-                  final paymentBloc = context.read<PaymentBloc>(); // Utiliser context.read pour obtenir le bloc
-                  paymentBloc.add(UpdateFacture(
-                    idFacture: widget.facture.id,
-                    montant: amount,
-                  ));
+                if (_formKey.currentState != null && _formKey.currentState!.validate()) {
+                  double amount = double.parse(_amountController.text);
+                  if (authState is AuthSuccess) {
+                    final paymentBloc = context.read<PaymentBloc>();
+                    paymentBloc.add(UpdateFacture(
+                      idFacture: state.factures.id!,
+                      montant: amount,
+                    ));
+                  }
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Facture enregistrer avec succès')),
+                  );
                 }
-                Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,

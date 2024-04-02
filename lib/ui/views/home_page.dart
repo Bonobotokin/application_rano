@@ -1,3 +1,5 @@
+import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
+import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -99,8 +101,16 @@ Widget _buildHomePageWithData(
                   Color(0x9987D9E1)!,
                   authState),
               SizedBox(height: 16),
-              _buildCard(context, 20, 20, "Factures", Icons.receipt,
-                  Color(0xA6BE9BF3)!, authState),
+              _buildCard(
+                  context,
+                  data.nombreTotalFacturePayer,
+                  data.nombreTotalFactureImpayer,
+                  "Factures",
+                  Icons.receipt,
+                  Color(0xA6BE9BF3)!,
+                  authState),
+              // _buildCard(context, 20, 20, "Factures", Icons.receipt,
+              //     Color(0xA6BE9BF3)!, authState),
               SizedBox(height: 16),
             ],
           ),
@@ -128,7 +138,7 @@ Widget _buildCard(BuildContext context, int current, int total, String label,
         if (label == "Relevé de compteurs") {
           _handleReleveDeCompteurs(context, authState);
         } else if (label == "Main courante") {
-          // Redirect to Main courante page
+          _handleAnomalie(context, authState);
         } else if (label == "Traites") {
           // Redirect to Traites page
         } else if (label == "Factures") {
@@ -266,3 +276,10 @@ void _handleReleveDeCompteurs(BuildContext context, AuthSuccess authState) {
       .add(LoadMissions(accessToken: authState.userInfo.lastToken ?? ''));
   Get.toNamed(AppRoutes.missions);
 }
+
+void _handleAnomalie(BuildContext context, AuthSuccess authState) {
+  BlocProvider.of<AnomalieBLoc>(context)
+      .add(LoadAnomalie(accessToken: authState.userInfo.lastToken ?? ''));
+  Get.toNamed(AppRoutes.anomaliePage);
+}
+

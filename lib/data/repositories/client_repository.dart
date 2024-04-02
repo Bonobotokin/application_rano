@@ -64,6 +64,7 @@ class ClientRepository {
         final releves = rows
             .map((row) => RelevesModel(
                   id: row['id'],
+                  idReleve: int.parse(row['id_releve'].toString()),
                   compteurId: int.parse(row['compteur_id'].toString()),
                   contratId: int.parse(row['contrat_id'].toString()),
                   clientId: int.parse(row['client_id'].toString()),
@@ -115,6 +116,7 @@ class ClientRepository {
       // Convertir les résultats de la requête en objets RelevesModel
       specificDateReleves = specificDateRows.map((row) => RelevesModel(
         id: row['id'],
+        idReleve: row['id_releve'],
         compteurId: int.parse(row['compteur_id'].toString()),
         contratId: row['contrat_id'],
         clientId: row['client_id'],
@@ -125,6 +127,7 @@ class ClientRepository {
 
       previousDateReleves = previousDateRows.map((row) => RelevesModel(
         id: row['id'],
+        idReleve: row['id_releve'],
         compteurId: int.parse(row['compteur_id'].toString()),
         contratId: row['contrat_id'],
         clientId: row['client_id'],

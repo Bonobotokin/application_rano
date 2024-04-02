@@ -73,7 +73,7 @@ class AuthRepository {
           final homeModel = HomeModel.fromJson(jsonDecode(response.body));
           await saveDataRepositoryLocale.saveHomeDataToLocalDatabase(
               homeModel); // Enregistrer les données d'accueil localement
-          print(homeModel);
+          print("homeMOdel $homeModel");
           return jsonDecode(response.body);
         } else {
           throw Exception('Failed to fetch home data: ${response.statusCode}');
@@ -154,7 +154,8 @@ class AuthRepository {
 
           final releves = (relevesData as List).map((releve) {
             return RelevesModel(
-              id: releve['id_releve'] is int ? releve['id_releve'] : 0,
+              id: releve['id'] is int ? releve['id'] : 0,
+              idReleve: releve['id_releve'] is int ? releve['id_releve'] : 0,
               compteurId:
                   releve['compteur_id'] is int ? releve['compteur_id'] : '0',
               contratId: releve['contrat_id'] is int ? releve['contrat_id'] : 0,
