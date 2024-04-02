@@ -31,35 +31,35 @@ class SyncService {
       // Synchronisation anomalie
       await _syncAnomalie.syncAnomalieTable(accessToken);
 
-      // final missionsData = await _syncMission.syncMissionTable(accessToken);
-      // final idRelievers = <int>[]; // Utilisation d'une liste typée pour stocker les idReliever
+      final missionsData = await _syncMission.syncMissionTable(accessToken);
+      final idRelievers = <int>[]; // Utilisation d'une liste typée pour stocker les idReliever
       //
-      // for (var mission in missionsData) {
-      //   final numCompteur = int.parse(mission.numCompteur.toString());
-      //   print("num_compteur $numCompteur");
-      //   final idReliever = int.parse(mission.id.toString());
-      //
-      //   print("idReliever $idReliever");
-      //
-      //   final clientDetails = await authRepository.fetchDataClientDetails(numCompteur, accessToken);
-      //
-      //   await saveDataRepositoryLocale.saveCompteurDetailsRelever(clientDetails['compteur']);
-      //   await saveDataRepositoryLocale.saveContraDetailsRelever(clientDetails['contrat']);
-      //   await saveDataRepositoryLocale.saveClientDetailsRelever(clientDetails['client']);
-      //   await saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves']);
-      //
-      //   idRelievers.add(idReliever);
-      // }
-      //
-      // print("tableaux : $idRelievers");
-      //
-      // for (var idReliever in idRelievers) {
-      //   if (idReliever != null) {
-      //     await _syncFacture.syncFactureTable(accessToken, idReliever);
-      //   } else {
-      //     throw Exception('idReliever is null');
-      //   }
-      // }
+      for (var mission in missionsData) {
+        final numCompteur = int.parse(mission.numCompteur.toString());
+        print("num_compteur $numCompteur");
+        final idReliever = int.parse(mission.id.toString());
+
+        print("idReliever $idReliever");
+
+        final clientDetails = await authRepository.fetchDataClientDetails(numCompteur, accessToken);
+
+        await saveDataRepositoryLocale.saveCompteurDetailsRelever(clientDetails['compteur']);
+        await saveDataRepositoryLocale.saveContraDetailsRelever(clientDetails['contrat']);
+        await saveDataRepositoryLocale.saveClientDetailsRelever(clientDetails['client']);
+        await saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves']);
+
+        idRelievers.add(idReliever);
+      }
+
+      print("tableaux : $idRelievers");
+
+      for (var idReliever in idRelievers) {
+        if (idReliever != null) {
+          await _syncFacture.syncFactureTable(accessToken, idReliever);
+        } else {
+          throw Exception('idReliever is null');
+        }
+      }
 
 
     } catch (error) {
