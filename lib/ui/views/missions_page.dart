@@ -17,6 +17,8 @@ import 'package:application_rano/ui/routing/routes.dart';
 import 'package:get/get.dart';
 import '../shared/MaskedTextField.dart';
 class MissionsPage extends StatefulWidget {
+  const MissionsPage({super.key});
+
   @override
   _MissionsPageState createState() => _MissionsPageState();
 }
@@ -29,16 +31,16 @@ class _MissionsPageState extends State<MissionsPage> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
         return AppLayout(
-          backgroundColor: Color(0xFFF5F5F5),
+          backgroundColor: const Color(0xFFF5F5F5),
           currentIndex: 1,
           authState: authState,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
               Container(
-                padding: EdgeInsets.all(20.0),
-                child: Row(
+                padding: const EdgeInsets.all(20.0),
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
@@ -65,7 +67,7 @@ class _MissionsPageState extends State<MissionsPage> {
                         accessToken: authState is AuthSuccess
                             ? authState.userInfo.lastToken ?? ''
                             : ''));
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   } else {
                     return Container();
                   }
@@ -109,24 +111,24 @@ class _MissionsPageState extends State<MissionsPage> {
           Padding(
             padding: const EdgeInsets.all(0.0),
             child: Container(
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(color: Colors.grey, width: 1),
-                color: Color(0xFFEEEEEE),
+                color: const Color(0xFFEEEEEE),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(0.4),
                     blurRadius: 5,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 0),
                 child: TextField(
-                  style: TextStyle(fontSize: 16),
-                  decoration: InputDecoration(
+                  style: const TextStyle(fontSize: 16),
+                  decoration: const InputDecoration(
                     hintText: 'Rechercher...',
                     border: InputBorder.none,
                     prefixIcon: Icon(Icons.search, color: Colors.grey),
@@ -141,8 +143,8 @@ class _MissionsPageState extends State<MissionsPage> {
             ),
           ),
           if (filteredMissions.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -181,9 +183,9 @@ class _MissionsPageState extends State<MissionsPage> {
   Widget _buildMissionTile(
       BuildContext context, MissionModel mission, AuthState authState) {
     Color cardColor =
-    mission.statut == 1 ? Color(0xFFFFFFFF) : Color(0xFFBBDEFB);
+    mission.statut == 1 ? const Color(0xFFFFFFFF) : const Color(0xFFBBDEFB);
     Color btnColor =
-    mission.statut == 1 ? Color(0xFFEEE9E9) : Color(0xFFBBDEFB);
+    mission.statut == 1 ? const Color(0xFFEEE9E9) : const Color(0xFFBBDEFB);
     String buttonText = mission.statut == 1 ? 'Modifier' : 'Ajouter';
 
     return GestureDetector(
@@ -198,21 +200,21 @@ class _MissionsPageState extends State<MissionsPage> {
       },
       child: Card(
         elevation: 5,
-        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         color: cardColor,
         child: ListTile(
-          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           title: Row(
             children: [
               Icon(Icons.account_circle,
                   color: mission.statut == 1 ? Colors.grey : Colors.blue),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 '${mission.nomClient} ${mission.prenomClient}',
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -221,8 +223,8 @@ class _MissionsPageState extends State<MissionsPage> {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 10),
-              Text('Adresse: ${mission.adresseClient}'),
+              const SizedBox(height: 10),
+              Text('Adresse: ${mission.id}'),
               Text('Num Compteur: ${mission.numCompteur}'),
               Text('Volume Dernier Releve: ${mission.volumeDernierReleve}'),
               Text('Date Dernier Releve: ${mission.dateReleve}'),
@@ -243,19 +245,19 @@ class _MissionsPageState extends State<MissionsPage> {
         _showFormDialog(context, mission, authState, isUpdate: mission.statut == 1);
       },
       child: Container(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: mission.statut == 1 ? Color(0xFF1991B6) : Color(0xFF37087E),
+          color: mission.statut == 1 ? const Color(0xFF1991B6) : const Color(0xFF37087E),
           borderRadius: BorderRadius.circular(5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add, color: Colors.white),
-            SizedBox(width: 6),
+            const Icon(Icons.add, color: Colors.white),
+            const SizedBox(width: 6),
             Text(
               buttonText,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -268,15 +270,16 @@ class _MissionsPageState extends State<MissionsPage> {
 
   Future<void> _showFormDialog(
       BuildContext context, MissionModel mission, AuthState authState, {bool isUpdate = false}) async {
-    File? _image;
+    File? image;
     TextEditingController volumeController = TextEditingController();
     TextEditingController dateController = TextEditingController();
 
     DateTime currentDate = DateTime.now();
     String formattedDate = DateFormat('yyyy-MM-dd').format(currentDate);
+    dateController.text = formattedDate; // Définir la date actuelle comme valeur par défaut
     String dateValue = formattedDate;
 
-    final _formKey = GlobalKey<FormState>(); // Ajout de la clé pour le formulaire
+    final formKey = GlobalKey<FormState>(); // Ajout de la clé pour le formulaire
 
     showDialog<void>(
       context: context,
@@ -284,18 +287,18 @@ class _MissionsPageState extends State<MissionsPage> {
         return AlertDialog(
           title: Text(
             'Nouveaux consommation de ${mission.numCompteur}, ${mission.adresseClient} - $formattedDate',
-            style: TextStyle(fontSize: 16),
+            style: const TextStyle(fontSize: 16),
           ),
           content: SingleChildScrollView(
             child: Form(
-              key: _formKey, // Utilisation de la clé pour le formulaire
+              key: formKey, // Utilisation de la clé pour le formulaire
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextFormField(
                     controller: volumeController,
                     keyboardType: TextInputType.number,
-                    decoration: InputDecoration(labelText: 'Volumes'),
+                    decoration: const InputDecoration(labelText: 'Volumes'),
                     inputFormatters: <TextInputFormatter>[
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // Autoriser uniquement les chiffres
                     ],
@@ -307,28 +310,28 @@ class _MissionsPageState extends State<MissionsPage> {
                     },
                   ),
 
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   MaskedTextField(
                     mask: 'xxxx-xx-xx', // Adapté pour le format de date 'yyyy-MM-dd'
                     controller: dateController,
-                    inputDecoration: InputDecoration(
+                    inputDecoration: const InputDecoration(
                       labelText: 'Date',
                       hintText: 'YYYY-MM-DD',
                     ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      _image = await _getImage();
+                      image = await _getImage();
                       Navigator.of(context).pop();
                     },
-                    icon: Icon(Icons.camera_alt),
-                    label: Text('Prendre une photo'),
+                    icon: const Icon(Icons.camera_alt),
+                    label: const Text('Prendre une photo'),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () async {
-                      if (_formKey.currentState!.validate()) { // Validation du formulaire
+                      if (formKey.currentState!.validate()) { // Validation du formulaire
                         String volumeValue = volumeController.text;
                         String dateValue = dateController.text;
 

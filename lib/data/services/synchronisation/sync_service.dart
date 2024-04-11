@@ -1,6 +1,3 @@
-import 'package:http/http.dart' as http;
-import 'package:application_rano/data/models/missions_model.dart';
-import 'package:application_rano/data/services/databases/factureDb.dart';
 import 'package:application_rano/data/services/saveData/save_data_service_locale.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
 import '../config/api_configue.dart';
@@ -27,43 +24,43 @@ class SyncService {
 
   Future<void> syncDataWithServer(String? accessToken) async {
     try {
+      final idRelievers = <int>[]; // Déclaration de la liste en dehors de la boucle for
 
       // Synchronisation anomalie
       await _syncAnomalie.syncAnomalieTable(accessToken);
 
       final missionsData = await _syncMission.syncMissionTable(accessToken);
-      final idRelievers = <int>[]; // Utilisation d'une liste typée pour stocker les idReliever
-      //
+
       for (var mission in missionsData) {
         final numCompteur = int.parse(mission.numCompteur.toString());
         print("num_compteur $numCompteur");
-        final idReliever = int.parse(mission.id.toString());
-
-        print("idReliever $idReliever");
 
         final clientDetails = await authRepository.fetchDataClientDetails(numCompteur, accessToken);
 
         await saveDataRepositoryLocale.saveCompteurDetailsRelever(clientDetails['compteur']);
         await saveDataRepositoryLocale.saveContraDetailsRelever(clientDetails['contrat']);
         await saveDataRepositoryLocale.saveClientDetailsRelever(clientDetails['client']);
-        await saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves']);
+        print("date verrifie Releve ${clientDetails['releves']}");
 
-        idRelievers.add(idReliever);
+        for (var releveData in clientDetails['releves']) {
+          print("date id Releve ${releveData.id}");
+          final idReliever = int.parse(releveData.id.toString());
+          print("idReliever $idReliever");
+          idRelievers.add(idReliever); // Ajout de l'idReliever à la liste
+        }
+
+        await saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves']);
       }
 
       print("tableaux : $idRelievers");
 
       for (var idReliever in idRelievers) {
-        if (idReliever != null) {
-          await _syncFacture.syncFactureTable(accessToken, idReliever);
-        } else {
-          throw Exception('idReliever is null');
-        }
+        print("idTableaux : $idReliever");
+        await _syncFacture.syncFactureTable(accessToken, idReliever);
       }
-
-
     } catch (error) {
       throw Exception('Failed to sync data: $error');
     }
   }
+
 }

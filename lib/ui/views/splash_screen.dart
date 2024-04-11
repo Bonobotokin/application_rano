@@ -8,7 +8,7 @@ import '../widgets/CustomLinearProgressIndicator.dart';
 import 'package:get/get.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     _serverBloc = BlocProvider.of<ServerBloc>(context);
     _serverBloc
-        .add(CheckServerStatusEvent('Vérification de l\'état du serveur'));
+        .add(const CheckServerStatusEvent('Vérification de l\'état du serveur'));
   }
 
   @override
@@ -34,17 +34,15 @@ class _SplashScreenState extends State<SplashScreen> {
             if (status == ServerStatus.connected) {
               print(
                   "Synchronisation réussie. Redirection vers la page de connexion...");
-              Future.delayed(Duration(seconds: 5), () {
+              Future.delayed(const Duration(seconds: 5), () {
                 Get.offNamed(
                     AppRoutes.login); // Redirection vers la page de connexion
               });
-              ;
             } else if (status == ServerStatus.disconnected) {
               print("Serveur déconnecté. Affichage du message d'erreur...");
-              Future.delayed(Duration(seconds: 5), () {
+              Future.delayed(const Duration(seconds: 5), () {
                 Get.offNamed(AppRoutes.login);
               });
-              ;
             }
           },
           builder: (context, status) {
@@ -69,10 +67,10 @@ class _SplashScreenState extends State<SplashScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Logo(),
-        SizedBox(height: 16),
-        CustomLinearProgressIndicator(),
-        SizedBox(height: 16),
+        const Logo(),
+        const SizedBox(height: 16),
+        const CustomLinearProgressIndicator(),
+        const SizedBox(height: 16),
         Text(message),
       ],
     );
@@ -82,13 +80,13 @@ class _SplashScreenState extends State<SplashScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Logo(),
-        SizedBox(height: 16),
+        const Logo(),
+        const SizedBox(height: 16),
         CircularProgressIndicator(
           backgroundColor: Colors.grey[200],
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
+          valueColor: const AlwaysStoppedAnimation<Color>(Colors.red),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Text(message),
       ],
     );

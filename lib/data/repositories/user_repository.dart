@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:application_rano/data/models/user.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
 import 'package:sqflite/sqflite.dart';
@@ -11,11 +9,11 @@ class UserRepository {
       await db.transaction((txn) async {
         for (var utilisateur in users) {
           // Récupérer l'ID de l'utilisateur à partir de l'objet User
-          int? id_utilisateur = utilisateur.id_utilisateur;
+          int? idUtilisateur = utilisateur.id_utilisateur;
           // Créer la carte des données à insérer, y compris l'ID de l'utilisateur si disponible
           Map<String, dynamic> userData = utilisateur.toMapExcludingId();
-          if (id_utilisateur != null) {
-            userData['id_utilisateur'] = id_utilisateur;
+          if (idUtilisateur != null) {
+            userData['id_utilisateur'] = idUtilisateur;
           }
           // Insérer les données dans la base de données
           await txn.insert(

@@ -1,18 +1,15 @@
-import 'dart:convert';
 
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
 import 'package:application_rano/data/models/contrat_model.dart';
 import 'package:application_rano/data/models/facture_model.dart';
-import 'package:application_rano/data/models/facture_payment_model.dart';
 import 'package:application_rano/data/models/home_model.dart';
 import 'package:application_rano/data/models/last_connected_model.dart';
 import 'package:application_rano/data/models/missions_model.dart';
 import 'package:application_rano/data/models/releves_model.dart';
 import 'package:application_rano/data/models/user.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -112,56 +109,102 @@ class SaveDataRepositoryLocale {
 
         if (existingRows.isNotEmpty) {
           print('Les données d\'accueil existent déjà dans la base de données locale.');
+
+          // Si les données existent déjà, effectuer une mise à jour
+          await txn.update(
+            'acceuil',
+            homeModel.toMap(),
+            where: 'totale_anomalie = ? AND realise = ? AND nombre_total_compteur = ? AND nombre_relever_effectuer = ?',
+            whereArgs: [
+              homeModel.totaleAnomalie,
+              homeModel.realise,
+              homeModel.nombreTotalCompteur,
+              homeModel.nombreReleverEffectuer,
+            ],
+          );
+
+          // Affichage de l'aperçu pour les données d'accueil mises à jour
+          print('Données d\'accueil mises à jour avec succès dans la base de données locale: $homeModel');
           return;
         }
 
+        // Si les données n'existent pas, effectuer une insertion
         await txn.insert(
           'acceuil',
           homeModel.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
 
-        print('Données d\'accueil enregistrées avec succès dans la base de données locale.');
+        // Affichage de l'aperçu pour les données d'accueil enregistrées
+        print('Données d\'accueil enregistrées avec succès dans la base de données locale: $homeModel');
       });
     } catch (error) {
       throw Exception("Failed to save home data to local database: $error");
     }
   }
 
+
+
   Future<void> saveMissionsDataToLocalDatabase(Transaction txn, List<MissionModel> missions) async {
     try {
       for (final mission in missions) {
         final List<Map<String, dynamic>> existingRows = await txn.query(
           'missions',
-          where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ? AND conso_dernier_releve = ? AND volume_dernier_releve = ? AND date_releve = ? AND statut = ?',
+          where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ? ',
           whereArgs: [
             mission.nomClient,
             mission.prenomClient,
             mission.adresseClient,
-            mission.numCompteur,
-            mission.consoDernierReleve,
-            mission.volumeDernierReleve,
-            mission.dateReleve,
-            mission.statut,
+            mission.numCompteur
+            // mission.consoDernierReleve,
+            // mission.volumeDernierReleve,
+            // mission.dateReleve,
+            // mission.statut,
           ],
         );
 
         if (existingRows.isNotEmpty) {
           print('Les données de mission existent déjà dans la base de données locale.');
+
+          // Update des données de mission
+          await txn.update(
+            'missions',
+            mission.toJson(),
+            where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ? ',
+            whereArgs: [
+              mission.nomClient,
+              mission.prenomClient,
+              mission.adresseClient,
+              mission.numCompteur
+              // mission.consoDernierReleve,
+              // mission.volumeDernierReleve,
+              // mission.dateReleve,
+              // mission.statut,
+            ],
+          );
+
+          // Affichage de l'aperçu pour chaque mission mise à jour
+          print('Données de mission mises à jour avec succès dans la base de données locale : $mission');
+
           continue;
         }
 
+        // Si aucune donnée de mission existante, alors effectuer une insertion
         await txn.insert(
           'missions',
           mission.toJson(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        print('Données de mission enregistrées avec succès dans la base de données locale.');
+
+        // Affichage de l'aperçu pour chaque mission enregistrée
+        print('Données de mission enregistrées avec succès dans la base de données locale : $mission');
       }
     } catch (error) {
       throw Exception("Failed to save missions data to local database: $error");
     }
   }
+
+
 
   Future<void> saveCompteurDetailsRelever(CompteurModel compteurModel) async {
     try {
@@ -182,11 +225,13 @@ class SaveDataRepositoryLocale {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      print('Données du compteur enregistrées avec succès dans la base de données locale.');
+      // Affichage de l'aperçu pour le compteur enregistré
+      print('Données du compteur enregistrées avec succès dans la base de données locale : $compteurModel');
     } catch (error) {
       throw Exception("Failed to save compteur data to local database: $error");
     }
   }
+
 
   Future<void> saveContraDetailsRelever(ContratModel contratModel) async {
     try {
@@ -206,15 +251,19 @@ class SaveDataRepositoryLocale {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      print('Données du contrat enregistrées avec succès dans la base de données locale.');
+      // Affichage de l'aperçu pour le contrat enregistré
+      print('Données du contrat enregistrées avec succès dans la base de données locale : $contratModel');
     } catch (error) {
       throw Exception("Failed to save contrat data to local database: $error");
     }
   }
 
+
   Future<void> saveClientDetailsRelever(ClientModel clientModel) async {
     try {
       final db = await NiADatabases().database;
+
+      // Vérifier si les données du client existent déjà localement
       final List<Map<String, dynamic>> existingRows = await db.query(
         'client',
         where: 'nom = ? AND prenom = ? AND adresse = ? AND commune = ? AND region = ? AND telephone_1 = ? AND telephone_2 = ? AND actif = ?',
@@ -229,11 +278,13 @@ class SaveDataRepositoryLocale {
           clientModel.actif,
         ],
       );
+
       if (existingRows.isNotEmpty) {
         print('Les données de client existent déjà dans la base de données locale.');
         return;
       }
 
+      // Insérer les données du client dans la base de données locale
       await db.insert(
         'client',
         clientModel.toMap(),
@@ -241,19 +292,42 @@ class SaveDataRepositoryLocale {
       );
 
       print('Données du client enregistrées avec succès dans la base de données locale.');
+
+      // Vérifier si les données du client ont été correctement enregistrées
+      final List<Map<String, dynamic>> insertedRows = await db.query(
+        'client',
+        where: 'nom = ? AND prenom = ? AND adresse = ? AND commune = ? AND region = ? AND telephone_1 = ? AND telephone_2 = ? AND actif = ?',
+        whereArgs: [
+          clientModel.nom,
+          clientModel.prenom,
+          clientModel.adresse,
+          clientModel.commune,
+          clientModel.region,
+          clientModel.telephone_1,
+          clientModel.telephone_2,
+          clientModel.actif,
+        ],
+      );
+
+      if (insertedRows.isEmpty) {
+        print('Erreur : les données du client n\'ont pas été enregistrées correctement localement.');
+      } else {
+        print('Vérification réussie : les données du client ont été correctement enregistrées localement.');
+        print('Données insérées : $insertedRows');
+      }
     } catch (error) {
       throw Exception("Failed to save client data to local database: $error");
     }
   }
 
+
   Future<void> saveReleverDetailsRelever(List<RelevesModel> relevesModels) async {
     try {
-      print("teste $relevesModels");
       final db = await NiADatabases().database;
       for (final releve in relevesModels) {
         final List<Map<String, dynamic>> existingRows = await db.query(
           'releves',
-          where: '  id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ?',
+          where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ?',
           whereArgs: [
             releve.idReleve,
             releve.compteurId,
@@ -266,7 +340,7 @@ class SaveDataRepositoryLocale {
         );
 
         if (existingRows.isNotEmpty) {
-          print('Les données de mission existent déjà dans la base de données locale.');
+          print('Les données de relevé existent déjà dans la base de données locale.');
           continue;
         }
 
@@ -275,33 +349,24 @@ class SaveDataRepositoryLocale {
           releve.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        print('Données de mission enregistrées avec succès dans la base de données locale.');
+        // Affichage de l'aperçu pour le relevé enregistré
+        print('Données de relevé enregistrées avec succès dans la base de données locale : $releve');
       }
 
       final List<Map<String, dynamic>> savedRows = await db.query('releves');
       print('Données enregistrées : $savedRows');
     } catch (error) {
-      throw Exception("Failed to save missions data to local database: $error");
+      throw Exception("Failed to save releves data to local database: $error");
     }
   }
 
+
   Future<void> saveFactureData(FactureModel factureModel) async {
     try {
-
       final db = await NiADatabases().database;
       final List<Map<String, dynamic>> existingRows = await db.query(
         'facture',
-        where: 'relevecompteur_id = ? AND '
-            'num_facture = ? AND '
-            'num_compteur = ? AND '
-            'date_facture = ? AND '
-            'total_conso_ht = ? AND '
-            'tarif_m3 = ? AND '
-            'avoir_avant = ? AND '
-            'avoir_utilise = ? AND '
-            'restant_precedant = ? AND '
-            'montant_total_ttc = ? AND '
-            'statut = ?',
+        where: 'relevecompteur_id = ? AND num_facture = ? AND num_compteur = ? AND date_facture = ? AND total_conso_ht = ? AND tarif_m3 = ? AND avoir_avant = ? AND avoir_utilise = ? AND restant_precedant = ? AND montant_total_ttc = ? AND statut = ?',
         whereArgs: [
           factureModel.relevecompteurId,
           factureModel.numFacture,
@@ -331,20 +396,21 @@ class SaveDataRepositoryLocale {
           'facture_paiment',
           {
             'facture_id': factureModel.id,
-            'relevecompteur_id': factureModel.relevecompteurId is int ? factureModel.relevecompteurId : 0,
+            'relevecompteur_id': factureModel.relevecompteurId ?? 0,
             'paiement': 0.0, // Utilisez un entier au lieu d'un double
             'date_paiement': DateFormat('yyyy-MM-dd').format(now).toString(),
             // Ajoutez d'autres champs si nécessaire
           },
         );
 
-
+        // Affichage de l'aperçu pour la facture enregistrée
         print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
       }
-    } catch (e) {
-      throw Exception("Failed to save facture data to local database: $e");
+    } catch (error) {
+      throw Exception("Failed to save facture data to local database: $error");
     }
   }
+
 
   Future<void> saveAnomalieData(List<AnomalieModel> anomalie) async {
     try {
@@ -353,17 +419,7 @@ class SaveDataRepositoryLocale {
       for (final anomalies in anomalie) {
         final List<Map<String, dynamic>> existingRows = await db.query(
           'anomalie',
-          where: 'id = ? AND '
-              'id_mc = ? AND '
-              'type_mc = ? AND '
-              'date_declaration = ? AND '
-              'longitude_mc = ? AND '
-              'latitude_mc = ? AND '
-              'description_mc = ? AND '
-              'client_declare = ? AND '
-              'cp_commune = ? AND '
-              'commune = ? AND '
-              'status = ?',
+          where: 'id = ? AND id_mc = ? AND type_mc = ? AND date_declaration = ? AND longitude_mc = ? AND latitude_mc = ? AND description_mc = ? AND client_declare = ? AND cp_commune = ? AND commune = ? AND status = ?',
           whereArgs: [
             anomalies.id,
             anomalies.idMc,
@@ -380,8 +436,7 @@ class SaveDataRepositoryLocale {
         );
 
         if (existingRows.isNotEmpty) {
-          print(
-              'Les données de facture existent déjà dans la base de données locale.');
+          print('Les données d\'anomalie existent déjà dans la base de données locale.');
           return;
         } else {
           await db.insert(
@@ -390,13 +445,14 @@ class SaveDataRepositoryLocale {
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
 
-          print(
-              'Données de Anomalie enregistrées avec succès dans la base de données locale : $anomalies');
+          // Affichage de l'aperçu pour l'anomalie enregistrée
+          print('Données d\'Anomalie enregistrées avec succès dans la base de données locale : $anomalies');
         }
       }
     } catch (e) {
       throw Exception("Échec de l'enregistrement des données d'anomalie dans la base de données locale : $e");
     }
   }
+
 
 }

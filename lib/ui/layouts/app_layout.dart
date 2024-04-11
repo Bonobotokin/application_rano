@@ -18,12 +18,12 @@ class AppLayout extends StatelessWidget {
   final AuthState authState;
 
   const AppLayout({
-    Key? key,
+    super.key,
     required this.body,
     required this.backgroundColor,
     required this.currentIndex,
     required this.authState,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class AppLayout extends StatelessWidget {
         return Scaffold(
           backgroundColor: backgroundColor,
           body: Padding(
-            padding: EdgeInsets.only(
+            padding: const EdgeInsets.only(
                 top: 16), // Ajoute un espacement en haut du contenu
             child: body,
           ),
@@ -49,10 +49,10 @@ class AppLayout extends StatelessWidget {
       children: [
         BottomNavigationBar(
           iconSize: 25,
-          unselectedItemColor: Color(0xEA020D1C).withOpacity(0.5678),
-          selectedItemColor: Color(0xFFFF5722),
+          unselectedItemColor: const Color(0xEA020D1C).withOpacity(0.5678),
+          selectedItemColor: const Color(0xFFFF5722),
           elevation: 0,
-          backgroundColor: Color(0xB3EFEEEE),
+          backgroundColor: const Color(0xB3EFEEEE),
           type: BottomNavigationBarType.fixed,
           currentIndex: currentIndex,
           onTap: (value) {
@@ -90,19 +90,19 @@ class AppLayout extends StatelessWidget {
             }
           },
           items: [
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.home),
               label: "Accueil",
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.assignment),
               label: "Compteurs",
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.error_outline_sharp),
               label: "Anomalies",
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.notifications),
               label: "Notifications",
             ),
@@ -113,7 +113,7 @@ class AppLayout extends StatelessWidget {
                     _showUserInfoDialog(context, authState);
                   }
                 },
-                child: Icon(Icons.person_2_outlined),
+                child: const Icon(Icons.person_2_outlined),
               ),
               label: 'Profil',
             ),
@@ -144,15 +144,14 @@ class AppLayout extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return GestureDetector(
-          // Wrap with GestureDetector
           onTap: () {
             Navigator.of(context).pop(); // Close modal on tap
           },
           child: Container(
-            padding: EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 20),
+            padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 20),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
               ),
@@ -161,7 +160,7 @@ class AppLayout extends StatelessWidget {
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 2,
                   blurRadius: 7,
-                  offset: Offset(0, -3), // changes position of shadow
+                  offset: const Offset(0, -3), // changes position of shadow
                 ),
               ],
             ),
@@ -182,14 +181,25 @@ class AppLayout extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
-                Text(
+                const SizedBox(height: 20),
+                const Text(
                   'Informations de l\'utilisateur',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 _buildUserInfoItem('Nom', authState.userInfo.name),
                 _buildUserInfoItem('Commune', authState.userInfo.cpCommune),
+                Container(
+                  alignment: Alignment.center, // Aligner le bouton au centre
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Déclencher l'événement de déconnexion ici
+                      // BlocProvider.of<AuthBloc>(context).add(Logout());
+                      Navigator.of(context).pop(); // Fermer la boîte de dialogue
+                    },
+                    child: const Text('Déconnexion'),
+                  ),
+                ),
               ],
             ),
           ),
@@ -203,7 +213,7 @@ class AppLayout extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         '$label: ${value ?? 'Non spécifié'}',
-        style: TextStyle(fontSize: 16),
+        style: const TextStyle(fontSize: 16),
       ),
     );
   }

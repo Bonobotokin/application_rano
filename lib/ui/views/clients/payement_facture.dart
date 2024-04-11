@@ -1,22 +1,18 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
-import 'package:application_rano/blocs/auth/auth_bloc.dart';
-import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/blocs/payements/payement_bloc.dart';
 import 'package:application_rano/blocs/payements/payement_event.dart';
 import 'package:application_rano/blocs/payements/payement_state.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
-import 'package:path/path.dart';
 
-import '../../../data/models/facture_payment_model.dart';
-import '../../widgets/PaymentFormPopup.dart';
 
 class PaymentFacture extends StatelessWidget {
+  const PaymentFacture({super.key});
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
@@ -25,17 +21,17 @@ class PaymentFacture extends StatelessWidget {
           appBar: AppBar(
             backgroundColor: Colors.blue,
             elevation: 0,
-            title: Text('Paiement des factures'),
+            title: const Text('Paiement des factures'),
           ),
           body: AppLayout(
-            backgroundColor: Color(0xFFF5F5F5),
+            backgroundColor: const Color(0xFFF5F5F5),
             currentIndex: 1,
             authState: authState,
             body: BlocBuilder<PaymentBloc, PaymentState>(
               builder: (context, state) {
                 final paymentBloc = BlocProvider.of<PaymentBloc>(context);
                 if (state is PayementLoading) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (state is PayementLoaded) {
                   // Récupérer les données nécessaires pour charger le paiement
                   final specificDateReleves = state.specificDateReleves;
@@ -58,7 +54,7 @@ class PaymentFacture extends StatelessWidget {
                 } else if (state is PaymentFailure) {
                   return Center(child: Text(state.message));
                 } else {
-                  return SizedBox.shrink();
+                  return const SizedBox.shrink();
                 }
               },
             ),
@@ -71,15 +67,15 @@ class PaymentFacture extends StatelessWidget {
   Widget _buildHeader(BuildContext context, PayementLoaded state) {
     final client = state.client;
     final facture = state.factures;
-    final clientName = '${client.nom}';
-    final clientNum = '${facture.numFacture}';
+    final clientName = client.nom;
+    final clientNum = facture.numFacture;
     return Container(
       color: Colors.blue,
-      padding: EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(20.0),
       child: Center(
         child: Text(
           'Facture de $clientName - $clientNum',
-          style: TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Colors.white),
+          style: const TextStyle(fontSize: 24.0, fontWeight: FontWeight.bold, color: Colors.white),
         ),
       ),
     );
@@ -90,24 +86,24 @@ class PaymentFacture extends StatelessWidget {
     final previousDateReleves = state.previousDateReleves;
 
     return Container(
-      padding: EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(20.0),
       color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(
+              const Expanded(
                 child: Text(
                   'Détails de la facture',
                   style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
                 ),
               ),
-              SizedBox(width: 20), // Espacement entre les deux textes
+              const SizedBox(width: 20), // Espacement entre les deux textes
               Expanded(
                 child: Text(
-                  '${state.factures.statut}',
-                  style: TextStyle(
+                  state.factures.statut,
+                  style: const TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
                     color: Colors.green, // Couleur verte
@@ -118,7 +114,7 @@ class PaymentFacture extends StatelessWidget {
             ],
           ),
 
-          SizedBox(height: 20.0),
+          const SizedBox(height: 20.0),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -126,7 +122,7 @@ class PaymentFacture extends StatelessWidget {
                 buildOrderItem(context, releve.dateReleve, releve.volume.toString(), releve.conso.toString()),
             ],
           ),
-          SizedBox(height: 20.0),
+          const SizedBox(height: 20.0),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -151,41 +147,41 @@ class PaymentFacture extends StatelessWidget {
             Expanded(
               child: Text(
                 item,
-                style: TextStyle(fontSize: 16.0),
+                style: const TextStyle(fontSize: 16.0),
               ),
             ),
-            SizedBox(width: 10.0),
+            const SizedBox(width: 10.0),
             Expanded(
               child: Text(
                 'Volume : $sku',
-                style: TextStyle(fontSize: 16.0),
+                style: const TextStyle(fontSize: 16.0),
               ),
             ),
           ],
         ),
 
-        SizedBox(height: 5.0),
+        const SizedBox(height: 5.0),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            const Expanded(
               child: Text(
                 ' ',
                 style: TextStyle(fontSize: 16.0),
               ),
             ),
-            SizedBox(width: 10.0),
+            const SizedBox(width: 10.0),
             Expanded(
               child: Text(
                 'Consommation : $subtotal',
-                style: TextStyle(fontSize: 16.0),
+                style: const TextStyle(fontSize: 16.0),
               ),
             ),
           ],
         ),
 
-        Divider(),
+        const Divider(),
       ],
     );
   }
@@ -194,22 +190,22 @@ class PaymentFacture extends StatelessWidget {
     final payment = state.payment;
     return ExpansionTile(
 
-      title: Text('Détails du paiement'),
+      title: const Text('Détails du paiement'),
       children: [
         Row(
           children: [
-            SizedBox(width: 20),
+            const SizedBox(width: 20),
             Expanded(
               child: Text(
                 'ID: ${payment.relevecompteurId} / Date : ${payment.datePaiement}',
-                style: TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(width: 10), // Espacement entre les deux textes
+            const SizedBox(width: 10), // Espacement entre les deux textes
             Expanded(
               child: Text(
                 'Paiement: ${payment.paiement} Ar',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14.0,
                   fontWeight: FontWeight.bold,
                   color: Colors.orange, // Couleur verte
@@ -230,12 +226,12 @@ class PaymentFacture extends StatelessWidget {
     final payed = factures.montantTotalTTC - payment.paiement;
     return Container(
       color: Colors.blue,
-      padding: EdgeInsets.all(20.0),
+      padding: const EdgeInsets.all(20.0),
       child: Column(
         children: [
           buildTotalRow('Prix par m3', '${factures.tarifM3} Ar'),
           buildTotalRow('Total général (Incl. Taxe)', '${factures.montantTotalTTC} Ar'),
-          buildTotalRow('Total', '${payed} Ar'),
+          buildTotalRow('Total', '$payed Ar'),
         ],
       ),
     );
@@ -249,69 +245,75 @@ class PaymentFacture extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
           ),
-          Text(amount, style: TextStyle(color: Colors.white)),
+          Text(amount, style: const TextStyle(color: Colors.white)),
         ],
       ),
     );
   }
 
   Widget buildPayButton(BuildContext context, state, authState) {
+    // Vérifier le statut de la facture
+    final bool isFactureAbsent = state.factures.statut == 'Pas trouvé.';
+    final bool isMontantNul = state.factures.montantTotalTTC == 0.0;
+
     return Padding(
-        padding: const EdgeInsets.all(20.0),
-    child: SizedBox(
-    width: double
-        .infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          _showFormDialog(context, state, authState);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-          elevation: 5,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: EdgeInsets.symmetric(vertical: 15.0),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.payment, color: Colors.white),
-            SizedBox(width: 10.0),
-            Text(
-              'Payer',
-              style: TextStyle(fontSize: 18.0, color: Colors.white),
+      padding: const EdgeInsets.all(20.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: isFactureAbsent || isMontantNul ? null : () {
+            _showFormDialog(context, state, authState);
+          },
+          // Définir la couleur du bouton en fonction de l'état de la facture
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isFactureAbsent || isMontantNul ? Colors.grey : Colors.blue,
+            elevation: 5,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
-          ],
+            padding: const EdgeInsets.symmetric(vertical: 15.0),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.payment, color: Colors.white),
+              SizedBox(width: 10.0),
+              Text(
+                'Payer',
+                style: TextStyle(fontSize: 18.0, color: Colors.white),
+              ),
+            ],
+          ),
         ),
       ),
-    ),
     );
   }
 
 
+
+
   void _showFormDialog(BuildContext context, state, authState) {
-    TextEditingController _amountController = TextEditingController();
-    GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    TextEditingController amountController = TextEditingController();
+    GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Paiement'),
+          title: const Text('Paiement'),
           content: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Montant à payer : ${state.factures.montantTotalTTC}'),
                 TextFormField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
+                  controller: amountController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
                     hintText: 'Entrez le montant',
                   ),
                   inputFormatters: <TextInputFormatter>[
@@ -335,12 +337,12 @@ class PaymentFacture extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Annuler'),
+              child: const Text('Annuler'),
             ),
             ElevatedButton(
               onPressed: () {
-                if (_formKey.currentState != null && _formKey.currentState!.validate()) {
-                  double amount = double.parse(_amountController.text);
+                if (formKey.currentState != null && formKey.currentState!.validate()) {
+                  double amount = double.parse(amountController.text);
                   if (authState is AuthSuccess) {
                     final paymentBloc = context.read<PaymentBloc>();
                     paymentBloc.add(UpdateFacture(
@@ -350,14 +352,14 @@ class PaymentFacture extends StatelessWidget {
                   }
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Facture enregistrer avec succès')),
+                    const SnackBar(content: Text('Facture enregistrer avec succès')),
                   );
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue,
               ),
-              child: Text('Payer'),
+              child: const Text('Payer'),
             ),
           ],
         );

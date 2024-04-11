@@ -16,7 +16,6 @@ import 'package:application_rano/ui/views/clients/detail_compteur_page.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
 import 'package:application_rano/data/services/synchronisation/sync_service.dart';
 import 'package:application_rano/data/repositories/local/facture_local_repository.dart';
-import 'package:path/path.dart';
 
 import '../../../ui/views/anomalie/anomaliePage.dart'; // Importer le SyncService
 
@@ -44,7 +43,7 @@ List<BlocProvider> createBlocProviders(String baseUrl) {
       create: (context) => ClientBloc(
         clientRepository: ClientRepository(baseUrl: baseUrl),
       ),
-      child: DetailCompteurPage(),
+      child: const DetailCompteurPage(),
     ),
     BlocProvider<PaymentBloc>(
       create: (context) => PaymentBloc(
@@ -56,7 +55,7 @@ List<BlocProvider> createBlocProviders(String baseUrl) {
     BlocProvider<AnomalieBLoc>(
         create: (context) => AnomalieBLoc(
             anomalieRepository: AnomalieRepository(baseUrl: baseUrl)),
-      child: AnomaliePage(),
+      child: const AnomaliePage(),
     ),
   ];
 }

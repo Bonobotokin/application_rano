@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:application_rano/ui/views/Logo.dart';
 import 'package:application_rano/ui/views/login_page.dart';
@@ -24,51 +23,51 @@ List<GetPage> getAppRoutes() {
   return [
     GetPage(
       name: AppRoutes.logo,
-      page: () => Logo(),
+      page: () => const Logo(),
       transition: Transition.noTransition,
-      transitionDuration: Duration(seconds: 0),
+      transitionDuration: const Duration(seconds: 0),
     ),
     GetPage(
       name: AppRoutes.login,
       page: () => LoginPage(),
       transition: Transition.noTransition,
-      transitionDuration: Duration(seconds: 0),
+      transitionDuration: const Duration(seconds: 0),
     ),
     GetPage(
       name: AppRoutes.home,
-      page: () => HomePage(),
+      page: () => const HomePage(),
       transition: Transition.noTransition,
-      transitionDuration: Duration(seconds: 0),
+      transitionDuration: const Duration(seconds: 0),
     ),
     GetPage(
       name: AppRoutes.missions,
-      page: () => MissionsPage(),
+      page: () => const MissionsPage(),
       transition: Transition.noTransition,
-      transitionDuration: Duration(seconds: 0),
+      transitionDuration: const Duration(seconds: 0),
     ),
     GetPage(
       name: AppRoutes.detailsReleverCompteur,
-      page: () => DetailCompteurPage(),
+      page: () => const DetailCompteurPage(),
       transition: Transition.noTransition,
-      transitionDuration: Duration(seconds: 0),
+      transitionDuration: const Duration(seconds: 0),
     ),
     GetPage(
       name: AppRoutes.clientInfo,
-      page: () => ClientInfoPage(),
+      page: () => const ClientInfoPage(),
       transition: Transition.noTransition,
-      transitionDuration: Duration(seconds: 0),
+      transitionDuration: const Duration(seconds: 0),
     ),
     GetPage(
       name: AppRoutes.facturePayed,
-      page: () => PaymentFacture(),
+      page: () => const PaymentFacture(),
       transition: Transition.noTransition,
-      transitionDuration: Duration(seconds: 0),
+      transitionDuration: const Duration(seconds: 0),
     ),
     GetPage(
       name: AppRoutes.anomaliePage,
-      page: () => AnomaliePage(),
+      page: () => const AnomaliePage(),
       transition: Transition.noTransition,
-      transitionDuration: Duration(seconds: 0),
+      transitionDuration: const Duration(seconds: 0),
     ),
   ];
 }

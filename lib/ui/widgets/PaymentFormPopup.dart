@@ -9,19 +9,19 @@ class PaymentFormPopup extends StatefulWidget {
   final FactureModel facture;
   final AuthState authState;
 
-  PaymentFormPopup({required this.facture, required this.authState});
+  const PaymentFormPopup({super.key, required this.facture, required this.authState});
 
   @override
   _PaymentFormPopupState createState() => _PaymentFormPopupState();
 }
 
 class _PaymentFormPopupState extends State<PaymentFormPopup> {
-  TextEditingController _amountController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Paiement'),
+      title: const Text('Paiement'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,8 +29,8 @@ class _PaymentFormPopupState extends State<PaymentFormPopup> {
           Text('Montant à payer ${widget.facture.totalConsoHT} Ar :'),
           TextFormField(
             controller: _amountController,
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
               hintText: 'Entrez le montant',
             ),
           ),
@@ -41,7 +41,7 @@ class _PaymentFormPopupState extends State<PaymentFormPopup> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: Text('Annuler'),
+          child: const Text('Annuler'),
         ),
         ElevatedButton(
           onPressed: () {
@@ -58,7 +58,7 @@ class _PaymentFormPopupState extends State<PaymentFormPopup> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue,
           ),
-          child: Text('Payer'),
+          child: const Text('Payer'),
         ),
       ],
     );

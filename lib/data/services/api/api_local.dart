@@ -7,7 +7,7 @@ class ApiLocal {
       print('Données enregistrées localement : $data');
     } catch (error) {
       print('Erreur lors de l\'enregistrement des données localement : $error');
-      throw error;
+      rethrow;
     }
   }
 
@@ -16,11 +16,11 @@ class ApiLocal {
     try {
       // Vous pouvez implémenter ici la logique pour récupérer les données locales,
       // par exemple en utilisant sqflite ou tout autre moyen de stockage local
-      final localData = "Local data"; // Exemple de données locales fictives
+      const localData = "Local data"; // Exemple de données locales fictives
       return localData;
     } catch (error) {
       print('Erreur lors de la récupération des données locales : $error');
-      throw error;
+      rethrow;
     }
   }
 }

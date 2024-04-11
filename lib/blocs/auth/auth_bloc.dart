@@ -2,7 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_event.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
-import 'package:application_rano/data/models/user.dart'; // Importez la classe User
+// Importez la classe User
 import 'package:application_rano/data/models/user_info.dart'; // Importez le modèle UserInfo
 import 'package:application_rano/data/services/saveData/save_data_service_locale.dart';
 import 'package:application_rano/data/services/synchronisation/sync_service.dart';
@@ -45,7 +45,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         } else {
           print("Échec de l'authentification");
-          emit(AuthFailure(error: "Échec de l'authentification"));
+          emit(const AuthFailure(error: "Échec de l'authentification"));
         }
       } catch (error) {
         print("Erreur lors de la connexion: $error");
@@ -72,7 +72,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (user != null) {
         emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
       } else {
-        yield AuthFailure(error: "Échec de l'authentification");
+        yield const AuthFailure(error: "Échec de l'authentification");
       }
     } catch (e) {
       yield AuthFailure(error: "Échec de l'authentification: $e");

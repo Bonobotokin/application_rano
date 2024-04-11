@@ -1,8 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/models/user.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
-import 'package:application_rano/data/repositories/local/synchronisation_repository.dart';
-import 'package:bcrypt/bcrypt.dart';
 import '../../services/saveData/save_data_service_locale.dart';
 
 class AuthenticationLocale {

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:application_rano/data/models/user.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
-import 'package:application_rano/data/repositories/local/authentification_locale.dart';
 import 'package:sqflite/sqflite.dart';
 
 class SynchronisationRepository {

@@ -9,7 +9,7 @@ class HomeRepositoryLocale {
     try {
       final Database db = await _niaDatabases.database;
       final List<Map<String, dynamic>> maps = await db.query('acceuil');
-
+      print("verrifiHome $maps");
       return List.generate(maps.length, (i) {
         return HomeModel(
           nonTraite: maps[i]['non_traite'],

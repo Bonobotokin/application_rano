@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:application_rano/data/models/home_model.dart'; // Importez votre modèle HomeModel
 import 'package:application_rano/data/repositories/local/home_repository_locale.dart';
 

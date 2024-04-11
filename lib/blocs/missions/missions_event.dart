@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:application_rano/data/models/missions_model.dart';
 
 abstract class MissionsEvent extends Equatable {
   const MissionsEvent();

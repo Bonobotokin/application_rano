@@ -5,7 +5,7 @@ class MaskedTextField extends StatefulWidget {
   final TextEditingController controller;
   final InputDecoration inputDecoration;
 
-  const MaskedTextField({
+  const MaskedTextField({super.key, 
     required this.mask,
     required this.controller,
     required this.inputDecoration,

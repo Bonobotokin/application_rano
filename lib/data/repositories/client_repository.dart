@@ -15,6 +15,7 @@ class ClientRepository {
   Future<Map<String, dynamic>> fetchClientData(
       int numCompteur, String accessToken) async {
     try {
+
       final Database db = await _niaDatabases.database;
       List<Map<String, dynamic>> rows = await db.rawQuery('''
         SELECT * FROM releves
@@ -24,7 +25,7 @@ class ClientRepository {
         WHERE compteur.id = ?
       ''', [numCompteur]);
 
-      // print(rows);
+      print(rows);
 
       // Vérifiez si des données ont été récupérées
       if (rows.isNotEmpty) {
@@ -61,20 +62,19 @@ class ClientRepository {
           paysContrat: row['pays_contrat'] ?? '',
         );
 
-        final releves = rows
-            .map((row) => RelevesModel(
-                  id: row['id'],
-                  idReleve: int.parse(row['id_releve'].toString()),
-                  compteurId: int.parse(row['compteur_id'].toString()),
-                  contratId: int.parse(row['contrat_id'].toString()),
-                  clientId: int.parse(row['client_id'].toString()),
-                  dateReleve: row['date_releve'] ?? '',
-                  volume: row['volume'] ?? 0,
-                  conso: row['conso'] ?? 0,
-                ))
-            .toList();
+        final releves = rows.map((row) => RelevesModel(
+          id: row['id'],
+          idReleve: int.tryParse(row['id_releve'].toString()) ?? 0,
+          compteurId: int.tryParse(row['compteur_id'].toString()) ?? 0,
+          contratId: int.tryParse(row['contrat_id'].toString()) ?? 0,
+          clientId: int.tryParse(row['client_id'].toString()) ?? 0,
+          dateReleve: row['date_releve'] ?? '',
+          volume: row['volume'] ?? 0,
+          conso: row['conso'] ?? 0,
+        )).toList();
 
-        print(releves);
+
+        print("client : $releves");
 
         return {
           'client': client,

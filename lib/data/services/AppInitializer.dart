@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/services.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/models/server_config.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
 
@@ -22,15 +19,4 @@ class AppInitializer {
     print("Base de données initialisée.");
   }
 
-  // static Future<String?> loadServerConfig() async {
-  //   try {
-  //     final String jsonString = await rootBundle.loadString('assets/config/server_config.json');
-  //
-  //     final Map<String, dynamic> jsonMap = json.decode(jsonString);
-  //     _serverConfig = ServerConfig.fromJson(jsonMap);
-  //     return _serverConfig?.baseUrl;
-  //   } catch (error) {
-  //     print('Erreur lors du chargement de la configuration du serveur : $error');
-  //   }
-  // }
 }

@@ -14,9 +14,10 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     try {
       emit(ClientLoading());
 
+      print("eto ClientData ${event.numCompteur}");
       final clientData = await clientRepository.fetchClientData(
           event.numCompteur, event.accessToken);
-
+      print("eto ClientData $clientData");
       final client = clientData['client'];
       final compteur = clientData['compteur'];
       final contrat = clientData['contrat'];
@@ -29,8 +30,8 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
         releves: releves,
       ));
     } catch (e) {
-      print(ClientError(message: 'Failed to load client data ${e}'));
-      emit(ClientError(message: 'Failed to load client data'));
+      print(ClientError(message: 'Failed to load client data $e'));
+      emit(const ClientError(message: 'Failed to load client data'));
     }
   }
 }

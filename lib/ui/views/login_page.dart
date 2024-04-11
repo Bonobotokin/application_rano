@@ -7,11 +7,12 @@ import 'package:application_rano/blocs/home/home_bloc.dart';
 import 'package:application_rano/blocs/home/home_event.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 import 'package:get/get.dart';
-import 'package:application_rano/blocs/auth/auth_event.dart';
 
 class LoginPage extends StatelessWidget {
   final TextEditingController phoneNumberController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +50,7 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(),
     );
   }
@@ -59,7 +60,7 @@ class LoginPage extends StatelessWidget {
     return Center(
       child: Container(
         width: 300,
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
@@ -70,22 +71,22 @@ class LoginPage extends StatelessWidget {
                   width: 200,
                   height: 200,
                 )),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             TextFormField(
               controller: phoneNumberController,
               decoration: InputDecoration(
                 hintText: 'Numéro de téléphone',
-                hintStyle: TextStyle(color: Colors.grey),
+                hintStyle: const TextStyle(color: Colors.grey),
                 filled: true,
                 fillColor: Colors.grey[200],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(5),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: EdgeInsets.all(15),
-                prefixIcon: Icon(Icons.phone, color: Colors.grey),
+                contentPadding: const EdgeInsets.all(15),
+                prefixIcon: const Icon(Icons.phone, color: Colors.grey),
               ),
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               validator: (value) {
                 if (value!.isEmpty) {
                   return 'Veuillez saisir un numéro de téléphone';
@@ -93,23 +94,23 @@ class LoginPage extends StatelessWidget {
                 return null;
               },
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             TextFormField(
               controller: passwordController,
               obscureText: true,
               decoration: InputDecoration(
                 hintText: 'Mot de passe',
-                hintStyle: TextStyle(color: Colors.grey),
+                hintStyle: const TextStyle(color: Colors.grey),
                 filled: true,
                 fillColor: Colors.grey[200],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(5),
                   borderSide: BorderSide.none,
                 ),
-                contentPadding: EdgeInsets.all(15),
-                prefixIcon: Icon(Icons.lock, color: Colors.grey),
+                contentPadding: const EdgeInsets.all(15),
+                prefixIcon: const Icon(Icons.lock, color: Colors.grey),
               ),
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               validator: (value) {
                 if (value!.isEmpty) {
                   return 'Veuillez saisir un mot de passe';
@@ -117,7 +118,7 @@ class LoginPage extends StatelessWidget {
                 return null;
               },
             ),
-            SizedBox(height: 20.0),
+            const SizedBox(height: 20.0),
             SizedBox(
               width: double.infinity,
               height: 50.0,
@@ -135,18 +136,18 @@ class LoginPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
-                icon: Icon(Icons.login, color: Colors.white),
-                label: Text(
+                icon: const Icon(Icons.login, color: Colors.white),
+                label: const Text(
                   'Se connecter',
                   style: TextStyle(
                       fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ),
             ),
-            if (errorMessage != null) SizedBox(height: 20.0),
+            if (errorMessage != null) const SizedBox(height: 20.0),
             Text(
               errorMessage ?? '',
-              style: TextStyle(color: Colors.red),
+              style: const TextStyle(color: Colors.red),
             ),
           ],
         ),

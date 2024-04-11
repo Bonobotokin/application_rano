@@ -11,7 +11,7 @@ class LocalRepository {
       print('Données enregistrées localement avec succès');
     } catch (error) {
       print('Erreur lors de l\'enregistrement des données localement : $error');
-      throw error;
+      rethrow;
     }
   }
 
@@ -20,7 +20,7 @@ class LocalRepository {
       return await apiLocal.getLocalData();
     } catch (error) {
       print('Erreur lors de la récupération des données locales : $error');
-      throw error;
+      rethrow;
     }
   }
 }

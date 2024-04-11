@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/models/missions_model.dart';
 import 'local/missions_repository_locale.dart';
@@ -105,10 +103,15 @@ class MissionsRepository {
         // Calculer la consommation en soustrayant le nouveau volume du volume du dernier relevé
         int consoValue = (int.parse(volumeValue) - latestReleve['volume']).toInt();
 
-        // Insérer les données de relevé dans une autre table (par exemple, une table appelée "releves")
+        // Incrémenter l'ID du nouveau relevé en ajoutant 1 à l'ID du dernier relevé
+        int newReleveId = latestReleve['id'] + 1;
+
+        // Insérer les données de relevé dans la table "releves"
         await db.insert(
           'releves',
           {
+            'id': newReleveId,
+            'id_releve': newReleveId, // Utiliser le même ID pour id_releve
             'compteur_id': latestReleve['compteur_id'],
             'contrat_id': latestReleve['contrat_id'],
             'client_id': latestReleve['client_id'],
@@ -128,6 +131,7 @@ class MissionsRepository {
       throw Exception('Failed to insert new releve from existing data: $e');
     }
   }
+
 
 
   Future<void> _updateNombreReleverEffectue(Database db) async {

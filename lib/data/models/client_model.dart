@@ -23,17 +23,18 @@ class ClientModel {
 
   factory ClientModel.fromJson(Map<String, dynamic> json) {
     return ClientModel(
-      id: json['id']  ?? 0,
-      nom: json['nom']  ?? 0,
-      prenom: json['prenom']  ?? 0,
-      adresse: json['adresse'] ?? 0,
-      commune: json['commune'] ?? 0,
-      region: json['region'] ?? 0,
-      telephone_1: json['tephone1'] ?? 0,
-      telephone_2: json['tephone2'] ?? 0,
+      id: json['id'] ?? 0,
+      nom: json['nom'] ?? '',
+      prenom: json['prenom'] ?? '',
+      adresse: json['adresse'] ?? '',
+      commune: json['commune'] ?? '',
+      region: json['region'] ?? '',
+      telephone_1: json['telephone_1'] ?? '',
+      telephone_2: json['telephone_2'],
       actif: json['actif'] ?? 0,
     );
   }
+
 
   Map<String, dynamic> toJson() => {
     'id': id,

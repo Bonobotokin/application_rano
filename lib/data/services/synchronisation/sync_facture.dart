@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../models/facture_model.dart';
 import '../config/api_configue.dart';
 import '../../repositories/local/facture_local_repository.dart';
-import 'package:application_rano/data/services/databases/nia_databases.dart';
+import '../databases/nia_databases.dart';
 import '../saveData/save_data_service_locale.dart';
 
 class SyncFacture {
@@ -16,7 +16,9 @@ class SyncFacture {
   Future<void> syncFactureTable(String? accessToken, int? idReliever) async {
     try {
       final baseUrl = await ApiConfig.determineBaseUrl();
+
       if (idReliever != null) {
+
         final factureOnline = await _fetchFacturedataFromEndPoint(baseUrl, accessToken, idReliever);
 
         print("Facture récupérée depuis l'API : $factureOnline");
@@ -25,20 +27,29 @@ class SyncFacture {
         await _factureLocalRepository.getFactureDataFromLocalDatabase();
 
 
-        print("Local missions data is empty.");
-        final factureData = await _saveDataRepositoryLocale.saveFactureData(factureOnline['facture']);
+        if(factureLocal.isEmpty){
+          print("Local missions data is empty.");
+          final factureData = await _saveDataRepositoryLocale.saveFactureData(factureOnline['facture']);
 
 
-        // Récupérer toutes les données de la table après l'enregistrement
-        final allFactureData = await _factureLocalRepository.getFactureDataFromLocalDatabase();
+          // Récupérer toutes les données de la table après l'enregistrement
+          final allFactureData = await _factureLocalRepository.getFactureDataFromLocalDatabase();
 
-        // Vérifier si la longueur de la liste de données récupérées correspond
-        // au nombre de données que vous avez enregistrées
-        if (allFactureData.length == 2) {
-          print("All facture data saved successfully.");
-        } else {
-          print("Some facture data may not have been saved correctly.");
+          // Vérifier si la longueur de la liste de données récupérées correspond
+          // au nombre de données que vous avez enregistrées
+          if (allFactureData.length == 2) {
+            print("All facture data saved successfully.");
+          } else {
+            print("Some facture data may not have been saved correctly.");
+          }
         }
+        else{
+
+          await _compareAndSyncData(factureOnline, factureLocal, baseUrl, accessToken);
+
+          return factureOnline;
+        }
+
 
       } else {
         throw Exception('idReliever is null');
@@ -47,23 +58,6 @@ class SyncFacture {
       throw Exception('Failed to sync Facture data: $error');
     }
   }
-
-  // Future<void> _insertFactureDataIntoDatabase(List<FactureModel> factureData) async {
-  //   final db = await NiADatabases().database;
-  //   await db.transaction((txn) async {
-  //     try {
-  //       // Convertir les FactureModel en Map<String, dynamic>
-  //       final List<Map<String, dynamic>> factureDataMap = factureData.map((facture) => facture.toJson()).toList();
-  //
-  //       // Appeler la méthode saveFactureData avec les données converties
-  //       await _saveDataRepositoryLocale.saveFactureData(factureDataMap);
-  //     } catch (error) {
-  //       throw Exception("Failed to insert facture data into database: $error");
-  //     }
-  //   });
-  // }
-
-
 
 
   Future<Map<String, dynamic>> _fetchFacturedataFromEndPoint(
@@ -103,7 +97,5 @@ class SyncFacture {
       throw Exception('Failed to fetch facture data: $error');
     }
   }
-
-
 
 }

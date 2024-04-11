@@ -1,6 +1,5 @@
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
-import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AnomalieRepositoryLoale {

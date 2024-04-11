@@ -1,18 +1,15 @@
-import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
-import 'package:get/get.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
-import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_state.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
-import 'package:application_rano/ui/routing/routes.dart';
 
 class AnomaliePage extends StatefulWidget {
+  const AnomaliePage({super.key});
+
   @override
   _AnomaliePageState createState() => _AnomaliePageState();
 }
@@ -24,16 +21,16 @@ class _AnomaliePageState extends State<AnomaliePage> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
         return AppLayout(
-          backgroundColor: Color(0xFFF5F5F5),
+          backgroundColor: const Color(0xFFF5F5F5),
           currentIndex: 1,
           authState: authState,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
               Container(
-                padding: EdgeInsets.all(20.0),
-                child: Row(
+                padding: const EdgeInsets.all(20.0),
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
@@ -92,24 +89,24 @@ class _AnomaliePageState extends State<AnomaliePage> {
           Padding(
             padding: const EdgeInsets.all(0.0),
             child: Container(
-              margin: EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(color: Colors.grey, width: 1),
-                color: Color(0xFFEEEEEE),
+                color: const Color(0xFFEEEEEE),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.grey.withOpacity(0.4),
                     blurRadius: 5,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 0),
                 child: TextField(
-                  style: TextStyle(fontSize: 16),
-                  decoration: InputDecoration(
+                  style: const TextStyle(fontSize: 16),
+                  decoration: const InputDecoration(
                     hintText: 'Rechercher...',
                     border: InputBorder.none,
                     prefixIcon: Icon(Icons.search, color: Colors.grey),
@@ -124,8 +121,8 @@ class _AnomaliePageState extends State<AnomaliePage> {
             ),
           ),
           if (filteredMissions.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -174,9 +171,9 @@ class _AnomaliePageState extends State<AnomaliePage> {
       Status = "Reussit";
     }
     Color cardColor =
-    anomalie.status == 1 ? Color(0xFFFFFFFF) : Color(0xFFBBDEFB);
+    anomalie.status == 1 ? const Color(0xFFFFFFFF) : const Color(0xFFBBDEFB);
     Color btnColor =
-    anomalie.status == 1 ? Color(0xFFEEE9E9) : Color(0xFFBBDEFB);
+    anomalie.status == 1 ? const Color(0xFFEEE9E9) : const Color(0xFFBBDEFB);
     String buttonText = anomalie.status == 1 ? 'Modifier' : 'Ajouter';
 
 
@@ -186,21 +183,21 @@ class _AnomaliePageState extends State<AnomaliePage> {
       },
       child: Card(
         elevation: 5,
-        margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         color: cardColor,
         child: ListTile(
-          contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           title: Row(
             children: [
               Icon(Icons.warning_amber,
                   color: anomalie.status == 1 ? Colors.grey : Colors.blue),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 'Anomalie : ${anomalie.idMc}',
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -209,15 +206,15 @@ class _AnomaliePageState extends State<AnomaliePage> {
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Text('Type: ${anomalie.typeMc}'),
               Text('Longitude: ${anomalie.descriptionMc}'),
               Text('Altitude: ${anomalie.descriptionMc}'),
               Text('Description: ${anomalie.descriptionMc}'),
               Text('Declarant: ${anomalie.clientDeclare}'),
               Text('Date: ${anomalie.dateDeclaration}'),
-              Text('Etat: ${Status}' ,
-                style: TextStyle(
+              Text('Etat: $Status' ,
+                style: const TextStyle(
                 fontWeight: FontWeight.bold,
               ),),
 

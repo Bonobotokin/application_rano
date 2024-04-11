@@ -14,6 +14,8 @@ import 'package:application_rano/blocs/missions/missions_event.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -24,16 +26,16 @@ class _HomePageState extends State<HomePage> {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
         return AppLayout(
-          backgroundColor: Color(0xFFF5F5F5),
+          backgroundColor: const Color(0xFFF5F5F5),
           currentIndex: 0,
           authState: authState,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              SizedBox(height: 5),
+              const SizedBox(height: 5),
               Container(
-                padding: EdgeInsets.all(20.0),
-                child: Row(
+                padding: const EdgeInsets.all(20.0),
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
@@ -59,7 +61,7 @@ class _HomePageState extends State<HomePage> {
                     return Center(
                         child: Text(
                             'Oh non! Une erreur s\'est produite: ${state.message}',
-                            style: TextStyle(color: Colors.red)));
+                            style: const TextStyle(color: Colors.red)));
                   } else {
                     return Container();
                   }
@@ -89,36 +91,36 @@ Widget _buildHomePageWithData(
                   data.nombreTotalCompteur,
                   "Relevé de compteurs",
                   Icons.assignment,
-                  Color(0x80FAD203)!,
+                  const Color(0x80FAD203),
                   authState),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildCard(
                   context,
                   data.realise,
                   data.totaleAnomalie,
                   "Main courante",
                   Icons.report_problem,
-                  Color(0x9987D9E1)!,
+                  const Color(0x9987D9E1),
                   authState),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               _buildCard(
                   context,
                   data.nombreTotalFacturePayer,
                   data.nombreTotalFactureImpayer,
                   "Factures",
                   Icons.receipt,
-                  Color(0xA6BE9BF3)!,
+                  const Color(0xA6BE9BF3),
                   authState),
               // _buildCard(context, 20, 20, "Factures", Icons.receipt,
               //     Color(0xA6BE9BF3)!, authState),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
             ],
           ),
         ),
       ),
     );
   } else {
-    return Center(
+    return const Center(
         child: CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.orange)));
   }
@@ -154,14 +156,14 @@ Widget _buildCard(BuildContext context, int current, int total, String label,
           borderRadius: BorderRadius.circular(10.0),
           boxShadow: [
             BoxShadow(
-              color: Color(0xFFF6F1F1).withOpacity(0.1), // Couleur de l'ombre
+              color: const Color(0xFFF6F1F1).withOpacity(0.1), // Couleur de l'ombre
               spreadRadius: 2,
               blurRadius: 6,
-              offset: Offset(0, 3), // Décalage de l'ombre
+              offset: const Offset(0, 3), // Décalage de l'ombre
             ),
           ],
         ),
-        padding: EdgeInsets.all(25.0),
+        padding: const EdgeInsets.all(25.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -170,7 +172,7 @@ Widget _buildCard(BuildContext context, int current, int total, String label,
               children: [
                 Text(
                   label.toUpperCase(),
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xEA020D1C),
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -188,21 +190,21 @@ Widget _buildCard(BuildContext context, int current, int total, String label,
               children: [
                 Text(
                   tasksText,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black54,
                     fontSize: 16,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 LinearProgressIndicator(
                   value: progress,
-                  backgroundColor: Color(0xE5ECE6E3),
+                  backgroundColor: const Color(0xE5ECE6E3),
                   valueColor: AlwaysStoppedAnimation<Color>(progressColor),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   '$current / $total',
-                  style: TextStyle(
+                  style: const TextStyle(
                       color: Colors.black87,
                       fontSize: 20,
                       fontWeight: FontWeight.bold),

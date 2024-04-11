@@ -81,9 +81,9 @@ class SyncMission {
           );
 
           // Vérifiez si la mission locale existe déjà dans la base de données Django
-          if (localMission == null ||
-              !(await _areMissionsEqual(onlineMission, localMission))) {
-            print("verifier $localMission ");
+          if (!(await _areMissionsEqual(onlineMission, localMission))) {
+            print("verifier missions $onlineMission ");
+            print("verifier mission $localMission ");
             // Si la mission n'existe pas localement ou est différente, envoyez-la au serveur
             await _sendLocalDataToServer([localMission], baseUrl, accessToken);
             final missionsDataOnline = await _fetchMissionsDataFromEndpoint(baseUrl, accessToken);
@@ -123,7 +123,7 @@ class SyncMission {
       print("accessToken: $accessToken");
 
       for (var mission in localData) {
-        var jsonData = jsonEncode({
+          var jsonData = jsonEncode({
           'num_compteur': mission.numCompteur,
           'date_releve': mission.dateReleve,
           'volume': mission.volumeDernierReleve,

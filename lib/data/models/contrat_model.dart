@@ -31,13 +31,14 @@ class ContratModel {
     return ContratModel(
       id: json['id'] != null ? (json['id'] is String ? int.tryParse(json['id'] ?? '0') ?? 0 : json['id']) : 0,
       numeroContrat: json['numero_contrat'] ?? '',
-      clientId: json['client_id'],
+      clientId: json['client_id'] ?? 0,
       dateDebut: json['date_debut'] ?? '',
-      dateFin: json['date_fin'] != null ? json['date_fin'] : null,
+      dateFin: json['date_fin'],
       adresseContrat: json['adresse_contrat'] ?? '',
       paysContrat: json['pays_contrat'] ?? '',
     );
   }
+
 
 
 

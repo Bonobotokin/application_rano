@@ -23,8 +23,7 @@ class MyApp extends StatelessWidget {
   final String baseUrl;
   final List<BlocProvider> blocProviders;
 
-  const MyApp({Key? key, required this.baseUrl, required this.blocProviders})
-      : super(key: key);
+  const MyApp({super.key, required this.baseUrl, required this.blocProviders});
 
   @override
   Widget build(BuildContext context) {

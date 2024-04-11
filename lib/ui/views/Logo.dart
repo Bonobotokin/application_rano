@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
 class Logo extends StatefulWidget {
-  const Logo({Key? key}) : super(key: key);
+  const Logo({super.key});
 
   @override
   State<Logo> createState() => _LogoState();

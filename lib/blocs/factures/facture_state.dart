@@ -7,7 +7,7 @@ class FactureState extends Equatable {
   const FactureState({required this.isPaid});
 
   factory FactureState.initial() {
-    return FactureState(isPaid: false);
+    return const FactureState(isPaid: false);
   }
 
   FactureState copyWith({bool? isPaid}) {

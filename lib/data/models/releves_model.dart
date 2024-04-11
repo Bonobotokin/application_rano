@@ -46,19 +46,20 @@ class RelevesModel {
 
   factory RelevesModel.fromJson(Map<String, dynamic> json) {
     return RelevesModel(
-      id: json['id'] != null ? json['id'] : 0,
-      idReleve: json['id_releve'] != null ? json['id_releve'] : 0,
-      compteurId: json['compteur_id'] != null ? json['compteur_id'] : 0,
-      contratId: json['contrat_id'] != null ? json['contrat_id'] : 0,
-      clientId: json['client_id'] != null ? json['client_id'] : 0,
-      dateReleve: json['date_releve'] != null ? json['date_releve'] : '',
-      volume: json['volume'] != null ? json['volume'] : 0,
-      conso: json['conso'] != null ? json['conso'] : 0,
+      id: json['id'] ?? 0,
+      idReleve: json['id_releve'] ?? 0,
+      compteurId: json['compteur_id'] ?? 0,
+      contratId: json['contrat_id'] ?? 0,
+      clientId: json['client_id'] ?? 0,
+      dateReleve: json['date_releve'] ?? '',
+      volume: json['volume'] ?? 0,
+      conso: json['conso'] ?? 0,
     );
   }
 
 
 
+  @override
   String toString() {
     return 'RelevesModel{id: $id, idReleve: $idReleve, compteur_id: $compteurId, contrat_id: $contratId, client_id: $clientId, date_releve: $dateReleve, volume: $volume, conso: $conso}';
   }

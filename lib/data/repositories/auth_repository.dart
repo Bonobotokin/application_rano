@@ -2,9 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:application_rano/data/models/user.dart';
 import 'package:application_rano/data/repositories/local/authentification_locale.dart';
-import 'package:application_rano/data/repositories/local/synchronisation_repository.dart';
 import '../models/home_model.dart';
-import '../models/missions_model.dart';
 import '../services/saveData/save_data_service_locale.dart'; // Importer le fichier contenant les opérations locales
 import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
@@ -59,7 +57,7 @@ class AuthRepository {
         throw Exception("Access token is null");
       }
 
-      if (baseUrl == null || baseUrl.isEmpty) {
+      if (baseUrl.isEmpty) {
         return {
           'data': 0,
         };
@@ -92,7 +90,7 @@ class AuthRepository {
         throw Exception("Access token is null");
       }
 
-      if (baseUrl == null || baseUrl.isEmpty) {
+      if (baseUrl.isEmpty) {
         return {
           'data': 'locale data',
         };

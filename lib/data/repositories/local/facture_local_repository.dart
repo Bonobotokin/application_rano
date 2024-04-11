@@ -57,8 +57,15 @@ class FactureLocalRepository {
         return {'payment': payment};
 
       } else {
-        // Si aucune donnée n'a été trouvée, lancez une exception
-        throw Exception('Aucune donnée trouvée.');
+        final emptyPayment = FacturePaymentModel(
+          id: 0,
+          factureId: 0,
+          relevecompteurId: 0,
+          paiement: 0.0,
+          datePaiement: '',
+        );
+
+        return {'payment': emptyPayment};
       }
     } catch (e) {
       throw Exception("Failed to get Statut payment facture data from local database: $e");
@@ -72,7 +79,7 @@ class FactureLocalRepository {
       print("numCompteur : $relevecompteurId");
       List<Map<String, dynamic>> rows = await db.rawQuery('''
         SELECT * FROM facture
-        WHERE relevecompteur_id  = ?
+         WHERE relevecompteur_id = ? 
       ''',[relevecompteurId]);
 
       print("factures data : $rows");
@@ -96,8 +103,22 @@ class FactureLocalRepository {
         return {'factures': factures};
 
       } else {
-        // Si aucune donnée n'a été trouvée, lancez une exception
-        throw Exception('Aucune donnée trouvée.');
+        final emptyFacture = FactureModel(
+          id: 0,
+          relevecompteurId: 0,
+          numFacture: '',
+          numCompteur: 0,
+          dateFacture: '',
+          totalConsoHT: 0,
+          tarifM3: 0.0,
+          avoirAvant: 0.0,
+          avoirUtilise: 0.0,
+          restantPrecedant: 0.0,
+          montantTotalTTC: 0.0,
+          statut: 'Pas trouvé.',
+        );
+
+        return {'factures': emptyFacture};
       }
 
     } catch (e) {
