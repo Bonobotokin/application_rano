@@ -1,32 +1,32 @@
 class FactureModel {
-  int? id;
-  int? relevecompteurId;
-  String? numFacture;
-  int? numCompteur;
-  String? dateFacture;
-  double? totalConsoHT;
-  double? tarifM3;
+  int id;
+  int relevecompteurId;
+  String numFacture;
+  int numCompteur;
+  String dateFacture;
+  double totalConsoHT;
+  double tarifM3;
   // List<dynamic> taxes;
-  double? avoirAvant;
-  double? avoirUtilise;
-  double? restantPrecedant;
-  double? montantTotalTTC;
-  String? statut;
+  double avoirAvant;
+  double avoirUtilise;
+  double restantPrecedant;
+  double montantTotalTTC;
+  String statut;
 
   FactureModel({
-    this.id,
-    this.relevecompteurId,
-    this.numFacture,
-    this.numCompteur,
-    this.dateFacture,
-    this.totalConsoHT,
-    this.tarifM3,
+    required this.id,
+    required this.relevecompteurId,
+    required this.numFacture,
+    required this.numCompteur,
+    required this.dateFacture,
+    required this.totalConsoHT,
+    required this.tarifM3,
     // required this.taxes,
-    this.avoirAvant,
-    this.avoirUtilise,
-    this.restantPrecedant,
-    this.montantTotalTTC,
-    this.statut,
+    required this.avoirAvant,
+    required this.avoirUtilise,
+    required this.restantPrecedant,
+    required this.montantTotalTTC,
+    required this.statut,
   });
 
   factory FactureModel.fromMap(Map<String, dynamic> map) {

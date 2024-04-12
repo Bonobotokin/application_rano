@@ -31,8 +31,8 @@ class SyncMission {
 
         return missionsDataOnline;
       } else {
-        await _compareAndSyncData(missionsDataOnline, missionsDataLocal, baseUrl, accessToken);
-
+        // await _compareAndSyncData(missionsDataOnline, missionsDataLocal, baseUrl, accessToken);
+        print("Facture already exists locally.");
         return missionsDataOnline;
       }
     } catch (error) {
@@ -68,86 +68,86 @@ class SyncMission {
     }
   }
 
-  Future<void> _compareAndSyncData(List<MissionModel> onlineData,
-      List<MissionModel> localData, String baseUrl, String? accessToken) async {
-    try {
-      final db = await NiADatabases().database;
-
-      await db.transaction((txn) async {
-        for (var onlineMission in onlineData) {
-          var localMission = localData.firstWhere(
-                (mission) => mission.id == onlineMission.id,
-            orElse: () => MissionModel(),
-          );
-
-          // Vérifiez si la mission locale existe déjà dans la base de données Django
-          if (!(await _areMissionsEqual(onlineMission, localMission))) {
-            print("verifier missions $onlineMission ");
-            print("verifier mission $localMission ");
-            // Si la mission n'existe pas localement ou est différente, envoyez-la au serveur
-            await _sendLocalDataToServer([localMission], baseUrl, accessToken);
-            final missionsDataOnline = await _fetchMissionsDataFromEndpoint(baseUrl, accessToken);
-            await _saveDataRepositoryLocale.saveMissionsDataToLocalDatabase(txn, missionsDataOnline);
-          }
-        }
-      });
-    } on FormatException catch (e) {
-      throw Exception('Failed to compare missions: $e');
-    } on http.ClientException catch (e) {
-      throw Exception('Failed to sync data from server: $e');
-    } catch (error) {
-      throw Exception('Failed to compare and sync data: $error');
-    }
-  }
-
-
-  Future<bool> _areMissionsEqual(
-      MissionModel onlineMission, MissionModel localMission) async {
-    try {
-      final onlineDate = DateTime.tryParse(onlineMission.dateReleve ?? '');
-      final localDate = DateTime.tryParse(localMission.dateReleve ?? '');
-
-      if (onlineDate != null && localDate != null) {
-        return onlineDate.isAtSameMomentAs(localDate);
-      }
-
-      return false;
-    } catch (error) {
-      throw Exception('Failed to compare missions: $error');
-    }
-  }
-
-  Future<void> _sendLocalDataToServer(
-      List<MissionModel> localData, String baseUrl, String? accessToken) async {
-    try {
-      print("accessToken: $accessToken");
-
-      for (var mission in localData) {
-          var jsonData = jsonEncode({
-          'num_compteur': mission.numCompteur,
-          'date_releve': mission.dateReleve,
-          'volume': mission.volumeDernierReleve,
-        });
-
-        final response = await http.post(
-          Uri.parse('$baseUrl/missions'),
-          headers: {
-            'Authorization': 'Bearer $accessToken',
-            'Content-Type': 'application/json',
-          },
-          body: jsonData,
-        );
-
-        print("Response from server: ${response.statusCode}");
-        if (response.statusCode == 201) {
-          print('Local data sent to server successfully.');
-        } else {
-          throw Exception(
-              'Failed to send local data to server: ${response.statusCode}');
-        }
-      }
-    } catch (error) {
-      throw Exception('Failed to send local data to server: $error');
-    }
-  }
+  // Future<void> _compareAndSyncData(List<MissionModel> onlineData,
+  //     List<MissionModel> localData, String baseUrl, String? accessToken) async {
+  //   try {
+  //     final db = await NiADatabases().database;
+  //
+  //     await db.transaction((txn) async {
+  //       for (var onlineMission in onlineData) {
+  //         var localMission = localData.firstWhere(
+  //               (mission) => mission.id == onlineMission.id,
+  //           orElse: () => MissionModel(),
+  //         );
+  //
+  //         // Vérifiez si la mission locale existe déjà dans la base de données Django
+  //         if (!(await _areMissionsEqual(onlineMission, localMission))) {
+  //           print("verifier missions $onlineMission ");
+  //           print("verifier mission $localMission ");
+  //           // Si la mission n'existe pas localement ou est différente, envoyez-la au serveur
+  //           await _sendLocalDataToServer([localMission], baseUrl, accessToken);
+  //           final missionsDataOnline = await _fetchMissionsDataFromEndpoint(baseUrl, accessToken);
+  //           await _saveDataRepositoryLocale.saveMissionsDataToLocalDatabase(txn, missionsDataOnline);
+  //         }
+  //       }
+  //     });
+  //   } on FormatException catch (e) {
+  //     throw Exception('Failed to compare missions: $e');
+  //   } on http.ClientException catch (e) {
+  //     throw Exception('Failed to sync data from server: $e');
+  //   } catch (error) {
+  //     throw Exception('Failed to compare and sync data: $error');
+  //   }
+  // }
+  //
+  //
+  // Future<bool> _areMissionsEqual(
+  //     MissionModel onlineMission, MissionModel localMission) async {
+  //   try {
+  //     final onlineDate = DateTime.tryParse(onlineMission.dateReleve ?? '');
+  //     final localDate = DateTime.tryParse(localMission.dateReleve ?? '');
+  //
+  //     if (onlineDate != null && localDate != null) {
+  //       return onlineDate.isAtSameMomentAs(localDate);
+  //     }
+  //
+  //     return false;
+  //   } catch (error) {
+  //     throw Exception('Failed to compare missions: $error');
+  //   }
+  // }
+  //
+  // Future<void> _sendLocalDataToServer(
+  //     List<MissionModel> localData, String baseUrl, String? accessToken) async {
+  //   try {
+  //     print("accessToken: $accessToken");
+  //
+  //     for (var mission in localData) {
+  //         var jsonData = jsonEncode({
+  //         'num_compteur': mission.numCompteur,
+  //         'date_releve': mission.dateReleve,
+  //         'volume': mission.volumeDernierReleve,
+  //       });
+  //
+  //       final response = await http.post(
+  //         Uri.parse('$baseUrl/missions'),
+  //         headers: {
+  //           'Authorization': 'Bearer $accessToken',
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: jsonData,
+  //       );
+  //
+  //       print("Response from server: ${response.statusCode}");
+  //       if (response.statusCode == 201) {
+  //         print('Local data sent to server successfully.');
+  //       } else {
+  //         throw Exception(
+  //             'Failed to send local data to server: ${response.statusCode}');
+  //       }
+  //     }
+  //   } catch (error) {
+  //     throw Exception('Failed to send local data to server: $error');
+  //   }
+  // }
 }

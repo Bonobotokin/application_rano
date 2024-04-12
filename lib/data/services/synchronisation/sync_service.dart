@@ -1,5 +1,7 @@
 import 'package:application_rano/data/services/saveData/save_data_service_locale.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
+import 'package:application_rano/data/services/synchronisation/payementFacture.dart';
+import '../../repositories/local/facture_local_repository.dart';
 import '../config/api_configue.dart';
 import 'sync_mission.dart';
 import 'sync_facture.dart';
@@ -15,6 +17,7 @@ class SyncService {
 
   SyncService() {
     _initialize();
+
   }
 
   Future<void> _initialize() async {
@@ -53,6 +56,7 @@ class SyncService {
       }
 
       print("tableaux : $idRelievers");
+
 
       for (var idReliever in idRelievers) {
         print("idTableaux : $idReliever");

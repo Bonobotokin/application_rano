@@ -364,6 +364,8 @@ class SaveDataRepositoryLocale {
   Future<void> saveFactureData(FactureModel factureModel) async {
     try {
       final db = await NiADatabases().database;
+
+      // Vérifiez d'abord si une facture avec les mêmes données existe déjà
       final List<Map<String, dynamic>> existingRows = await db.query(
         'facture',
         where: 'relevecompteur_id = ? AND num_facture = ? AND num_compteur = ? AND date_facture = ? AND total_conso_ht = ? AND tarif_m3 = ? AND avoir_avant = ? AND avoir_utilise = ? AND restant_precedant = ? AND montant_total_ttc = ? AND statut = ?',
@@ -386,30 +388,34 @@ class SaveDataRepositoryLocale {
         print('Les données de facture existent déjà dans la base de données locale.');
         return;
       } else {
+        // Si la facture n'existe pas, insérez-la dans la base de données
         final factureId = await db.insert(
           'facture',
           factureModel.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        final DateTime now = DateTime.now();
-        await db.insert(
-          'facture_paiment',
-          {
-            'facture_id': factureModel.id,
-            'relevecompteur_id': factureModel.relevecompteurId ?? 0,
-            'paiement': 0.0, // Utilisez un entier au lieu d'un double
-            'date_paiement': DateFormat('yyyy-MM-dd').format(now).toString(),
-            // Ajoutez d'autres champs si nécessaire
-          },
-        );
 
-        // Affichage de l'aperçu pour la facture enregistrée
-        print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
+          // Enregistrez également les informations de paiement pour cette facture
+          final DateTime now = DateTime.now();
+          await db.insert(
+            'facture_paiment',
+            {
+              'facture_id': factureId,
+              'relevecompteur_id': factureModel.relevecompteurId ?? 0,
+              'paiement': 0, // Utilisez un entier au lieu d'un double
+              'date_paiement': DateFormat('yyyy-MM-dd').format(now),
+              // Ajoutez d'autres champs si nécessaire
+            },
+          );
+
+          // Affichage de l'aperçu pour la facture enregistrée
+          print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
       }
     } catch (error) {
       throw Exception("Failed to save facture data to local database: $error");
     }
   }
+
 
 
   Future<void> saveAnomalieData(List<AnomalieModel> anomalie) async {
@@ -437,6 +443,7 @@ class SaveDataRepositoryLocale {
 
         if (existingRows.isNotEmpty) {
           print('Les données d\'anomalie existent déjà dans la base de données locale.');
+
           return;
         } else {
           await db.insert(

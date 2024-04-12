@@ -10,6 +10,7 @@ import 'package:application_rano/data/models/releves_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
+import 'package:application_rano/ui/shared/DateFormatter.dart';
 
 class DetailCompteurPage extends StatelessWidget {
   const DetailCompteurPage({super.key});
@@ -100,6 +101,7 @@ class DetailCompteurPage extends StatelessWidget {
   }
 
   Widget _buildReleveCard(BuildContext context, List<RelevesModel> releves, AuthState authState) {
+
     if (releves.isEmpty) {
       return const Center(child: Text('Aucun relevé disponible'));
     }
@@ -145,7 +147,7 @@ class DetailCompteurPage extends StatelessWidget {
                   child: const Icon(Icons.data_usage, color: Colors.white),
                 ),
                 title: Text(
-                  'Relevé du ${releve.idReleve}',
+                  'Relevé du ${DateFormatter.formatFrenchDate(releve.dateReleve)}',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: randomColor,

@@ -55,6 +55,6 @@ class FacturePaymentModel {
 
   @override
   String toString() {
-    return 'FactureModel{id: $id, factureId: $factureId, relevecompteurId: $relevecompteurId, paiement: $paiement, datePaiement: $datePaiement}';
+    return 'FacturePaymentModel{id: $id, factureId: $factureId, relevecompteurId: $relevecompteurId, paiement: $paiement, datePaiement: $datePaiement}';
   }
 }

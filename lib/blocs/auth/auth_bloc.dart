@@ -1,3 +1,4 @@
+import 'package:application_rano/data/services/synchronisation/missionData.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_event.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
@@ -7,6 +8,10 @@ import 'package:application_rano/data/models/user_info.dart'; // Importez le mod
 import 'package:application_rano/data/services/saveData/save_data_service_locale.dart';
 import 'package:application_rano/data/services/synchronisation/sync_service.dart';
 
+import '../../data/repositories/local/facture_local_repository.dart';
+import '../../data/repositories/local/missions_repository_locale.dart';
+import '../../data/services/synchronisation/payementFacture.dart';
+
 enum SynchroDetails{
   synchronizing,
   synchronizationSuccess,
@@ -15,6 +20,8 @@ enum SynchroDetails{
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
+  final FactureLocalRepository _factureLocalRepository = FactureLocalRepository();
+  final MissionsRepositoryLocale _missionsRepositoryLocale = MissionsRepositoryLocale();
   String? accessToken;
   final UserInfo? userInfo;
   final SaveDataRepositoryLocale saveDataRepositoryLocale =
@@ -30,6 +37,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         if (user != null) {
           final accessToken = user.lastToken;
+
+          final missionsDataLocal = await _missionsRepositoryLocale.getMissionsDataFromLocalDatabase();
+          print("Missions data from locale: $missionsDataLocal");
+
+          for (var missions in missionsDataLocal) {
+            await MissionData.sendLocalDataToServer(missions, accessToken);
+          }
+
+          final payementFacture = await _factureLocalRepository.getAllPayments();
+
+          print("payement Facture All :${(payementFacture.isNotEmpty)}");
+
+          if(payementFacture.isNotEmpty){
+            for (var payment in payementFacture) {
+              await PayementFacture.sendPaymentToServer(payment, accessToken);
+            }
+          }
+
           final homeData =
           await authRepository.fetchHomeDataFromEndpoint(accessToken);
 

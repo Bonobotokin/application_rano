@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../models/facture_model.dart';
+import '../../models/facture_payment_model.dart';
 import '../config/api_configue.dart';
 import '../../repositories/local/facture_local_repository.dart';
 import '../databases/nia_databases.dart';
@@ -19,49 +20,50 @@ class SyncFacture {
 
       if (idReliever != null) {
 
-        final factureOnline = await _fetchFacturedataFromEndPoint(baseUrl, accessToken, idReliever);
+        final factureOnlineMap =
+        await _fetchFacturedataFromEndPoint(baseUrl, accessToken, idReliever);
+        final factureOnline = factureOnlineMap['facture'];
 
-        print("Facture récupérée depuis l'API : $factureOnline");
+        // Récupérer les données de facture locales
+        final factureLocal = await _factureLocalRepository
+            .getFactureDataFromLocalDatabase();
 
-        final factureLocal =
-        await _factureLocalRepository.getFactureDataFromLocalDatabase();
-
-
-        if(factureLocal.isEmpty){
-          print("Local missions data is empty.");
-          final factureData = await _saveDataRepositoryLocale.saveFactureData(factureOnline['facture']);
-
-
-          // Récupérer toutes les données de la table après l'enregistrement
-          final allFactureData = await _factureLocalRepository.getFactureDataFromLocalDatabase();
-
-          // Vérifier si la longueur de la liste de données récupérées correspond
-          // au nombre de données que vous avez enregistrées
-          if (allFactureData.length == 2) {
-            print("All facture data saved successfully.");
+        // Vérifier si les données locales existent
+        if (factureLocal.isEmpty) {
+          // Si les données locales sont vides, enregistrer les données distantes directement
+          print("Local facture data is empty.");
+          await _saveDataRepositoryLocale.saveFactureData(factureOnline);
+          return factureOnline;
+        } else {
+          // Si les données locales existent, comparer et mettre à jour si nécessaire
+          final factureLocalIds = factureLocal.map((facture) => facture.id)
+              .toSet();
+          if (!factureLocalIds.contains(factureOnline.id)) {
+            // Si l'identifiant de la facture distante n'existe pas localement, enregistrer la nouvelle facture
+            print("New facture found. Saving to local database.");
+            await _saveDataRepositoryLocale.saveFactureData(factureOnline);
+            return factureOnline;
           } else {
-            print("Some facture data may not have been saved correctly.");
+            // Si la facture distante existe déjà localement, ne rien faire
+            print("Facture already exists locally.");
+            return null;
           }
         }
-        else{
-
-          await _compareAndSyncData(factureOnline, factureLocal, baseUrl, accessToken);
-
-          return factureOnline;
-        }
-
-
       } else {
         throw Exception('idReliever is null');
       }
+    } on FormatException catch (e) {
+      throw Exception('Failed to sync Facture data: $e');
+    } on http.ClientException catch (e) {
+      throw Exception('Failed to sync data from server: $e');
     } catch (error) {
       throw Exception('Failed to sync Facture data: $error');
     }
   }
 
 
-  Future<Map<String, dynamic>> _fetchFacturedataFromEndPoint(
-      String baseUrl, String? accessToken, int? idReliever) async {
+  Future<Map<String, dynamic>> _fetchFacturedataFromEndPoint(String baseUrl,
+      String? accessToken, int? idReliever) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/facture?id_releve=$idReliever'),
@@ -70,26 +72,24 @@ class SyncFacture {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
         final factureData = data['facture'];
 
         final facture = FactureModel(
-            id: factureData['id'],
-            relevecompteurId: factureData['relevecompteur_id'] is int ? factureData['relevecompteur_id'] : 0,
-            numFacture: factureData['num_facture'] ?? '',
-            numCompteur: factureData['num_compteur'] is int ? factureData['num_compteur'] : 0,
-            dateFacture: factureData['date_facture'] is String ? factureData['date_facture'] : '',
-            totalConsoHT: factureData['total_conso_ht']  is double ? factureData['total_conso_ht'] : 0.0,
-            tarifM3: factureData['tarif_m3'] is double ? factureData['tarif_m3'] : 0.0,
-            avoirAvant: factureData['avoir_avant'] is double ? factureData['avoir_avant'] : 0.0,
-            avoirUtilise: factureData['avoir_utilise'] is double ? factureData['avoir_utilise'] : 0.0,
-            restantPrecedant: factureData['restant_precedant'] is double ? factureData['restant_precedant'] : 0.0,
-            montantTotalTTC: factureData['montant_total_ttc'] is double ? factureData['montant_total_ttc'] : 0.0,
-            statut: factureData['statut'] is String ? factureData['statut'] : '',
+          id: factureData['id'],
+          relevecompteurId: factureData['relevecompteur_id'] ?? 0,
+          numFacture: factureData['num_facture'] ?? '',
+          numCompteur: factureData['num_compteur'] ?? 0,
+          dateFacture: factureData['date_facture'] ?? '',
+          totalConsoHT: factureData['total_conso_ht'] ?? 0.0,
+          tarifM3: factureData['tarif_m3'] ?? 0.0,
+          avoirAvant: factureData['avoir_avant'] ?? 0.0,
+          avoirUtilise: factureData['avoir_utilise'] ?? 0.0,
+          restantPrecedant: factureData['restant_precedant'] ?? 0.0,
+          montantTotalTTC: factureData['montant_total_ttc'] ?? 0.0,
+          statut: factureData['statut'] ?? '',
         );
-        print('Facture Data: $factureData');
 
-        return {'facture' : facture};
+        return {'facture': facture};
       } else {
         throw Exception('Failed to fetch facture data: ${response.statusCode}');
       }
@@ -97,5 +97,4 @@ class SyncFacture {
       throw Exception('Failed to fetch facture data: $error');
     }
   }
-
 }

@@ -293,7 +293,6 @@ class PaymentFacture extends StatelessWidget {
 
 
 
-
   void _showFormDialog(BuildContext context, state, authState) {
     TextEditingController amountController = TextEditingController();
     GlobalKey<FormState> formKey = GlobalKey<FormState>();

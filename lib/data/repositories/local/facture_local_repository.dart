@@ -190,6 +190,26 @@ class FactureLocalRepository {
     }
   }
 
+  Future<List<FacturePaymentModel>> getAllPayments() async {
+    try {
+      final Database db = await _niaDatabases.database;
+      List<Map<String, dynamic>> rows = await db.query('facture_paiment');
+      List<FacturePaymentModel> payments = [];
+      for (var row in rows) {
+        final payment = FacturePaymentModel(
+          id: row['id'],
+          factureId: row['facture_id'],
+          relevecompteurId: row['relevecompteur_id'],
+          paiement: row['paiement'],
+          datePaiement: row['date_paiement'],
+        );
+        payments.add(payment);
+      }
+      return payments;
+    } catch (e) {
+      throw Exception("Failed to get all payments from local database: $e");
+    }
+  }
+
 
 }
-
