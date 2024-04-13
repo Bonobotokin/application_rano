@@ -327,7 +327,7 @@ class SaveDataRepositoryLocale {
       for (final releve in relevesModels) {
         final List<Map<String, dynamic>> existingRows = await db.query(
           'releves',
-          where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ?',
+          where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ? AND etatFacture = ?',
           whereArgs: [
             releve.idReleve,
             releve.compteurId,
@@ -336,6 +336,7 @@ class SaveDataRepositoryLocale {
             releve.dateReleve,
             releve.volume,
             releve.conso,
+            releve.etatFacture
           ],
         );
 
@@ -388,34 +389,40 @@ class SaveDataRepositoryLocale {
         print('Les données de facture existent déjà dans la base de données locale.');
         return;
       } else {
-        // Si la facture n'existe pas, insérez-la dans la base de données
-        final factureId = await db.insert(
-          'facture',
-          factureModel.toMap(),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
+        // Vérifiez si le montant total TTC de la facture est différent de 0.0 ou 0
+        if (factureModel.montantTotalTTC != 0.0 || factureModel.montantTotalTTC != 0) {
+          final factureId = await db.insert(
+            'facture',
+            factureModel.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
 
-          // Enregistrez également les informations de paiement pour cette facture
           final DateTime now = DateTime.now();
+          // Vérifiez également le statut de la facture
+          final statutPaiement = factureModel.statut == "Payé" ? '1' : 'null';
+
           await db.insert(
             'facture_paiment',
             {
               'facture_id': factureId,
               'relevecompteur_id': factureModel.relevecompteurId ?? 0,
-              'paiement': 0, // Utilisez un entier au lieu d'un double
+              'paiement': factureModel.montantPayer.toInt(), // Convertir en entier
               'date_paiement': DateFormat('yyyy-MM-dd').format(now),
+              'statut': statutPaiement,
               // Ajoutez d'autres champs si nécessaire
             },
           );
+        } else {
+          print('Le montant total TTC de la facture est 0, ne pas enregistrer dans la base de données');
+        }
 
-          // Affichage de l'aperçu pour la facture enregistrée
-          print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
+        // Affichage de l'aperçu pour la facture enregistrée
+        print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
       }
     } catch (error) {
       throw Exception("Failed to save facture data to local database: $error");
     }
   }
-
 
 
   Future<void> saveAnomalieData(List<AnomalieModel> anomalie) async {

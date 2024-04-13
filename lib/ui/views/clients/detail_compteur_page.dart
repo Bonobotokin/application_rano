@@ -172,6 +172,16 @@ class DetailCompteurPage extends StatelessWidget {
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 8),
+                    Text(
+                      'Etat du facture : ${releve.etatFacture}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold, // Pour le texte en gras
+                        fontStyle: FontStyle.italic, // Pour le texte en italique
+                        color: Colors.purple[900], // Utilisation de la teinte violette-indigo
+                      ),
+                    ),
+
                   ],
                 ),
               ),

@@ -71,6 +71,7 @@ class ClientRepository {
           dateReleve: row['date_releve'] ?? '',
           volume: row['volume'] ?? 0,
           conso: row['conso'] ?? 0,
+          etatFacture: row['etatFacture'] ?? '',
         )).toList();
 
 
@@ -123,6 +124,7 @@ class ClientRepository {
         dateReleve: row['date_releve'] ?? '',
         volume: row['volume'] ?? 0,
         conso: row['conso'] ?? 0,
+        etatFacture: row['etatFacture'] ?? '',
       )).toList();
 
       previousDateReleves = previousDateRows.map((row) => RelevesModel(
@@ -134,6 +136,7 @@ class ClientRepository {
         dateReleve: row['date_releve'] ?? '',
         volume: row['volume'] ?? 0,
         conso: row['conso'] ?? 0,
+        etatFacture: row['etatFacture'] ?? '',
       )).toList();
 
       // Créer un map contenant les deux listes de relevés

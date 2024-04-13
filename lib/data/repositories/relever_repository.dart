@@ -22,6 +22,7 @@ class ReleverRepository {
           dateReleve: row['date_releve'] ?? '',
           volume: row['volume'] ?? 0,
           conso: row['conso'] ?? 0,
+          etatFacture: row['etatFacture'] ?? '',
         )).toList();
         // return {'releves': releves};
       } else {

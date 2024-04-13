@@ -162,6 +162,7 @@ class AuthRepository {
                   releve['date_releve'] is String ? releve['date_releve'] : '',
               volume: releve['volume'] is int ? releve['volume'] : 0,
               conso: releve['conso'] is int ? releve['conso'] : 0,
+              etatFacture: releve['etatFacture'] is String ?  releve['etatFacture'] : '',
             );
           }).toList();
 

@@ -7,6 +7,7 @@ class RelevesModel {
   final String dateReleve;
   final int volume;
   final int conso;
+  final String etatFacture;
 
   RelevesModel({
     this.id,
@@ -17,6 +18,7 @@ class RelevesModel {
     required this.dateReleve,
     required this.volume,
     required this.conso,
+    required this.etatFacture,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +31,7 @@ class RelevesModel {
       'date_releve': dateReleve,
       'volume': volume,
       'conso': conso,
+      'etatFacture': etatFacture,
     };
   }
   Map<String, dynamic> toJson() {
@@ -41,6 +44,7 @@ class RelevesModel {
       'date_releve': dateReleve,
       'volume': volume,
       'conso': conso,
+      'etatFacture': etatFacture,
     };
   }
 
@@ -54,6 +58,7 @@ class RelevesModel {
       dateReleve: json['date_releve'] ?? '',
       volume: json['volume'] ?? 0,
       conso: json['conso'] ?? 0,
+      etatFacture: json['etatFacture'] ?? '',
     );
   }
 
@@ -61,6 +66,7 @@ class RelevesModel {
 
   @override
   String toString() {
-    return 'RelevesModel{id: $id, idReleve: $idReleve, compteur_id: $compteurId, contrat_id: $contratId, client_id: $clientId, date_releve: $dateReleve, volume: $volume, conso: $conso}';
+    return 'RelevesModel{id: $id, idReleve: $idReleve, compteur_id: $compteurId, contrat_id: $contratId, client_id: $clientId, '
+        'date_releve: $dateReleve, volume: $volume, conso: $conso , etatFacture: $etatFacture }';
   }
 }

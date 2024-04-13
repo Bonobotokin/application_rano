@@ -19,34 +19,40 @@ class SyncFacture {
       final baseUrl = await ApiConfig.determineBaseUrl();
 
       if (idReliever != null) {
-
         final factureOnlineMap =
         await _fetchFacturedataFromEndPoint(baseUrl, accessToken, idReliever);
         final factureOnline = factureOnlineMap['facture'];
 
+        // Vérifier si la facture en ligne est null
+        if (factureOnline == null) {
+          // Si la facture en ligne est nulle, ignorer et retourner
+          print("Facture en ligne est nulle.");
+          return;
+        }
+
         // Récupérer les données de facture locales
-        final factureLocal = await _factureLocalRepository
-            .getFactureDataFromLocalDatabase();
+        final factureLocal =
+        await _factureLocalRepository.getFactureDataFromLocalDatabase();
 
         // Vérifier si les données locales existent
         if (factureLocal.isEmpty) {
           // Si les données locales sont vides, enregistrer les données distantes directement
           print("Local facture data is empty.");
           await _saveDataRepositoryLocale.saveFactureData(factureOnline);
-          return factureOnline;
+          return;
         } else {
           // Si les données locales existent, comparer et mettre à jour si nécessaire
-          final factureLocalIds = factureLocal.map((facture) => facture.id)
-              .toSet();
+          final factureLocalIds =
+          factureLocal.map((facture) => facture.id).toSet();
           if (!factureLocalIds.contains(factureOnline.id)) {
             // Si l'identifiant de la facture distante n'existe pas localement, enregistrer la nouvelle facture
             print("New facture found. Saving to local database.");
             await _saveDataRepositoryLocale.saveFactureData(factureOnline);
-            return factureOnline;
+            return;
           } else {
             // Si la facture distante existe déjà localement, ne rien faire
             print("Facture already exists locally.");
-            return null;
+            return;
           }
         }
       } else {
@@ -61,15 +67,14 @@ class SyncFacture {
     }
   }
 
-
-  Future<Map<String, dynamic>> _fetchFacturedataFromEndPoint(String baseUrl,
-      String? accessToken, int? idReliever) async {
+  Future<Map<String, dynamic>> _fetchFacturedataFromEndPoint(
+      String baseUrl, String? accessToken, int? idReliever) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/facture?id_releve=$idReliever'),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
-
+      print("respose ${response.statusCode}");
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final factureData = data['facture'];
@@ -86,10 +91,13 @@ class SyncFacture {
           avoirUtilise: factureData['avoir_utilise'] ?? 0.0,
           restantPrecedant: factureData['restant_precedant'] ?? 0.0,
           montantTotalTTC: factureData['montant_total_ttc'] ?? 0.0,
+          montantPayer: factureData['montant_payer'] ?? 0.0,
           statut: factureData['statut'] ?? '',
         );
 
         return {'facture': facture};
+      } else if (response.statusCode == 404) {
+        return {'facture': null};
       } else {
         throw Exception('Failed to fetch facture data: ${response.statusCode}');
       }

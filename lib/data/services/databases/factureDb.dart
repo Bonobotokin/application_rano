@@ -16,6 +16,7 @@ class facture_db {
           avoir_utilise REAL,
           restant_precedant REAL,
           montant_total_ttc REAL,
+          montant_payer REAL,
           statut TEXT
         )
       ''');

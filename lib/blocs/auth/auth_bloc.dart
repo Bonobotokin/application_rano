@@ -39,10 +39,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           final accessToken = user.lastToken;
 
           final missionsDataLocal = await _missionsRepositoryLocale.getMissionsDataFromLocalDatabase();
-          print("Missions data from locale: $missionsDataLocal");
+          print("Missions data from locale post: $missionsDataLocal");
 
-          for (var missions in missionsDataLocal) {
-            await MissionData.sendLocalDataToServer(missions, accessToken);
+          for (var mission in missionsDataLocal) {
+            if (mission.statut != null && mission.statut! > 1) {
+              await MissionData.sendLocalDataToServer(mission, accessToken);
+            }
           }
 
           final payementFacture = await _factureLocalRepository.getAllPayments();
@@ -51,7 +53,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
           if(payementFacture.isNotEmpty){
             for (var payment in payementFacture) {
-              await PayementFacture.sendPaymentToServer(payment, accessToken);
+              if( payment.statut == '1' ){
+                print("tsy mbola");
+                await PayementFacture.sendPaymentToServer(payment, accessToken);
+              }
             }
           }
 

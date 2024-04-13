@@ -11,6 +11,7 @@ class FactureModel {
   double avoirUtilise;
   double restantPrecedant;
   double montantTotalTTC;
+  double montantPayer;
   String statut;
 
   FactureModel({
@@ -26,6 +27,7 @@ class FactureModel {
     required this.avoirUtilise,
     required this.restantPrecedant,
     required this.montantTotalTTC,
+    required this.montantPayer,
     required this.statut,
   });
 
@@ -43,6 +45,7 @@ class FactureModel {
       avoirUtilise: map['avoir_utilise'] ?? 0,
       restantPrecedant: map['restant_precedant'] ?? 0,
       montantTotalTTC: map['montant_total_ttc'] ?? 0,
+      montantPayer: map['montant_payer'] ?? 0,
       statut: map['statut'],
     );
   }
@@ -61,6 +64,7 @@ class FactureModel {
       'avoir_utilise': avoirUtilise,
       'restant_precedant': restantPrecedant,
       'montant_total_ttc': montantTotalTTC,
+      'montant_payer': montantPayer,
       'statut': statut,
     };
   }
@@ -78,6 +82,7 @@ class FactureModel {
       avoirUtilise: json['avoir_utilise'] ?? 0,
       restantPrecedant: json['restant_precedant'] ?? 0,
       montantTotalTTC: json['montant_total_ttc'] ?? 0,
+      montantPayer: json['montant_payer'] ?? 0,
       statut: json['statut'],
     );
   }
@@ -95,6 +100,7 @@ class FactureModel {
       'avoir_utilise': avoirUtilise,
       'restant_precedant': restantPrecedant,
       'montant_total_ttc': montantTotalTTC,
+      'montant_payer': montantPayer,
       'statut': statut,
     };
   }
@@ -103,6 +109,6 @@ class FactureModel {
   String toString() {
     return 'FactureModel{id: $id, nomClient: $relevecompteurId, num_facture: $numFacture, num_compteur: $numCompteur, date_facture: $dateFacture, '
         'total_conso_ht: $totalConsoHT, tarif_m3: $tarifM3, avoir_avant: $avoirAvant, avoir_utilise: $avoirUtilise, '
-        'restant_precedant: $restantPrecedant, montant_total_ttc: $montantTotalTTC, statut: $statut }';
+        'restant_precedant: $restantPrecedant, montant_total_ttc: $montantTotalTTC, montant_payer: $montantPayer, statut: $statut }';
   }
 }

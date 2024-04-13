@@ -9,6 +9,7 @@ class facture_payment_db {
           relevecompteur_id INTEGER,
           paiement REAL,
           date_paiement TEXT,
+          statut TEXT NULL,
           FOREIGN KEY (facture_id) REFERENCES facture(id),
           FOREIGN KEY (relevecompteur_id) REFERENCES releves(id) 
         )

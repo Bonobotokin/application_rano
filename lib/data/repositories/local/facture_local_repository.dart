@@ -25,6 +25,7 @@ class FactureLocalRepository {
           avoirUtilise: maps[i]['avoir_utilise'],
           restantPrecedant: maps[i]['restant_precedant'],
           montantTotalTTC: maps[i]['montant_total_ttc'],
+          montantPayer: maps[i]['montant_total_ttc'],
           statut: maps[i]['statut'],
         );
       });
@@ -52,6 +53,7 @@ class FactureLocalRepository {
           relevecompteurId: row['relevecompteur_id'],
           paiement: row['paiement'],
           datePaiement: row['date_paiement'],
+          statut: row['statut'],
         );
 
         return {'payment': payment};
@@ -63,6 +65,7 @@ class FactureLocalRepository {
           relevecompteurId: 0,
           paiement: 0.0,
           datePaiement: '',
+          statut: '0',
         );
 
         return {'payment': emptyPayment};
@@ -97,6 +100,7 @@ class FactureLocalRepository {
           avoirUtilise: row['avoir_utilise'],
           restantPrecedant: row['restant_precedant'],
           montantTotalTTC: row['montant_total_ttc'],
+          montantPayer: row['montant_total_ttc'],
           statut: row['statut'],
         );
 
@@ -115,6 +119,7 @@ class FactureLocalRepository {
           avoirUtilise: 0.0,
           restantPrecedant: 0.0,
           montantTotalTTC: 0.0,
+          montantPayer: 0.0,
           statut: 'Pas trouvé.',
         );
 
@@ -156,6 +161,7 @@ class FactureLocalRepository {
             'relevecompteur_id': relevecompteur,
             'paiement': mountant,
             'date_paiement': DateFormat('yyyy-MM-dd').format(now).toString(),
+            'statut': 1
             // Ajoutez d'autres champs si nécessaire
           },
           where: 'facture_id = ?',
@@ -202,6 +208,7 @@ class FactureLocalRepository {
           relevecompteurId: row['relevecompteur_id'],
           paiement: row['paiement'],
           datePaiement: row['date_paiement'],
+          statut: row['statut'],
         );
         payments.add(payment);
       }
