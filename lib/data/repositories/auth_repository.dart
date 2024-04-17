@@ -155,7 +155,7 @@ class AuthRepository {
               id: releve['id'] is int ? releve['id'] : 0,
               idReleve: releve['id_releve'] is int ? releve['id_releve'] : 0,
               compteurId:
-                  releve['compteur_id'] is int ? releve['compteur_id'] : '0',
+                  releve['compteur_id'] is int ? releve['compteur_id'] : 0,
               contratId: releve['contrat_id'] is int ? releve['contrat_id'] : 0,
               clientId: releve['client_id'] is int ? releve['client_id'] : 0,
               dateReleve:

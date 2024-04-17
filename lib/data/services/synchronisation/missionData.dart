@@ -13,7 +13,16 @@ class MissionData {
         'Authorization': 'Bearer $accessToken',
         'Content-Type': 'application/json',
       };
-      final body = jsonEncode(mission.toJson());
+
+      // Création de l'objet JSON avec les détails de la mission
+      final Map<String, dynamic> missionJson = {
+        'num_compteur': mission.numCompteur,
+        'date_releve': mission.dateReleve,
+        'volume': mission.volumeDernierReleve,
+        // Ajoutez les autres champs de mission ici
+      };
+
+      final body = jsonEncode(missionJson);
 
       final response = await http.post(Uri.parse(url), headers: headers, body: body);
 
@@ -27,3 +36,4 @@ class MissionData {
     }
   }
 }
+

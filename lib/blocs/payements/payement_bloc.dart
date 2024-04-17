@@ -47,7 +47,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       final specificDateReleves = releverData['specificDateReleves'] ?? <RelevesModel>[];
       final previousDateReleves = releverData['previousDateReleves'] ?? <RelevesModel>[];
 
-      emit(PayementLoading());
+      emit(PayementLoading(client, specificDateReleves, previousDateReleves, factures, paymentData)); // Passer les données de paiement de la facture ici
       emit(PayementLoaded(client, specificDateReleves, previousDateReleves, factures, paymentData)); // Passer les données de paiement de la facture ici
     } catch (e) {
       print(e.toString());

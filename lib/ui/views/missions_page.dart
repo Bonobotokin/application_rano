@@ -15,6 +15,7 @@ import 'package:application_rano/blocs/clients/client_event.dart';
 import 'package:intl/intl.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 import 'package:get/get.dart';
+import '../shared/DateFormatter.dart';
 import '../shared/MaskedTextField.dart';
 class MissionsPage extends StatefulWidget {
   const MissionsPage({super.key});
@@ -30,10 +31,10 @@ class _MissionsPageState extends State<MissionsPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
-        return AppLayout(
-          backgroundColor: const Color(0xFFF5F5F5),
-          currentIndex: 1,
-          authState: authState,
+          return AppLayout(
+            backgroundColor: const Color(0xFFF5F5F5),
+            currentIndex: 1,
+            authState: authState,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -227,7 +228,7 @@ class _MissionsPageState extends State<MissionsPage> {
               Text('Adresse: ${mission.id}'),
               Text('Num Compteur: ${mission.numCompteur}'),
               Text('Volume Dernier Releve: ${mission.volumeDernierReleve}'),
-              Text('Date Dernier Releve: ${mission.dateReleve}'),
+              Text('Date Dernier Releve: ${DateFormatter.formatFrenchDate(mission.dateReleve!)}'),
             ],
           ),
           trailing: _buildLinkButton(context, mission, authState, buttonText),
@@ -275,7 +276,7 @@ class _MissionsPageState extends State<MissionsPage> {
     TextEditingController dateController = TextEditingController();
 
     DateTime currentDate = DateTime.now();
-    String formattedDate = DateFormat('yyyy-MM-dd').format(currentDate);
+    String formattedDate = DateFormat('dd-MM-yyyy').format(currentDate);
     dateController.text = formattedDate; // Définir la date actuelle comme valeur par défaut
     String dateValue = formattedDate;
 
@@ -335,6 +336,10 @@ class _MissionsPageState extends State<MissionsPage> {
                         String volumeValue = volumeController.text;
                         String dateValue = dateController.text;
 
+                        // Transformer la date de format 'dd-MM-yyyy' en 'yyyy-MM-dd'
+                        DateTime parsedDate = DateFormat('dd-MM-yyyy').parse(dateValue);
+                        String formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
+
                         try {
                           // Ajouter ou mettre à jour la mission avec les détails fournis
                           if (isUpdate) {
@@ -342,7 +347,7 @@ class _MissionsPageState extends State<MissionsPage> {
                               missionId: mission.numCompteur.toString(),
                               adresseClient: mission.adresseClient.toString(),
                               consoValue: volumeValue,
-                              date: dateValue,
+                              date: formattedDate, // Utiliser la date formatée
                               accessToken: authState is AuthSuccess
                                   ? authState.userInfo.lastToken ?? ''
                                   : '',
@@ -352,7 +357,7 @@ class _MissionsPageState extends State<MissionsPage> {
                               missionId: mission.numCompteur.toString(),
                               adresseClient: mission.adresseClient.toString(),
                               consoValue: volumeValue,
-                              date: dateValue,
+                              date: formattedDate, // Utiliser la date formatée
                               accessToken: authState is AuthSuccess
                                   ? authState.userInfo.lastToken ?? ''
                                   : '',
@@ -373,6 +378,7 @@ class _MissionsPageState extends State<MissionsPage> {
                     },
                     child: Text(isUpdate ? 'Modifier' : 'Enregistrer'),
                   ),
+
                 ],
               ),
             ),

@@ -7,7 +7,7 @@ class releves_db {
         CREATE TABLE IF NOT EXISTS releves (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           id_releve INTEGER,
-          compteur_id TEXT,
+          compteur_id INTEGER,
           contrat_id INTEGER,
           client_id INTEGER,
           date_releve TEXT,

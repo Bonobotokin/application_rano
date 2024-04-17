@@ -1,5 +1,7 @@
 import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
+import 'package:application_rano/blocs/factures/facture_bloc.dart';
+import 'package:application_rano/blocs/factures/facture_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -79,6 +81,14 @@ class AppLayout extends StatelessWidget {
                   Get.offNamed(AppRoutes.anomaliePage);
                 }
                 break;
+              case 3: // Correspond à l'icône de notification
+              // Ajoutez ici la logique pour gérer les notifications
+                if (authState is AuthSuccess) {
+                  BlocProvider.of<FactureBloc>(context).add(LoadClientFacture(
+                      accessToken: authState.userInfo.lastToken ?? ''));
+                  Get.offNamed(AppRoutes.listeClient);
+                }
+                break;
               case 5: // Correspond à l'icône de profil
                 if (authState is AuthSuccess) {
                   _showUserInfoDialog(context, authState);
@@ -103,8 +113,8 @@ class AppLayout extends StatelessWidget {
               label: "Anomalies",
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.notifications),
-              label: "Notifications",
+              icon: Icon(Icons.receipt),
+              label: "Facture",
             ),
             BottomNavigationBarItem(
               icon: GestureDetector(

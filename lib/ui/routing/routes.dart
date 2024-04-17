@@ -1,3 +1,5 @@
+import 'package:application_rano/ui/views/factures/client_facture_liste.dart';
+import 'package:application_rano/ui/views/factures/client_list_page.dart';
 import 'package:get/get.dart';
 import 'package:application_rano/ui/views/Logo.dart';
 import 'package:application_rano/ui/views/login_page.dart';
@@ -16,7 +18,9 @@ class AppRoutes {
   static const String detailsReleverCompteur = '/detailReleveCompt';
   static const String clientInfo = '/clientInfo';
   static const String facturePayed = '/facturePayed'; // Définir la route facturePayed
-  static const String anomaliePage = '/anomaliePage'; // Définir la route facturePayed
+  static const String anomaliePage = '/anomaliePage';
+  static const String listeClient = '/listeClient';
+  static const String listeFactureClient = '/listeFactureCLient';
 }
 
 List<GetPage> getAppRoutes() {
@@ -66,6 +70,18 @@ List<GetPage> getAppRoutes() {
     GetPage(
       name: AppRoutes.anomaliePage,
       page: () => const AnomaliePage(),
+      transition: Transition.noTransition,
+      transitionDuration: const Duration(seconds: 0),
+    ),
+    GetPage(
+      name: AppRoutes.listeClient,
+      page: () => ClientListPage(),
+      transition: Transition.noTransition,
+      transitionDuration: const Duration(seconds: 0),
+    ),
+    GetPage(
+      name: AppRoutes.listeFactureClient,
+      page: () => ClientFactureList(),
       transition: Transition.noTransition,
       transitionDuration: const Duration(seconds: 0),
     ),

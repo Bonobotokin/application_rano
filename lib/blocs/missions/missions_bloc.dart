@@ -16,7 +16,6 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
 
   void _onLoadMissions(LoadMissions event, Emitter<MissionsState> emit) async {
     try {
-
       final missions =
       await missionsRepository.fetchMissions(event.accessToken);
       emit(MissionsLoading(missions));

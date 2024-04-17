@@ -1,3 +1,4 @@
+import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class AnomalieEvent extends Equatable {
@@ -17,28 +18,42 @@ class LoadAnomalie extends AnomalieEvent {
 }
 
 class AddAnomalie extends AnomalieEvent {
-  final String missionId;
-  final String adresseClient;
-  final String consoValue;
-  final String date;
-  final String accessToken; // Ajoutez cette propriété
+  final String typeMc;
+  final String dateDeclaration;
+  final String longitudeMc;
+  final String latitudeMc;
+  final String descriptionMc;
+  final String clientDeclare;
+  final String cpCommune;
+  final String commune;
+  final String status;
 
   const AddAnomalie({
-    required this.missionId,
-    required this.adresseClient,
-    required this.consoValue,
-    required this.date,
-    required this.accessToken,
+    required this.typeMc,
+    required this.dateDeclaration,
+    required this.longitudeMc,
+    required this.latitudeMc,
+    required this.descriptionMc,
+    required this.clientDeclare,
+    required this.cpCommune,
+    required this.commune,
+    required this.status,
   });
 
   @override
-  List<Object> get props =>
-      [missionId, adresseClient, consoValue, date, accessToken];
-
-  @override
-  String toString() =>
-      'AddMission { missionId: $missionId, adresseClient: $adresseClient, consoValue: $consoValue, date: $date, accessToken: $accessToken }';
+  List<Object> get props => [
+    typeMc,
+    dateDeclaration,
+    longitudeMc,
+    latitudeMc,
+    descriptionMc,
+    clientDeclare,
+    cpCommune,
+    commune,
+    status,
+  ];
 }
+
 
 class AnomalieAdd extends AnomalieEvent {
 

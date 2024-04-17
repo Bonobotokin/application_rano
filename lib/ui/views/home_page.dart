@@ -1,5 +1,7 @@
 import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
+import 'package:application_rano/blocs/factures/facture_bloc.dart';
+import 'package:application_rano/blocs/factures/facture_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -14,7 +16,7 @@ import 'package:application_rano/blocs/missions/missions_event.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -86,33 +88,37 @@ Widget _buildHomePageWithData(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               _buildCard(
-                  context,
-                  data.nombreReleverEffectuer,
-                  data.nombreTotalCompteur,
-                  "Relevé de compteurs",
-                  Icons.assignment,
-                  const Color(0x80FAD203),
-                  authState),
+                context,
+                data.nombreReleverEffectuer,
+                data.nombreTotalCompteur,
+                "Relevé de compteurs",
+                Icons.assignment,
+                const Color(0x80FAD203),
+                authState,
+              ),
               const SizedBox(height: 16),
               _buildCard(
-                  context,
-                  data.realise,
-                  data.totaleAnomalie,
-                  "Main courante",
-                  Icons.report_problem,
-                  const Color(0x9987D9E1),
-                  authState),
+                context,
+                data.realise,
+                data.totaleAnomalie,
+                "Main courante",
+                Icons.report_problem,
+                const Color(0x9987D9E1),
+                authState,
+                enCours: data.enCours,
+                nonTraite: data.nonTraite,
+                realise: data.realise,
+              ),
               const SizedBox(height: 16),
               _buildCard(
-                  context,
-                  data.nombreTotalFacturePayer,
-                  data.nombreTotalFactureImpayer,
-                  "Factures",
-                  Icons.receipt,
-                  const Color(0xA6BE9BF3),
-                  authState),
-              // _buildCard(context, 20, 20, "Factures", Icons.receipt,
-              //     Color(0xA6BE9BF3)!, authState),
+                context,
+                data.nombreTotalFacturePayer,
+                data.nombreTotalFactureImpayer,
+                "Factures",
+                Icons.receipt,
+                const Color(0xA6BE9BF3),
+                authState,
+              ),
               const SizedBox(height: 16),
             ],
           ),
@@ -126,13 +132,24 @@ Widget _buildHomePageWithData(
   }
 }
 
-Widget _buildCard(BuildContext context, int current, int total, String label,
-    IconData icon, Color bgColor, AuthState authState) {
+Widget _buildCard(
+    BuildContext context,
+    int current,
+    int total,
+    String label,
+    IconData icon,
+    Color bgColor,
+    AuthState authState, {
+      int? enCours,
+      int? nonTraite,
+      int? realise,
+    }) {
   Color iconColor = Colors.black54;
   Color progressColor = getProgressColor(label);
 
   double progress = total != 0 ? current / total : 0.0;
-  String tasksText = getTaskText(label, current, total);
+  String tasksText = getTaskText(label, current, total,
+      extraData: {'En cours': enCours ?? 0, 'Non traité': nonTraite ?? 0, 'Réalisé': realise ?? 0});
 
   return GestureDetector(
     onTap: () {
@@ -141,10 +158,8 @@ Widget _buildCard(BuildContext context, int current, int total, String label,
           _handleReleveDeCompteurs(context, authState);
         } else if (label == "Main courante") {
           _handleAnomalie(context, authState);
-        } else if (label == "Traites") {
-          // Redirect to Traites page
         } else if (label == "Factures") {
-          // Redirect to Factures page
+          _handleFactures(context, authState);
         }
       }
     },
@@ -156,10 +171,10 @@ Widget _buildCard(BuildContext context, int current, int total, String label,
           borderRadius: BorderRadius.circular(10.0),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFF6F1F1).withOpacity(0.1), // Couleur de l'ombre
+              color: const Color(0xFFF6F1F1).withOpacity(0.1),
               spreadRadius: 2,
               blurRadius: 6,
-              offset: const Offset(0, 3), // Décalage de l'ombre
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -218,39 +233,30 @@ Widget _buildCard(BuildContext context, int current, int total, String label,
   );
 }
 
+
 Color getProgressColor(String label) {
   Map<String, Color> titleToProgressColor = {
     "Relevé de compteurs": Colors.deepOrange,
     "Main courante": Colors.blue,
-    "Traites": Colors.orange,
     "Factures": Colors.purple,
   };
 
   return titleToProgressColor[label] ?? Colors.grey;
 }
 
-String getTaskText(String label, int current, int total) {
+String getTaskText(String label, int current, int total, {Map<String, int>? extraData}) {
   String taskText;
+  int remainingTasks = total - current;
+
+  if (label == "Main courante" && extraData != null) {
+    return extraData.entries.map((entry) => '${entry.key}: ${entry.value}').join(', ');
+  }
+
   if (current != 0 || total != 0) {
-    if (current != total) {
-      taskText = 'Reste à faire : ${total - current}';
+    if (remainingTasks > 0) {
+      taskText = 'Reste à faire : $remainingTasks';
     } else {
-      switch (label) {
-        case "Relevé de compteurs":
-          taskText = 'Relevés terminés';
-          break;
-        case "Main courante":
-          taskText = 'Main courante terminés';
-          break;
-        case "Traites":
-          taskText = 'Tâches traitées';
-          break;
-        case "Factures":
-          taskText = 'Factures réglées';
-          break;
-        default:
-          taskText = 'Tâches terminées';
-      }
+      taskText = 'Tâches terminées';
     }
   } else {
     switch (label) {
@@ -259,9 +265,6 @@ String getTaskText(String label, int current, int total) {
         break;
       case "Main courante":
         taskText = 'Pas de main courantes';
-        break;
-      case "Traites":
-        taskText = 'Pas de tâche';
         break;
       case "Factures":
         taskText = 'Aucune facture';
@@ -285,3 +288,9 @@ void _handleAnomalie(BuildContext context, AuthSuccess authState) {
   Get.toNamed(AppRoutes.anomaliePage);
 }
 
+void _handleFactures(BuildContext context, AuthSuccess authState) {
+  final factureBloc = BlocProvider.of<FactureBloc>(context)
+      .add(LoadClientFacture(accessToken: authState.userInfo.lastToken ?? ''));
+
+  Get.toNamed(AppRoutes.listeClient);
+}

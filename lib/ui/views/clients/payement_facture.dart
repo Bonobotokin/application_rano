@@ -31,7 +31,24 @@ class PaymentFacture extends StatelessWidget {
               builder: (context, state) {
                 final paymentBloc = BlocProvider.of<PaymentBloc>(context);
                 if (state is PayementLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  // Récupérer les données nécessaires pour charger le paiement
+                  final specificDateReleves = state.specificDateReleves;
+                  final previousDateReleves = state.previousDateReleves;
+                  final numCompteur = state.factures.numCompteur;
+                  final date = state.factures.dateFacture; // Ou la date que vous souhaitez utiliser
+
+                  return SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildHeader(context, state),
+                        _buildOrderDetails(context, state),
+                        buildDetails(context, state),
+                        buildTotal(context, state),
+                        buildPayButton(context, state, authState),
+                      ],
+                    ),
+                  );
                 } else if (state is PayementLoaded) {
                   // Récupérer les données nécessaires pour charger le paiement
                   final specificDateReleves = state.specificDateReleves;
@@ -64,7 +81,7 @@ class PaymentFacture extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, PayementLoaded state) {
+  Widget _buildHeader(BuildContext context, state) {
     final client = state.client;
     final facture = state.factures;
     final clientName = client.nom;
@@ -81,7 +98,7 @@ class PaymentFacture extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderDetails(BuildContext context, PayementLoaded state) {
+  Widget _buildOrderDetails(BuildContext context, state) {
     final specificDateReleves = state.specificDateReleves;
     final previousDateReleves = state.previousDateReleves;
 
@@ -186,7 +203,7 @@ class PaymentFacture extends StatelessWidget {
     );
   }
 
-  Widget buildDetails(BuildContext context, PayementLoaded state) {
+  Widget buildDetails(BuildContext context, state) {
     final payment = state.payment;
     return ExpansionTile(
 
@@ -220,22 +237,53 @@ class PaymentFacture extends StatelessWidget {
   }
 
 
-  Widget buildTotal(BuildContext context, PayementLoaded state) {
+  Widget buildTotal(BuildContext context, state) {
     final factures = state.factures;
     final payment = state.payment;
     final payed = factures.montantTotalTTC - payment.paiement;
+
     return Container(
-      color: Colors.blue,
       padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.circular(15.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: Offset(0, 2), // changes position of shadow
+          ),
+        ],
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           buildTotalRow('Prix par m3', '${factures.tarifM3} Ar'),
           buildTotalRow('Total général (Incl. Taxe)', '${factures.montantTotalTTC} Ar'),
-          buildTotalRow('Total', '$payed Ar'),
+          SizedBox(height: 10),
+          Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: buildTotalRow('Total', '${factures.montantTotalTTC} Ar'),
+          ),
+          SizedBox(height: 10),
+          Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.red,
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: buildTotalRow('Reste à payer', '${payed} Ar'),
+          ),
         ],
       ),
     );
   }
+
 
   Widget buildTotalRow(String title, String amount) {
     return Padding(
@@ -254,21 +302,22 @@ class PaymentFacture extends StatelessWidget {
   }
 
   Widget buildPayButton(BuildContext context, state, authState) {
-    // Vérifier le statut de la facture
     final bool isFactureAbsent = state.factures.statut == 'Pas trouvé.';
     final bool isMontantNul = state.factures.montantTotalTTC == 0.0;
+
+    // Vérifiez si la facture est payée en utilisant la propriété etatFacture
+    final bool isFacturePayee = state.specificDateReleves.any((releve) => releve.etatFacture == 'Payé');
 
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: isFactureAbsent || isMontantNul ? null : () {
+          onPressed: isFactureAbsent || isMontantNul || isFacturePayee ? null : () {
             _showFormDialog(context, state, authState);
           },
-          // Définir la couleur du bouton en fonction de l'état de la facture
           style: ElevatedButton.styleFrom(
-            backgroundColor: isFactureAbsent || isMontantNul ? Colors.grey : Colors.blue,
+            backgroundColor: isFactureAbsent || isMontantNul ? Colors.grey : isFacturePayee ? Colors.orange : Colors.blue,
             elevation: 5,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -281,7 +330,7 @@ class PaymentFacture extends StatelessWidget {
               Icon(Icons.payment, color: Colors.white),
               SizedBox(width: 10.0),
               Text(
-                'Payer',
+                isFacturePayee ? 'Modification' : 'Payer',
                 style: TextStyle(fontSize: 18.0, color: Colors.white),
               ),
             ],
@@ -292,12 +341,11 @@ class PaymentFacture extends StatelessWidget {
   }
 
 
-
-  void _showFormDialog(BuildContext context, state, authState) {
+  void _showFormDialog(BuildContext context, state, authState) async {
     TextEditingController amountController = TextEditingController();
     GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
-    showDialog(
+    await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
@@ -339,7 +387,7 @@ class PaymentFacture extends StatelessWidget {
               child: const Text('Annuler'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (formKey.currentState != null && formKey.currentState!.validate()) {
                   double amount = double.parse(amountController.text);
                   if (authState is AuthSuccess) {
@@ -349,10 +397,17 @@ class PaymentFacture extends StatelessWidget {
                       montant: amount,
                     ));
                   }
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); // Fermer la boîte de dialogue
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Facture enregistrer avec succès')),
+                    const SnackBar(content: Text('Facture enregistrée avec succès')),
                   );
+                   // Rechargez la page actuelle après la soumission du formulaire
+                  // Vous pouvez soit rediriger vers la page précédente, soit reconstruire la page actuelle
+                  // Par exemple:
+
+                  Navigator.of(context).pushReplacement(MaterialPageRoute(
+                    builder: (BuildContext context) => PaymentFacture(),
+                  ));
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -365,6 +420,5 @@ class PaymentFacture extends StatelessWidget {
       },
     );
   }
-
 
 }

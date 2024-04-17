@@ -161,7 +161,7 @@ class FactureLocalRepository {
             'relevecompteur_id': relevecompteur,
             'paiement': mountant,
             'date_paiement': DateFormat('yyyy-MM-dd').format(now).toString(),
-            'statut': 1
+            'statut': 'En cours'
             // Ajoutez d'autres champs si nécessaire
           },
           where: 'facture_id = ?',

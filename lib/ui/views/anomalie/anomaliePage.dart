@@ -7,6 +7,8 @@ import 'package:application_rano/blocs/anomalies/anomalie_state.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 
+import 'new_anomaly_page.dart';
+
 class AnomaliePage extends StatefulWidget {
   const AnomaliePage({super.key});
 
@@ -22,7 +24,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
       builder: (context, authState) {
         return AppLayout(
           backgroundColor: const Color(0xFFF5F5F5),
-          currentIndex: 1,
+          currentIndex: 2,
           authState: authState,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -30,7 +32,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
               const SizedBox(height: 5),
               Container(
                 padding: const EdgeInsets.all(20.0),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
@@ -41,6 +43,23 @@ class _AnomaliePageState extends State<AnomaliePage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    TextButton(
+                      onPressed: () {
+                        // Naviguer vers une nouvelle page pour créer une nouvelle anomalie
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => NewAnomalyPage()), // Remplacez NewAnomalyPage() par le nom de votre page de création d'anomalie
+                        );
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                      ),
+                      child: Text(
+                        'Nouvelles anomalies',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+
                   ],
                 ),
               ),
@@ -52,13 +71,14 @@ class _AnomaliePageState extends State<AnomaliePage> {
                     return _buildMissionListWidget(state.anomalie, authState);
                   } else if (state is AnomalieError) {
                     return Center(child: Text('Erreur: ${state.message}'));
-                  }  else {
+                  } else {
                     return Container();
                   }
                 },
               ),
             ],
           ),
+
         );
       },
     );
@@ -196,7 +216,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
                   color: anomalie.status == 1 ? Colors.grey : Colors.blue),
               const SizedBox(width: 8),
               Text(
-                'Anomalie : ${anomalie.idMc}',
+                'Anomalie : ${anomalie.id}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
@@ -215,8 +235,8 @@ class _AnomaliePageState extends State<AnomaliePage> {
               Text('Date: ${anomalie.dateDeclaration}'),
               Text('Etat: $Status' ,
                 style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),),
+                  fontWeight: FontWeight.bold,
+                ),),
 
             ],
           ),

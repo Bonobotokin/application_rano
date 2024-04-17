@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../models/facture_model.dart';
-import '../../models/facture_payment_model.dart';
-import '../config/api_configue.dart';
 import '../../repositories/local/facture_local_repository.dart';
-import '../databases/nia_databases.dart';
+import '../config/api_configue.dart';
 import '../saveData/save_data_service_locale.dart';
 
 class SyncFacture {
@@ -19,42 +17,7 @@ class SyncFacture {
       final baseUrl = await ApiConfig.determineBaseUrl();
 
       if (idReliever != null) {
-        final factureOnlineMap =
         await _fetchFacturedataFromEndPoint(baseUrl, accessToken, idReliever);
-        final factureOnline = factureOnlineMap['facture'];
-
-        // Vérifier si la facture en ligne est null
-        if (factureOnline == null) {
-          // Si la facture en ligne est nulle, ignorer et retourner
-          print("Facture en ligne est nulle.");
-          return;
-        }
-
-        // Récupérer les données de facture locales
-        final factureLocal =
-        await _factureLocalRepository.getFactureDataFromLocalDatabase();
-
-        // Vérifier si les données locales existent
-        if (factureLocal.isEmpty) {
-          // Si les données locales sont vides, enregistrer les données distantes directement
-          print("Local facture data is empty.");
-          await _saveDataRepositoryLocale.saveFactureData(factureOnline);
-          return;
-        } else {
-          // Si les données locales existent, comparer et mettre à jour si nécessaire
-          final factureLocalIds =
-          factureLocal.map((facture) => facture.id).toSet();
-          if (!factureLocalIds.contains(factureOnline.id)) {
-            // Si l'identifiant de la facture distante n'existe pas localement, enregistrer la nouvelle facture
-            print("New facture found. Saving to local database.");
-            await _saveDataRepositoryLocale.saveFactureData(factureOnline);
-            return;
-          } else {
-            // Si la facture distante existe déjà localement, ne rien faire
-            print("Facture already exists locally.");
-            return;
-          }
-        }
       } else {
         throw Exception('idReliever is null');
       }
@@ -67,14 +30,14 @@ class SyncFacture {
     }
   }
 
-  Future<Map<String, dynamic>> _fetchFacturedataFromEndPoint(
+  Future<void> _fetchFacturedataFromEndPoint(
       String baseUrl, String? accessToken, int? idReliever) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/facture?id_releve=$idReliever'),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
-      print("respose ${response.statusCode}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final factureData = data['facture'];
@@ -95,13 +58,17 @@ class SyncFacture {
           statut: factureData['statut'] ?? '',
         );
 
-        return {'facture': facture};
+        // Enregistrer ou mettre à jour les données de la facture dans la base de données locale
+        await _saveDataRepositoryLocale.saveFactureData(facture);
       } else if (response.statusCode == 404) {
-        return {'facture': null};
+        // La facture n'existe pas sur le serveur
+        print('La facture n\'existe pas sur le serveur.');
       } else {
+        // Erreur lors de la récupération des données de la facture
         throw Exception('Failed to fetch facture data: ${response.statusCode}');
       }
     } catch (error) {
+      // Gérer les erreurs de récupération des données de la facture
       throw Exception('Failed to fetch facture data: $error');
     }
   }

@@ -1,5 +1,5 @@
 class CompteurModel {
-  final int? id;
+  final int id;
   final String marque;
   final String modele;
 

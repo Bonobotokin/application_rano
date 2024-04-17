@@ -16,12 +16,22 @@ abstract class PaymentState extends Equatable {
 class PaymentInitial extends PaymentState {}
 
 class PayementLoading extends PaymentState {
-  // final List<FactureModel> factures;
-  //
-  // const PayementLoading(this.factures);
-  //
-  // @override
-  // List<Object> get props => [factures];
+  final ClientModel client;
+  final List<RelevesModel> specificDateReleves;
+  final List<RelevesModel> previousDateReleves;
+  final FactureModel factures;
+  final FacturePaymentModel payment; // Ajouter un champ pour les données de paiement de la facture
+
+  const PayementLoading(
+      this.client,
+      this.specificDateReleves,
+      this.previousDateReleves,
+      this.factures,
+      this.payment, // Ajouter les données de paiement de la facture ici
+      );
+
+  @override
+  List<Object> get props => [client, specificDateReleves, previousDateReleves, factures, payment];
 }
 
 class PayementLoaded extends PaymentState {

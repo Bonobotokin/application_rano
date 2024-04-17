@@ -6,7 +6,7 @@ class ClientModel {
   final String commune;
   final String region;
   final String telephone_1;
-  final String? telephone_2;
+  String? telephone_2;
   final int actif;
 
   ClientModel({
@@ -17,7 +17,7 @@ class ClientModel {
     required this.commune,
     required this.region,
     required this.telephone_1,
-    required this.telephone_2,
+    this.telephone_2,
     required this.actif,
   });
 

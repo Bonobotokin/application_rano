@@ -118,6 +118,7 @@ class MissionsRepository {
             'date_releve': date,
             'volume': volumeValue,
             'conso': consoValue,
+            'etatFacture' : 'Pas de facture'
             // Ajoutez d'autres champs si nécessaire
           },
         );
@@ -232,7 +233,7 @@ class MissionsRepository {
       DateTime previousMonthDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
 
       String formattedPreviousMonthDate = DateFormat('yyyy-MM').format(previousMonthDate);
-      print("moiss $formattedPreviousMonthDate");
+      // print("moiss $formattedPreviousMonthDate");
       // Récupérer le dernier relevé avec le compteur_id donné pour le mois en cours
       Map<String, dynamic>? latestMonthReleve = await db.query(
         'releves',
@@ -240,7 +241,7 @@ class MissionsRepository {
         whereArgs: [compteurId, formattedPreviousMonthDate],
       ).then((value) => value.isNotEmpty ? value.last : null);
 
-      print("Laste Relves $latestMonthReleve");
+      // print("Laste Relves $latestMonthReleve");
       String formattedCurrentDate = DateFormat('yyyy-MM').format(currentDate);
 
       List<Map<String, dynamic>>  RelevesNow = await db.query(
@@ -260,6 +261,7 @@ class MissionsRepository {
             'date_releve': date,
             'volume': volumeValue,
             'conso': consoValue,
+            'etatFacture': 'Pas de facture'
             // Ajoutez d'autres champs à mettre à jour si nécessaire
           },
           where: 'id = ?',

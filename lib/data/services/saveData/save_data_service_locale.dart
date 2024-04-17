@@ -361,7 +361,6 @@ class SaveDataRepositoryLocale {
     }
   }
 
-
   Future<void> saveFactureData(FactureModel factureModel) async {
     try {
       final db = await NiADatabases().database;
@@ -387,6 +386,37 @@ class SaveDataRepositoryLocale {
 
       if (existingRows.isNotEmpty) {
         print('Les données de facture existent déjà dans la base de données locale.');
+
+        final existingFacture = existingRows[0];
+        final existingFactureId = existingFacture['id'];
+
+        // Vérifiez les attributs et mettez à jour si nécessaire
+        if (factureModel.montantTotalTTC != existingFacture['montant_total_ttc'] || factureModel.statut != existingFacture['statut']) {
+          await db.update(
+            'facture',
+            {
+              'montant_total_ttc': factureModel.montantTotalTTC,
+              'statut': factureModel.statut,
+            },
+            where: 'id = ?',
+            whereArgs: [existingFactureId],
+          );
+
+          print('Les données de facture existante ont été mises à jour.');
+          if (factureModel.statut == "Payé") {
+            final factureId = existingRows[0]['id'];
+
+            await db.update(
+              'facture_paiment',
+              {'statut': 'Payé'},
+              where: 'facture_id = ?',
+              whereArgs: [factureId],
+            );
+          }
+        } else {
+          print('Les données de facture existante sont déjà à jour.');
+        }
+
         return;
       } else {
         // Vérifiez si le montant total TTC de la facture est différent de 0.0 ou 0
@@ -415,14 +445,87 @@ class SaveDataRepositoryLocale {
         } else {
           print('Le montant total TTC de la facture est 0, ne pas enregistrer dans la base de données');
         }
-
-        // Affichage de l'aperçu pour la facture enregistrée
         print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
       }
     } catch (error) {
       throw Exception("Failed to save facture data to local database: $error");
     }
   }
+
+
+  // Future<void> saveFactureData(FactureModel factureModel) async {
+  //   try {
+  //     final db = await NiADatabases().database;
+  //
+  //     // Vérifiez d'abord si une facture avec les mêmes données existe déjà
+  //     final List<Map<String, dynamic>> existingRows = await db.query(
+  //       'facture',
+  //       where: 'relevecompteur_id = ? AND num_facture = ? AND num_compteur = ? AND date_facture = ? AND total_conso_ht = ? AND tarif_m3 = ? AND avoir_avant = ? AND avoir_utilise = ? AND restant_precedant = ? AND montant_total_ttc = ? AND statut = ?',
+  //       whereArgs: [
+  //         factureModel.relevecompteurId,
+  //         factureModel.numFacture,
+  //         factureModel.numCompteur,
+  //         factureModel.dateFacture,
+  //         factureModel.totalConsoHT,
+  //         factureModel.tarifM3,
+  //         factureModel.avoirAvant,
+  //         factureModel.avoirUtilise,
+  //         factureModel.restantPrecedant,
+  //         factureModel.montantTotalTTC,
+  //         factureModel.statut
+  //       ],
+  //     );
+  //
+  //     if (existingRows.isNotEmpty) {
+  //       print('Les données de facture existent déjà dans la base de données locale.');
+  //       // Mise à jour du statut du paiement de la facture si elle est payée
+  //       if (factureModel.statut == "Payé") {
+  //         final factureId = existingRows[0]['id'];
+  //
+  //         await db.update(
+  //           'facture_paiment',
+  //           {'statut': 'Payé'},
+  //           where: 'facture_id = ?',
+  //           whereArgs: [factureId],
+  //         );
+  //       }
+  //
+  //       return;
+  //     } else {
+  //       // Vérifiez si le montant total TTC de la facture est différent de 0.0 ou 0
+  //       if (factureModel.montantTotalTTC != 0.0 || factureModel.montantTotalTTC != 0) {
+  //         final factureId = await db.insert(
+  //           'facture',
+  //           factureModel.toMap(),
+  //           conflictAlgorithm: ConflictAlgorithm.replace,
+  //         );
+  //
+  //         final DateTime now = DateTime.now();
+  //         // Vérifiez également le statut de la facture
+  //         final statutPaiement = factureModel.statut == "Payé" ? '1' : 'null';
+  //
+  //         await db.insert(
+  //           'facture_paiment',
+  //           {
+  //             'facture_id': factureId,
+  //             'relevecompteur_id': factureModel.relevecompteurId ?? 0,
+  //             'paiement': factureModel.montantPayer.toInt(), // Convertir en entier
+  //             'date_paiement': DateFormat('yyyy-MM-dd').format(now),
+  //             'statut': statutPaiement,
+  //             // Ajoutez d'autres champs si nécessaire
+  //           },
+  //         );
+  //       } else {
+  //         print('Le montant total TTC de la facture est 0, ne pas enregistrer dans la base de données');
+  //       }
+  //
+  //       // Affichage de l'aperçu pour la facture enregistrée
+  //       print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
+  //     }
+  //   } catch (error) {
+  //     throw Exception("Failed to save facture data to local database: $error");
+  //   }
+  // }
 
 
   Future<void> saveAnomalieData(List<AnomalieModel> anomalie) async {
