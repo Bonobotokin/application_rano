@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'dart:io';
+import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/clients/client_bloc.dart';
@@ -11,9 +13,10 @@ import 'package:application_rano/ui/layouts/app_layout.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/ui/shared/DateFormatter.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DetailCompteurPage extends StatelessWidget {
-  const DetailCompteurPage({super.key});
+  const DetailCompteurPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -87,21 +90,22 @@ class DetailCompteurPage extends StatelessWidget {
     );
   }
 
-  Widget _buildClientData(BuildContext context, ClientLoaded state, AuthState authState) {
+  Widget _buildClientData(BuildContext context, ClientLoaded state,
+      AuthState authState) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 20.0),
           _buildReleveCard(context, state.releves, authState),
-          // Autres widgets pour afficher les autres informations du client, du compteur, etc.
+          // Other widgets to display other client information, meter information, etc.
         ],
       ),
     );
   }
 
-  Widget _buildReleveCard(BuildContext context, List<RelevesModel> releves, AuthState authState) {
-
+  Widget _buildReleveCard(BuildContext context, List<RelevesModel> releves,
+      AuthState authState) {
     if (releves.isEmpty) {
       return const Center(child: Text('Aucun relevé disponible'));
     }
@@ -110,10 +114,8 @@ class DetailCompteurPage extends StatelessWidget {
 
     return Column(
       children: releves.map((releve) {
-        // Générer une couleur aléatoire sombre pour l'icône et le titre
         Color randomColor = Color.fromRGBO(
           random.nextInt(100),
-          // Plage de valeurs de 0 à 99 pour obtenir des couleurs sombres
           random.nextInt(100),
           random.nextInt(100),
           1,
@@ -122,73 +124,108 @@ class DetailCompteurPage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
           child: GestureDetector(
             onTap: () {
-              // Envoi de l'événement MakePayment au PaymentBloc
-
               if (authState is AuthSuccess) {
                 BlocProvider.of<PaymentBloc>(context).add(LoadPayment(
                     accessToken: authState.userInfo.lastToken ?? '',
-                    relevecompteurId : releve.idReleve ?? 0,
+                    relevecompteurId: releve.idReleve ?? 0,
                     numCompteur: releve.compteurId,
                     date: releve.dateReleve
-
                 ));
                 Navigator.pushNamed(context, AppRoutes.facturePayed);
               }
             },
             child: Card(
-              color: const Color(0xFFFFFFFF), // Couleur de fond plus claire
+              color: const Color(0xFFFFFFFF),
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: randomColor,
-                  child: const Icon(Icons.data_usage, color: Colors.white),
-                ),
-                title: Text(
-                  'Relevé du ${DateFormatter.formatFrenchDate(releve.dateReleve)}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: randomColor,
+              child: Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    child: _buildReleveLeading(context, releve, randomColor),
                   ),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 8),
-                    Text(
-                      'Date: ${releve.dateReleve}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Volume: ${releve.volume}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Consommation: ${releve.conso}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Etat du facture : ${releve.etatFacture}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold, // Pour le texte en gras
-                        fontStyle: FontStyle.italic, // Pour le texte en italique
-                        color: Colors.purple[900], // Utilisation de la teinte violette-indigo
+                  Expanded(
+                    child: ListTile(
+                      title: Text(
+                        'Relevé du ${DateFormatter.formatFrenchDate(
+                            releve.dateReleve)}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: randomColor,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          Text(
+                            'Date: ${releve.dateReleve}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Volume: ${releve.volume}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Consommation: ${releve.conso}',
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Etat du facture : ${releve.etatFacture}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic,
+                              color: Colors.purple[900],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         );
       }).toList(),
     );
+  }
+
+  Widget _buildReleveLeading(BuildContext context, RelevesModel releve, Color randomColor) {
+    if (releve.imageCompteur != null && releve.imageCompteur.isNotEmpty && File(releve.imageCompteur).existsSync()) {
+      return GestureDetector(
+        onTap: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return Dialog(
+                child: Image.file(
+                  File(releve.imageCompteur),
+                  fit: BoxFit.contain,
+                ),
+              );
+            },
+          );
+        },
+        child: Image.file(
+          File(releve.imageCompteur),
+          width: 56,
+          height: 56,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else {
+      return CircleAvatar(
+        backgroundColor: randomColor,
+        child: const Icon(Icons.data_usage, color: Colors.white),
+      );
+    }
   }
 }

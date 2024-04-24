@@ -17,8 +17,9 @@ import 'package:application_rano/ui/routing/routes.dart';
 import 'package:get/get.dart';
 import '../shared/DateFormatter.dart';
 import '../shared/MaskedTextField.dart';
+
 class MissionsPage extends StatefulWidget {
-  const MissionsPage({super.key});
+  const MissionsPage({Key? key}) : super(key: key);
 
   @override
   _MissionsPageState createState() => _MissionsPageState();
@@ -27,14 +28,17 @@ class MissionsPage extends StatefulWidget {
 class _MissionsPageState extends State<MissionsPage> {
   String _searchText = '';
 
+  // Déclarez une variable pour stocker le chemin de l'image sélectionnée
+  late String _imagePath = '';
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, authState) {
-          return AppLayout(
-            backgroundColor: const Color(0xFFF5F5F5),
-            currentIndex: 1,
-            authState: authState,
+        return AppLayout(
+          backgroundColor: const Color(0xFFF5F5F5),
+          currentIndex: 1,
+          authState: authState,
           body: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
@@ -63,13 +67,22 @@ class _MissionsPageState extends State<MissionsPage> {
                     return _buildMissionListWidget(state.missions, authState);
                   } else if (state is MissionsLoadFailure) {
                     return Center(child: Text('Erreur: ${state.error}'));
-                  } else if (state is MissionAdded) {
+                  } else if (state is MissionAdded ) {
                     BlocProvider.of<MissionsBloc>(context).add(LoadMissions(
-                        accessToken: authState is AuthSuccess
-                            ? authState.userInfo.lastToken ?? ''
-                            : ''));
+                      accessToken: authState is AuthSuccess
+                          ? authState.userInfo.lastToken ?? ''
+                          : '',
+                    ));
                     return const Center(child: CircularProgressIndicator());
-                  } else {
+                  }else if (state is MissionUpdated ) {
+                    BlocProvider.of<MissionsBloc>(context).add(LoadMissions(
+                      accessToken: authState is AuthSuccess
+                          ? authState.userInfo.lastToken ?? ''
+                          : '',
+                    ));
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  else {
                     return Container();
                   }
                 },
@@ -101,7 +114,8 @@ class _MissionsPageState extends State<MissionsPage> {
             .contains(_searchText.toLowerCase()) ||
         (mission.numCompteur?.toString().toLowerCase() ?? '')
             .contains(_searchText.toLowerCase()) ||
-        (mission.volumeDernierReleve?.toString().toLowerCase() ?? '')
+        (mission.volumeDernierReleve?.toString().toLowerCase() ??
+            '')
             .contains(_searchText.toLowerCase()))
         .toList();
 
@@ -112,7 +126,8 @@ class _MissionsPageState extends State<MissionsPage> {
           Padding(
             padding: const EdgeInsets.all(0.0),
             child: Container(
-              margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+              margin:
+              const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(color: Colors.grey, width: 1),
@@ -180,7 +195,6 @@ class _MissionsPageState extends State<MissionsPage> {
     );
   }
 
-  // Construire une tuile pour chaque mission
   Widget _buildMissionTile(
       BuildContext context, MissionModel mission, AuthState authState) {
     Color cardColor =
@@ -207,7 +221,8 @@ class _MissionsPageState extends State<MissionsPage> {
         ),
         color: cardColor,
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          contentPadding:
+          const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           title: Row(
             children: [
               Icon(Icons.account_circle,
@@ -228,7 +243,8 @@ class _MissionsPageState extends State<MissionsPage> {
               Text('Adresse: ${mission.id}'),
               Text('Num Compteur: ${mission.numCompteur}'),
               Text('Volume Dernier Releve: ${mission.volumeDernierReleve}'),
-              Text('Date Dernier Releve: ${DateFormatter.formatFrenchDate(mission.dateReleve!)}'),
+              Text(
+                  'Date Dernier Releve: ${DateFormatter.formatFrenchDate(mission.dateReleve!)}'),
             ],
           ),
           trailing: _buildLinkButton(context, mission, authState, buttonText),
@@ -237,18 +253,19 @@ class _MissionsPageState extends State<MissionsPage> {
     );
   }
 
-  // Construire le bouton pour ajouter ou modifier une mission
   Widget _buildLinkButton(BuildContext context, MissionModel mission,
       AuthState authState, String buttonText) {
     return InkWell(
       onTap: () {
-        // Afficher le formulaire pour ajouter ou modifier une mission
-        _showFormDialog(context, mission, authState, isUpdate: mission.statut == 1);
+        _showFormDialog(context, mission, authState,
+            isUpdate: mission.statut == 1);
       },
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: mission.statut == 1 ? const Color(0xFF1991B6) : const Color(0xFF37087E),
+          color: mission.statut == 1
+              ? const Color(0xFF1991B6)
+              : const Color(0xFF37087E),
           borderRadius: BorderRadius.circular(5),
         ),
         child: Row(
@@ -270,134 +287,187 @@ class _MissionsPageState extends State<MissionsPage> {
   }
 
   Future<void> _showFormDialog(
-      BuildContext context, MissionModel mission, AuthState authState, {bool isUpdate = false}) async {
-    File? image;
+      BuildContext context,
+      MissionModel mission,
+      AuthState authState,
+      {bool isUpdate = false}
+      ) async {
     TextEditingController volumeController = TextEditingController();
     TextEditingController dateController = TextEditingController();
 
     DateTime currentDate = DateTime.now();
     String formattedDate = DateFormat('dd-MM-yyyy').format(currentDate);
-    dateController.text = formattedDate; // Définir la date actuelle comme valeur par défaut
+    dateController.text = formattedDate;
     String dateValue = formattedDate;
 
-    final formKey = GlobalKey<FormState>(); // Ajout de la clé pour le formulaire
+    final formKey = GlobalKey<FormState>();
 
-    showDialog<void>(
+    await showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Nouveaux consommation de ${mission.numCompteur}, ${mission.adresseClient} - $formattedDate',
-            style: const TextStyle(fontSize: 16),
-          ),
-          content: SingleChildScrollView(
-            child: Form(
-              key: formKey, // Utilisation de la clé pour le formulaire
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: volumeController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Volumes'),
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // Autoriser uniquement les chiffres
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Veuillez entrer un volume';
-                      }
-                      return null;
-                    },
-                  ),
-
-                  const SizedBox(height: 10),
-                  MaskedTextField(
-                    mask: 'xxxx-xx-xx', // Adapté pour le format de date 'yyyy-MM-dd'
-                    controller: dateController,
-                    inputDecoration: const InputDecoration(
-                      labelText: 'Date',
-                      hintText: 'YYYY-MM-DD',
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      image = await _getImage();
-                      Navigator.of(context).pop();
-                    },
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Prendre une photo'),
-                  ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (formKey.currentState!.validate()) { // Validation du formulaire
-                        String volumeValue = volumeController.text;
-                        String dateValue = dateController.text;
-
-                        // Transformer la date de format 'dd-MM-yyyy' en 'yyyy-MM-dd'
-                        DateTime parsedDate = DateFormat('dd-MM-yyyy').parse(dateValue);
-                        String formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
-
-                        try {
-                          // Ajouter ou mettre à jour la mission avec les détails fournis
-                          if (isUpdate) {
-                            BlocProvider.of<MissionsBloc>(context).add(UpdateMission(
-                              missionId: mission.numCompteur.toString(),
-                              adresseClient: mission.adresseClient.toString(),
-                              consoValue: volumeValue,
-                              date: formattedDate, // Utiliser la date formatée
-                              accessToken: authState is AuthSuccess
-                                  ? authState.userInfo.lastToken ?? ''
-                                  : '',
-                            ));
-                          } else {
-                            BlocProvider.of<MissionsBloc>(context).add(AddMission(
-                              missionId: mission.numCompteur.toString(),
-                              adresseClient: mission.adresseClient.toString(),
-                              consoValue: volumeValue,
-                              date: formattedDate, // Utiliser la date formatée
-                              accessToken: authState is AuthSuccess
-                                  ? authState.userInfo.lastToken ?? ''
-                                  : '',
-                            ));
-                          }
-                          Navigator.of(context).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Mission ${isUpdate ? 'modifiée' : 'créée'} avec succès')),
-                          );
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text(
-                                    'Erreur lors de la ${isUpdate ? 'modification' : 'création'} de la mission: $e')),
-                          );
-                        }
-                      }
-                    },
-                    child: Text(isUpdate ? 'Modifier' : 'Enregistrer'),
-                  ),
-
-                ],
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(
+                'Nouveaux consommation de ${mission.numCompteur}, ${mission.adresseClient} - $formattedDate',
+                style: const TextStyle(fontSize: 16),
               ),
-            ),
-          ),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: volumeController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(labelText: 'Volumes'),
+                        inputFormatters: <TextInputFormatter>[
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                        ],
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez entrer un volume';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      MaskedTextField(
+                        mask: 'xxxx-xx-xx',
+                        controller: dateController,
+                        inputDecoration: const InputDecoration(
+                          labelText: 'Date',
+                          hintText: 'YYYY-MM-DD',
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (_imagePath.isNotEmpty)
+                        Image.file(
+                          File(_imagePath),
+                          width: 100,
+                          height: 100,
+                        ),
+                      const SizedBox(height: 10),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          // _imagePath = await _getImage();
+                          String? imagePath = await _getImage();
+                          setState(() {});
+                        },
+                        icon: const Icon(Icons.camera_alt),
+                        label: const Text('Prendre une photo'),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.redAccent,
+                            ),
+                            child: Text('Fermer'),
+                          ),
+                          const SizedBox(width: 10),
+                          ElevatedButton(
+                            onPressed: () async {
+                              if (formKey.currentState!.validate()) {
+                                String volumeValue = volumeController.text;
+                                String dateValue = dateController.text;
+                                DateTime parsedDate =
+                                DateFormat('dd-MM-yyyy').parse(dateValue);
+                                String formattedDate =
+                                DateFormat('yyyy-MM-dd').format(parsedDate);
+                                try {
+                                  if (isUpdate) {
+                                    BlocProvider.of<MissionsBloc>(context).add(
+                                      UpdateMission(
+                                        missionId: mission.numCompteur.toString(),
+                                        adresseClient:
+                                        mission.adresseClient.toString(),
+                                        consoValue: volumeValue,
+                                        date: formattedDate,
+                                        accessToken: authState is AuthSuccess
+                                            ? authState.userInfo.lastToken ?? ''
+                                            : '',
+                                        imageCompteur: _imagePath,
+                                      ),
+                                    );
+                                  } else {
+                                    BlocProvider.of<MissionsBloc>(context).add(
+                                      AddMission(
+                                        missionId: mission.numCompteur.toString(),
+                                        adresseClient:
+                                        mission.adresseClient.toString(),
+                                        consoValue: volumeValue,
+                                        date: formattedDate,
+                                        accessToken: authState is AuthSuccess
+                                            ? authState.userInfo.lastToken ?? ''
+                                            : '',
+                                        imageCompteur: _imagePath,
+                                      ),
+                                    );
+                                  }
+                                  Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Mission ${isUpdate ? 'modifiée' : 'créée'} avec succès'),
+                                    ),
+                                  );
+                                  BlocProvider.of<MissionsBloc>(context).add(
+                                    LoadMissions(
+                                      accessToken: authState is AuthSuccess
+                                          ? authState.userInfo.lastToken ?? ''
+                                          : '',
+                                    ),
+                                  ); // Recharge la liste des missions
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'Erreur lors de la ${isUpdate ? 'modification' : 'création'} de la mission: $e',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.blue,
+                            ),
+                            child: Text(isUpdate ? 'Modifier' : 'Enregistrer'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  // Sélectionner une image à partir de la caméra
-  Future<File?> _getImage() async {
+  Future<String?> _getImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      return File(pickedFile.path);
+      setState(() {
+        _imagePath = pickedFile.path; // Enregistrer le chemin de l'image sélectionnée
+      });
+      return pickedFile.path; // Retourner le chemin de l'image sélectionnée
     } else {
       print('Aucune image sélectionnée.');
       return null;
     }
   }
+
 }

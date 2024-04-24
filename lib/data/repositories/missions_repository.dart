@@ -10,13 +10,14 @@ class MissionsRepository {
 
   MissionsRepository({required this.baseUrl});
 
-  Future<List<MissionModel>> fetchMissions(String accessToken) async {
+  Future<List<MissionModel>> fetchMissions() async {
     try {
       return MissionsRepositoryLocale().getMissionsDataFromLocalDatabase();
     } catch (e) {
       throw Exception('Failed to fetch missions: $e');
     }
   }
+
   /*
   *
   * Creat Insert Mission Relever
@@ -26,6 +27,7 @@ class MissionsRepository {
       String adresseClient,
       String volumeValue,
       String date,
+      String imageCompteur
       ) async {
     try {
       final db = await _niaDatabases.database;
@@ -69,10 +71,14 @@ class MissionsRepository {
             missionId,
             volumeValue,
             date,
+            imageCompteur,
           );
           await _updateNombreReleverEffectue(db);
           print(
-              'Mission mise à jour avec succès dans la base de données locale');
+              'Mission Inseret avec succès dans la base de données locale');
+
+          List<MissionModel> updatedMissions = await fetchMissions();
+          print('Missions après insertion: $updatedMissions');
         } else {
           // Le champ 'volume_dernier_releve' est null, ne pas effectuer la mise à jour
           print(
@@ -90,6 +96,7 @@ class MissionsRepository {
       String compteurId,
       String volumeValue,
       String date,
+      String imageCompteur,
       ) async {
     try {
       // Récupérer le dernier relevé avec le compteur_id donné
@@ -118,7 +125,8 @@ class MissionsRepository {
             'date_releve': date,
             'volume': volumeValue,
             'conso': consoValue,
-            'etatFacture' : 'Pas de facture'
+            'etatFacture' : 'Pas de facture',
+            'image_compteur': imageCompteur
             // Ajoutez d'autres champs si nécessaire
           },
         );
@@ -132,7 +140,6 @@ class MissionsRepository {
       throw Exception('Failed to insert new releve from existing data: $e');
     }
   }
-
 
 
   Future<void> _updateNombreReleverEffectue(Database db) async {
@@ -159,6 +166,7 @@ class MissionsRepository {
       String adresseClient,
       String volumeValue,
       String date,
+      String imageCompteur
       ) async {
     try {
       final db = await _niaDatabases.database;
@@ -202,10 +210,14 @@ class MissionsRepository {
             missionId,
             volumeValue,
             date,
+            imageCompteur,
           );
 
           print(
               'Mission mise à jour avec succès dans la base de données locale');
+
+          List<MissionModel> updatedMissions = await fetchMissions();
+          print('Missions après insertion: $updatedMissions');
         } else {
           // Le champ 'volume_dernier_releve' est null, ne pas effectuer la mise à jour
           print(
@@ -224,57 +236,77 @@ class MissionsRepository {
       String compteurId,
       String volumeValue,
       String date,
+      String imageCompteur,
       ) async {
     try {
-      // Obtenir la date actuelle
-      DateTime currentDate = DateTime.now();
+      print("image $imageCompteur");
 
-      // Récupérer la date du mois précédent
-      DateTime previousMonthDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
+      if (imageCompteur.isNotEmpty) {
+        // Obtenir la date actuelle
+        DateTime currentDate = DateTime.now();
 
-      String formattedPreviousMonthDate = DateFormat('yyyy-MM').format(previousMonthDate);
-      // print("moiss $formattedPreviousMonthDate");
-      // Récupérer le dernier relevé avec le compteur_id donné pour le mois en cours
-      Map<String, dynamic>? latestMonthReleve = await db.query(
-        'releves',
-        where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
-        whereArgs: [compteurId, formattedPreviousMonthDate],
-      ).then((value) => value.isNotEmpty ? value.last : null);
+        // Récupérer la date du mois précédent
+        DateTime previousMonthDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
 
-      // print("Laste Relves $latestMonthReleve");
-      String formattedCurrentDate = DateFormat('yyyy-MM').format(currentDate);
+        String formattedPreviousMonthDate = DateFormat('yyyy-MM').format(previousMonthDate);
 
-      List<Map<String, dynamic>>  RelevesNow = await db.query(
-        'releves',
-        where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
-        whereArgs: [compteurId, formattedCurrentDate],
-      );
-
-      if (RelevesNow.isNotEmpty && latestMonthReleve != null && latestMonthReleve.isNotEmpty) {
-        int RelevesNowId = RelevesNow.last['id'] ?? 0; // Utilisation de l'opérateur de null-aware pour éviter les erreurs si 'RelevesNow' ou 'latestMonthReleve' est null
-        int latestMonthReleveId = latestMonthReleve['id'] ?? 0; // Utilisation de l'opérateur de null-aware pour éviter les erreurs si 'RelevesNow' ou 'latestMonthReleve' est null
-
-        int consoValue = (int.parse(volumeValue) - latestMonthReleve['volume']).toInt();
-        await db.update(
+        // Récupérer le dernier relevé avec le compteur_id donné pour le mois en cours
+        Map<String, dynamic>? latestMonthReleve = await db.query(
           'releves',
-          {
-            'date_releve': date,
-            'volume': volumeValue,
-            'conso': consoValue,
-            'etatFacture': 'Pas de facture'
-            // Ajoutez d'autres champs à mettre à jour si nécessaire
-          },
-          where: 'id = ?',
-          whereArgs: [RelevesNowId],
+          where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
+          whereArgs: [compteurId, formattedPreviousMonthDate],
+        ).then((value) => value.isNotEmpty ? value.last : null);
+
+        String formattedCurrentDate = DateFormat('yyyy-MM').format(currentDate);
+
+        List<Map<String, dynamic>>  RelevesNow = await db.query(
+          'releves',
+          where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
+          whereArgs: [compteurId, formattedCurrentDate],
         );
-        print('Mise à jour du relevé à partir du dernier relevé réussie.');
+
+        if (RelevesNow.isNotEmpty && latestMonthReleve != null && latestMonthReleve.isNotEmpty) {
+          int RelevesNowId = RelevesNow.last['id'] ?? 0;
+          int consoValue = (int.parse(volumeValue) -
+              latestMonthReleve['volume']).toInt();
+
+          final updateResult = await db.update(
+            'releves',
+            {
+              'date_releve': date,
+              'volume': volumeValue,
+              'conso': consoValue,
+              'etatFacture': 'Pas de facture',
+              'image_compteur': imageCompteur,
+            },
+            where: 'id = ?',
+            whereArgs: [RelevesNowId],
+          );
+          if (updateResult == 1) {
+            // Récupérer les données mises à jour
+            final updatedData = await db.query(
+              'releves',
+              where: 'id = ?',
+              whereArgs: [RelevesNowId],
+            );
+
+            // Vérifier si les données ont été récupérées
+            if (updatedData.isNotEmpty) {
+              // Les données ont été mises à jour avec succès
+              print('Données mises à jour: $updatedData');
+            } else {
+              // Aucune donnée n'a été récupérée
+              print('Erreur: Aucune donnée mise à jour trouvée.');
+            }
+          } else {
+            // Aucune mise à jour n'a été effectuée
+            print('Erreur: Aucune mise à jour effectuée.');
+          }
+        }
       }
-
-
     } catch (e) {
       throw Exception('Failed to update releve from existing data: $e');
     }
   }
-
 
 }

@@ -41,16 +41,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
           final payementFacture = await _factureLocalRepository.getAllPayments();
 
-          print("payement Facture All :${(payementFacture.isNotEmpty)}");
-
-          if(payementFacture.isNotEmpty){
-            for (var payment in payementFacture) {
-              if( payment.statut == 'En cours' ){
-                print("tsy mbola");
-                await PayementFacture.sendPaymentToServer(payment, accessToken);
-              }
-            }
-          }
+          // print("payement Facture All :${(payementFacture.isNotEmpty)}");
+          //
+          // if(payementFacture.isNotEmpty){
+          //   for (var payment in payementFacture) {
+          //     if( payment.statut == 'En cours' ){
+          //       print("tsy mbola");
+          //       await PayementFacture.sendPaymentToServer(payment, accessToken);
+          //     }
+          //   }
+          // }
 
           final missionsDataLocal = await _missionsRepositoryLocale.getMissionsDataFromLocalDatabase();
           print("Missions data from locale post: $missionsDataLocal");

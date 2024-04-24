@@ -1,4 +1,33 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Autorisations -->
+
+    <!-- Autorisation pour accéder à Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Autorisation pour accéder à l'état du réseau -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Autorisation pour accéder à la connexion Wi-Fi -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- Autorisation pour accéder à la localisation précise (GPS) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Autorisation pour accéder à la localisation approximative (réseau cellulaire ou Wi-Fi) -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Autorisation pour lire et écrire sur le stockage externe -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- Autorisation pour utiliser l'appareil photo -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Autorisation pour lancer au démarrage du téléphone -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- Votre code d'application et d'autres déclarations -->
     <application
         android:label="application_rano"
         android:name="${applicationName}"

@@ -65,6 +65,8 @@ class MissionModel {
 
   @override
   String toString() {
-    return 'MissionModel{id: $id, nomClient: $nomClient, prenomClient: $prenomClient, adresseClient: $adresseClient, numCompteur: $numCompteur, consoDernierReleve: $consoDernierReleve, volumeDernierReleve: $volumeDernierReleve, dateReleve: $dateReleve, statut: $statut';
+    return 'MissionModel{id: $id, nomClient: $nomClient, prenomClient: $prenomClient, adresseClient: $adresseClient, numCompteur: $numCompteur, consoDernierReleve: $consoDernierReleve, '
+        'volumeDernierReleve: $volumeDernierReleve, dateReleve: $dateReleve, '
+        'statut: $statut';
   }
 }

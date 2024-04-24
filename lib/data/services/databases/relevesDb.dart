@@ -14,6 +14,7 @@ class releves_db {
           volume INTEGER,
           conso INTEGER,          
           etatFacture TEXT,
+          image_compteur TEXT,
           FOREIGN KEY (compteur_id) REFERENCES compteur(id),
           FOREIGN KEY (contrat_id) REFERENCES contrat(id),
           FOREIGN KEY (client_id) REFERENCES client(id)

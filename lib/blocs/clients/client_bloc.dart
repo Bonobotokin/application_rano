@@ -17,7 +17,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
       print("eto ClientData ${event.numCompteur}");
       final clientData = await clientRepository.fetchClientData(
           event.numCompteur, event.accessToken);
-      print("eto ClientData $clientData");
+      // print("eto ClientData $clientData");
       final client = clientData['client'];
       final compteur = clientData['compteur'];
       final contrat = clientData['contrat'];

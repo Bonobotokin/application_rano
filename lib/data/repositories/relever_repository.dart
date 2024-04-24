@@ -23,6 +23,7 @@ class ReleverRepository {
           volume: row['volume'] ?? 0,
           conso: row['conso'] ?? 0,
           etatFacture: row['etatFacture'] ?? '',
+          imageCompteur: row['image_compteur'] ?? '',
         )).toList();
         // return {'releves': releves};
       } else {

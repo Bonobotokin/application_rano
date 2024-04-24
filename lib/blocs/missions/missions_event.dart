@@ -21,7 +21,8 @@ class AddMission extends MissionsEvent {
   final String adresseClient;
   final String consoValue;
   final String date;
-  final String accessToken; // Ajoutez cette propriété
+  final String accessToken;
+  final String imageCompteur;
 
   const AddMission({
     required this.missionId,
@@ -29,15 +30,16 @@ class AddMission extends MissionsEvent {
     required this.consoValue,
     required this.date,
     required this.accessToken,
+    required this.imageCompteur,
   });
 
   @override
   List<Object> get props =>
-      [missionId, adresseClient, consoValue, date, accessToken];
+      [missionId, adresseClient, consoValue, date, accessToken,imageCompteur];
 
   @override
   String toString() =>
-      'AddMission { missionId: $missionId, adresseClient: $adresseClient, consoValue: $consoValue, date: $date, accessToken: $accessToken }';
+      'AddMission { missionId: $missionId, adresseClient: $adresseClient, consoValue: $consoValue, date: $date, accessToken: $accessToken, image: $imageCompteur }';
 }
 
 class UpdateMission extends MissionsEvent {
@@ -46,6 +48,7 @@ class UpdateMission extends MissionsEvent {
   final String consoValue;
   final String date;
   final String accessToken; // Ajoutez cette propriété
+  final String imageCompteur;
 
   const UpdateMission({
     required this.missionId,
@@ -53,13 +56,14 @@ class UpdateMission extends MissionsEvent {
     required this.consoValue,
     required this.date,
     required this.accessToken,
+    required this.imageCompteur
   });
 
   @override
   List<Object> get props =>
-      [missionId, adresseClient, consoValue, date, accessToken];
+      [missionId, adresseClient, consoValue, date, accessToken, imageCompteur ];
 
   @override
   String toString() =>
-      'UpdateMission { missionId: $missionId, adresseClient: $adresseClient, consoValue: $consoValue, date: $date, accessToken: $accessToken }';
+      'UpdateMission { missionId: $missionId, adresseClient: $adresseClient, consoValue: $consoValue, date: $date, accessToken: $accessToken, image: $imageCompteur }';
 }

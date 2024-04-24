@@ -40,3 +40,7 @@ class MissionsLoadFailure extends MissionsState {
 class MissionAdded extends MissionsState {
   // Vous pouvez ajouter des propriétés supplémentaires si nécessaire
 }
+
+class MissionUpdated extends MissionsState {
+  // Vous pouvez ajouter des propriétés supplémentaires si nécessaire
+}

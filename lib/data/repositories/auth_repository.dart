@@ -163,6 +163,7 @@ class AuthRepository {
               volume: releve['volume'] is int ? releve['volume'] : 0,
               conso: releve['conso'] is int ? releve['conso'] : 0,
               etatFacture: releve['etatFacture'] is String ?  releve['etatFacture'] : '',
+              imageCompteur: releve['image_compteur'] is String ?  ? releve['image_compteur'] : '',
             );
           }).toList();
 

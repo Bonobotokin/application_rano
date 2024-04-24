@@ -325,9 +325,10 @@ class SaveDataRepositoryLocale {
     try {
       final db = await NiADatabases().database;
       for (final releve in relevesModels) {
+        print("fffffffffffffffffff $releve");
         final List<Map<String, dynamic>> existingRows = await db.query(
           'releves',
-          where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ? AND etatFacture = ?',
+          where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ? AND etatFacture = ? AND image_compteur = ? ',
           whereArgs: [
             releve.idReleve,
             releve.compteurId,
@@ -336,7 +337,8 @@ class SaveDataRepositoryLocale {
             releve.dateReleve,
             releve.volume,
             releve.conso,
-            releve.etatFacture
+            releve.etatFacture,
+            releve.imageCompteur
           ],
         );
 
