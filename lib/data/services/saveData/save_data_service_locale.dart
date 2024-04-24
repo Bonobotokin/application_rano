@@ -326,6 +326,13 @@ class SaveDataRepositoryLocale {
       final db = await NiADatabases().database;
       for (final releve in relevesModels) {
         print("fffffffffffffffffff $releve");
+
+        String modifiedImageCompteur = releve.imageCompteur;
+
+        if (releve.imageCompteur.isNotEmpty && releve.imageCompteur.startsWith("/media/compteurs/1234/")) {
+          modifiedImageCompteur = releve.imageCompteur.replaceAll("/media/compteurs/1234/", "/data/user/0/com.example.application_rano/app_flutter/assets/images/");
+        }
+
         final List<Map<String, dynamic>> existingRows = await db.query(
           'releves',
           where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ? AND etatFacture = ? AND image_compteur = ? ',
@@ -338,21 +345,39 @@ class SaveDataRepositoryLocale {
             releve.volume,
             releve.conso,
             releve.etatFacture,
-            releve.imageCompteur
+            releve.imageCompteur // Utilisez l'image originale ici, car c'est ce qui est stocké dans la base de données
           ],
         );
 
         if (existingRows.isNotEmpty) {
           print('Les données de relevé existent déjà dans la base de données locale.');
+          // Mise à jour des données
+          await db.update(
+            'releves',
+            releve.toMap()..['image_compteur'] = modifiedImageCompteur, // Mettre à jour l'image_compteur avec la valeur modifiée
+            where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ? AND etatFacture = ? AND image_compteur = ? ',
+            whereArgs: [
+              releve.idReleve,
+              releve.compteurId,
+              releve.contratId,
+              releve.clientId,
+              releve.dateReleve,
+              releve.volume,
+              releve.conso,
+              releve.etatFacture,
+              releve.imageCompteur // Utilisez l'image originale ici, car c'est ce qui est stocké dans la base de données
+            ],
+          );
+          print('Données de relevé mises à jour avec succès dans la base de données locale : $releve');
           continue;
         }
+
 
         await db.insert(
           'releves',
           releve.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        // Affichage de l'aperçu pour le relevé enregistré
         print('Données de relevé enregistrées avec succès dans la base de données locale : $releve');
       }
 
@@ -362,6 +387,7 @@ class SaveDataRepositoryLocale {
       throw Exception("Failed to save releves data to local database: $error");
     }
   }
+
 
   Future<void> saveFactureData(FactureModel factureModel) async {
     try {
