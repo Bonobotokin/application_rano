@@ -311,5 +311,5 @@ class _AnomaliePageState extends State<AnomaliePage> {
       ),
     );
   }
-
+ 
 }
