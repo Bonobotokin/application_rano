@@ -1,3 +1,5 @@
+import 'dart:math';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
@@ -177,71 +179,135 @@ class _AnomaliePageState extends State<AnomaliePage> {
     );
   }
 
-  // Construire une tuile pour chaque mission
-  Widget _buildMissionTile(
-      BuildContext context, AnomalieModel anomalie, AuthState authState) {
-    String Status;
-    if(anomalie.status == 0 ) {
-      Status = "Non Traiter";
+  Widget _buildMissionTile(BuildContext context, AnomalieModel anomalie, AuthState authState) {
+    String status;
+    if (anomalie.status == 0) {
+      status = "Non Traitée";
+    } else if (anomalie.status == 1) {
+      status = "En Cours";
+    } else {
+      status = "Réussie";
     }
-    else if (anomalie.status == 0 ) {
-      Status = "En Cours";
-    }
-    else{
-      Status = "Reussit";
-    }
-    Color cardColor =
-    anomalie.status == 1 ? const Color(0xFFFFFFFF) : const Color(0xFFBBDEFB);
-    Color btnColor =
-    anomalie.status == 1 ? const Color(0xFFEEE9E9) : const Color(0xFFBBDEFB);
+
+    Color cardColor = anomalie.status == 1 ? const Color(0xFFFFFFFF) : const Color(0xFFBBDEFB);
+    Color btnColor = anomalie.status == 1 ? const Color(0xFFEEE9E9) : const Color(0xFFBBDEFB);
     String buttonText = anomalie.status == 1 ? 'Modifier' : 'Ajouter';
 
-
-    return GestureDetector(
-      onTap: () {
-
-      },
-      child: Card(
-        elevation: 5,
-        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        color: cardColor,
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          title: Row(
-            children: [
-              Icon(Icons.warning_amber,
-                  color: anomalie.status == 1 ? Colors.grey : Colors.blue),
-              const SizedBox(width: 8),
-              Text(
-                'Anomalie : ${anomalie.id}',
+    return Card(
+      elevation: 5,
+      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      color: cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Anomalie : ${anomalie.typeMc}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                Text(
+                  'Status: $status',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: anomalie.status == 0 ? Colors.red : anomalie.status == 1 ? Colors.orange : Colors.green,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ExpansionTile(
+              title: Text(
+                'Détails',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
-            ],
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 10),
-              Text('Type: ${anomalie.typeMc}'),
-              Text('Longitude: ${anomalie.descriptionMc}'),
-              Text('Altitude: ${anomalie.descriptionMc}'),
-              Text('Description: ${anomalie.descriptionMc}'),
-              Text('Declarant: ${anomalie.clientDeclare}'),
-              Text('Date: ${anomalie.dateDeclaration}'),
-              Text('Etat: $Status' ,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),),
-
-            ],
-          ),
+              children: [
+                Text(
+                  'Longitude: ${anomalie.descriptionMc}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                Text(
+                  'Altitude: ${anomalie.descriptionMc}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                Text(
+                  'Déclarant: ${anomalie.clientDeclare}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                Text(
+                  'Date: ${anomalie.dateDeclaration}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Description :',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${anomalie.descriptionMc}',
+                  style: const TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Images :',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Wrap(
+                  spacing: 8.0,
+                  runSpacing: 8.0,
+                  children: [
+                    for (int i = 1; i <= 5; i++)
+                      if (anomalie.getPhotoAnomalie(i) != null &&
+                          anomalie.getPhotoAnomalie(i)!.isNotEmpty &&
+                          File(anomalie.getPhotoAnomalie(i)!).existsSync())
+                        GestureDetector(
+                          onTap: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Dialog(
+                                  child: Image.file(
+                                    File(anomalie.getPhotoAnomalie(i)!),
+                                    fit: BoxFit.contain,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          child: Image.file(
+                            File(anomalie.getPhotoAnomalie(i)!),
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
-
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:application_rano/data/models/anomalie_model.dart';
+import 'package:application_rano/data/models/photo_anomalie_model.dart';
 import 'package:equatable/equatable.dart';
 
 abstract class AnomalieState extends Equatable {
@@ -14,7 +15,8 @@ class AnomalieLoading extends AnomalieState {
 
   final List<AnomalieModel> anomalie;
 
-  const AnomalieLoading(this.anomalie);
+  const AnomalieLoading(
+      this.anomalie);
 
   @override
   List<Object> get props => [anomalie];

@@ -27,6 +27,7 @@ class AddAnomalie extends AnomalieEvent {
   final String cpCommune;
   final String commune;
   final String status;
+  final List<String?> imagePaths;
 
   const AddAnomalie({
     required this.typeMc,
@@ -38,6 +39,7 @@ class AddAnomalie extends AnomalieEvent {
     required this.cpCommune,
     required this.commune,
     required this.status,
+    required this.imagePaths,
   });
 
   @override
@@ -51,6 +53,7 @@ class AddAnomalie extends AnomalieEvent {
     cpCommune,
     commune,
     status,
+    imagePaths,
   ];
 }
 

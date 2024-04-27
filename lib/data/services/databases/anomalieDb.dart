@@ -14,7 +14,12 @@ class anomalie_db {
           client_declare TEXT NULL,
           cp_commune TEXT NULL,
           commune TEXT NULL,
-          status INTEGER
+          status INTEGER,
+          photo_anomalie_1 TEXT NULL,
+          photo_anomalie_2 TEXT NULL,
+          photo_anomalie_3 TEXT NULL,
+          photo_anomalie_4 TEXT NULL,
+          photo_anomalie_5 TEXT NULL
         );
       ''');
     } catch (e) {

@@ -372,10 +372,21 @@ class SaveDataRepositoryLocale {
           continue;
         }
 
-
         await db.insert(
           'releves',
-          releve.toMap(),
+          {
+            ...releve.toMap(), // Ajouter les valeurs existantes du modèle
+            'id': releve.id,
+            'id_releve': releve.idReleve,
+            'compteur_id': releve.compteurId,
+            'contrat_id': releve.contratId,
+            'client_id': releve.clientId,
+            'date_releve': releve.dateReleve,
+            'volume': releve.volume,
+            'conso': releve.conso,
+            'etatFacture':  releve.etatFacture,
+            'image_compteur': modifiedImageCompteur, // Ajouter la nouvelle valeur de l'image_compteur
+          },
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
         print('Données de relevé enregistrées avec succès dans la base de données locale : $releve');
@@ -563,9 +574,10 @@ class SaveDataRepositoryLocale {
       for (final anomalies in anomalie) {
         final List<Map<String, dynamic>> existingRows = await db.query(
           'anomalie',
-          where: 'id = ? AND id_mc = ? AND type_mc = ? AND date_declaration = ? AND longitude_mc = ? AND latitude_mc = ? AND description_mc = ? AND client_declare = ? AND cp_commune = ? AND commune = ? AND status = ?',
+          where: 'id_mc = ? AND type_mc = ? AND date_declaration = ? AND longitude_mc = ? AND latitude_mc = ? AND '
+              'description_mc = ? AND client_declare = ? AND cp_commune = ? AND commune = ? AND status = ? AND '
+              'photo_anomalie_1 = ? AND photo_anomalie_2 = ? AND photo_anomalie_3 = ? AND photo_anomalie_4 = ? AND photo_anomalie_5 = ? ',
           whereArgs: [
-            anomalies.id,
             anomalies.idMc,
             anomalies.typeMc,
             anomalies.dateDeclaration,
@@ -575,12 +587,44 @@ class SaveDataRepositoryLocale {
             anomalies.clientDeclare,
             anomalies.cpCommune,
             anomalies.commune,
-            anomalies.status
+            anomalies.status,
+            anomalies.photoAnomalie1,
+            anomalies.photoAnomalie2,
+            anomalies.photoAnomalie3,
+            anomalies.photoAnomalie4,
+            anomalies.photoAnomalie5
           ],
         );
 
         if (existingRows.isNotEmpty) {
           print('Les données d\'anomalie existent déjà dans la base de données locale.');
+          // Mise à jour des données
+          await db.update(
+            'releves',
+            anomalies.toMap(), // Mettre à jour l'image_compteur avec la valeur modifiée
+            where: 'id_mc = ? AND type_mc = ? AND date_declaration = ? AND longitude_mc = ? AND latitude_mc = ? AND '
+                'description_mc = ? AND client_declare = ? AND cp_commune = ? AND commune = ? AND status = ? AND '
+                'photo_anomalie_1 = ? AND photo_anomalie_2 = ? AND photo_anomalie_3 = ? AND photo_anomalie_4 = ? AND photo_anomalie_5 = ? ',
+            whereArgs: [
+              anomalies.idMc,
+              anomalies.typeMc,
+              anomalies.dateDeclaration,
+              anomalies.longitudeMc,
+              anomalies.latitudeMc,
+              anomalies.descriptionMc,
+              anomalies.clientDeclare,
+              anomalies.cpCommune,
+              anomalies.commune,
+              anomalies.status,
+              anomalies.photoAnomalie1,
+              anomalies.photoAnomalie2,
+              anomalies.photoAnomalie3,
+              anomalies.photoAnomalie4,
+              anomalies.photoAnomalie5
+            ],
+          );
+          print('Données de anomalie mises à jour avec succès dans la base de données locale : $anomalies');
+          continue;
 
           return;
         } else {
@@ -590,6 +634,11 @@ class SaveDataRepositoryLocale {
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
 
+          await db.insert(
+            'anomalie',
+            anomalies.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
           // Affichage de l'aperçu pour l'anomalie enregistrée
           print('Données d\'Anomalie enregistrées avec succès dans la base de données locale : $anomalies');
         }
@@ -598,6 +647,5 @@ class SaveDataRepositoryLocale {
       throw Exception("Échec de l'enregistrement des données d'anomalie dans la base de données locale : $e");
     }
   }
-
 
 }

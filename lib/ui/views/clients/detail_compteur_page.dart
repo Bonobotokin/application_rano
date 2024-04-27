@@ -68,10 +68,10 @@ class DetailCompteurPage extends StatelessWidget {
           return Row(
             children: [
               const CircleAvatar(
-                radius: 30,
+                radius: 20,
                 child: Icon(Icons.account_circle, size: 40),
               ),
-              const SizedBox(width: 20.0),
+              const SizedBox(width: 10.0),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -104,8 +104,7 @@ class DetailCompteurPage extends StatelessWidget {
     );
   }
 
-  Widget _buildReleveCard(BuildContext context, List<RelevesModel> releves,
-      AuthState authState) {
+  Widget _buildReleveCard(BuildContext context, List<RelevesModel> releves, AuthState authState) {
     if (releves.isEmpty) {
       return const Center(child: Text('Aucun relevé disponible'));
     }
@@ -147,11 +146,10 @@ class DetailCompteurPage extends StatelessWidget {
                     height: 56,
                     child: _buildReleveLeading(context, releve, randomColor),
                   ),
-                  Expanded(
+                  Expanded( // Ajout de l'Expanded autour du ListTile
                     child: ListTile(
                       title: Text(
-                        'Relevé du ${DateFormatter.formatFrenchDate(
-                            releve.dateReleve)}',
+                        'Relevé du ${DateFormatter.formatFrenchDate(releve.dateReleve)}',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: randomColor,
@@ -197,6 +195,7 @@ class DetailCompteurPage extends StatelessWidget {
       }).toList(),
     );
   }
+
 
   Widget _buildReleveLeading(BuildContext context, RelevesModel releve, Color randomColor) {
     if (releve.imageCompteur != null && releve.imageCompteur.isNotEmpty && File(releve.imageCompteur).existsSync()) {
