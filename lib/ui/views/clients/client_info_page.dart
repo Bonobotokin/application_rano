@@ -136,11 +136,11 @@ class _ClientInfoPageState extends State<ClientInfoPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildContractDetail('Numero', contrat.numeroContrat ?? ''),
-        _buildContractDetail('Debut', contrat.dateDebut ?? ''),
+        _buildContractDetail('Numero', contrat.numeroContrat),
+        _buildContractDetail('Debut', contrat.dateDebut),
         _buildContractDetail('Fin', contrat.dateFin ?? ''),
-        _buildContractDetail('Adresse', contrat.adresseContrat ?? ''),
-        _buildContractDetail('Pays', contrat.paysContrat ?? ''),
+        _buildContractDetail('Adresse', contrat.adresseContrat),
+        _buildContractDetail('Pays', contrat.paysContrat),
       ],
     );
   }
@@ -149,8 +149,8 @@ class _ClientInfoPageState extends State<ClientInfoPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildMeterDetail('Marque', compteur.marque ?? ''),
-        _buildMeterDetail('Modèle', compteur.modele ?? ''),
+        _buildMeterDetail('Marque', compteur.marque),
+        _buildMeterDetail('Modèle', compteur.modele),
       ],
     );
   }

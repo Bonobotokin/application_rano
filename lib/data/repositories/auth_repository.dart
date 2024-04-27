@@ -16,6 +16,33 @@ class AuthRepository {
 
   AuthRepository({required this.baseUrl});
 
+  Future<User?> checkLastConnected() async {
+    int? userId = await AuthenticationLocale().getUserIdConnected();
+    bool isConnected = userId != null; // Vérifie si userId est non-null
+
+
+    print("eto verrifie Users $userId");
+
+    if (isConnected) {
+      // L'utilisateur est connecté, vous pouvez effectuer d'autres actions ici
+      // Par exemple, vous pouvez récupérer les informations de l'utilisateur connecté
+      // et les retourner sous forme d'objet User
+
+      // Pour l'exemple, nous allons simplement imprimer un message
+      print('L\'utilisateur est connecté !');
+
+      // Retourner les informations de l'utilisateur, ou null si elles ne sont pas disponibles
+      return User(/* Ajoutez les informations de l'utilisateur ici */);
+    } else {
+      // L'utilisateur n'est pas connecté
+      print('L\'utilisateur n\'est pas connecté !');
+
+      // Retourner null ou effectuer d'autres actions selon vos besoins
+      return null;
+    }
+  }
+
+
   Future<User?> login(String phoneNumber, String password) async {
     try {
       if (baseUrl.trim().isEmpty) {
@@ -133,11 +160,7 @@ class AuthRepository {
             paysContrat: contratData['pays_contrat'] ?? '',
           );
           final client = ClientModel(
-            id: clientData['id'] != null
-                ? (clientData['id'] is String
-                    ? int.tryParse(clientData['id'] ?? '0') ?? 0
-                    : clientData['id'])
-                : 0,
+            id: clientData['id'] is int ? clientData['id'] : 0,
             nom: clientData['nom'] ?? '',
             prenom: clientData['prenom'] ?? '',
             adresse: clientData['adresse'] ?? '',

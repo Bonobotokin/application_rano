@@ -34,7 +34,7 @@ class RelevesModel {
       volume: map['volume'],
       conso: map['conso'],
       etatFacture: map['etatFacture'],
-        imageCompteur: map['image_compteur'],
+      imageCompteur: map['image_compteur'],
     );
   }
   Map<String, dynamic> toMap() {

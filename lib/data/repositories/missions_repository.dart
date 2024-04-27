@@ -39,6 +39,7 @@ class MissionsRepository {
         whereArgs: [missionId],
       );
 
+
       if (existingMissions.isNotEmpty) {
         // Extraire la première (et seule) mission existante
         final existingMission = existingMissions.first;
@@ -48,10 +49,11 @@ class MissionsRepository {
             existingMission['volume_dernier_releve'] != null) {
           // Effectuer la soustraction uniquement si le champ 'volume_dernier_releve' n'est pas null
           final updatedConsoDernierReleve =
-              (existingMission['volume_dernier_releve'] as int) -
-                  int.parse(volumeValue);
-
+                  int.parse(volumeValue) -
+                    (existingMission['volume_dernier_releve'] as int);
+          print("num updatedConsoDernierReleve: $updatedConsoDernierReleve");
           // Mise à jour de la mission existante
+          print("num COmpteur: $missionId");
           await db.update(
             'missions',
             {
@@ -65,7 +67,7 @@ class MissionsRepository {
             whereArgs: [missionId],
           );
 
-          // Appel de la fonction insertNewReleveFromExistingData
+          // // Appel de la fonction insertNewReleveFromExistingData
           await insertNewReleveFromExistingData(
             db,
             missionId,
@@ -112,12 +114,12 @@ class MissionsRepository {
 
         // Incrémenter l'ID du nouveau relevé en ajoutant 1 à l'ID du dernier relevé
         int newReleveId = latestReleve['id'] + 1;
+        print("Relever trouver $consoValue");
 
         // Insérer les données de relevé dans la table "releves"
         await db.insert(
           'releves',
           {
-            'id': newReleveId,
             'id_releve': newReleveId, // Utiliser le même ID pour id_releve
             'compteur_id': latestReleve['compteur_id'],
             'contrat_id': latestReleve['contrat_id'],

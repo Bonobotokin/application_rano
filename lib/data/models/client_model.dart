@@ -1,5 +1,5 @@
 class ClientModel {
-  final int id;
+  final int? id;
   final String nom;
   final String prenom;
   final String adresse;
@@ -10,7 +10,7 @@ class ClientModel {
   final int actif;
 
   ClientModel({
-    required this.id,
+    this.id,
     required this.nom,
     required this.prenom,
     required this.adresse,

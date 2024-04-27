@@ -8,7 +8,9 @@ abstract class AuthEvent extends Equatable {
 }
 
 class AppStarted extends AuthEvent {} // Ajoutez cet événement
+class CheckIsConnected extends AuthEvent{
 
+}
 class LoginRequested extends AuthEvent {
   final String phoneNumber;
   final String password;

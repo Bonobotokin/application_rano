@@ -128,11 +128,42 @@ class ClientRepository {
 
         final Database db = await _niaDatabases.database;
         List<Map<String, dynamic>> rows = await db.rawQuery('''
-          SELECT * FROM releves
+          SELECT 
+            releves.id AS releve_id, 
+            releves.id_releve,
+            releves.compteur_id,
+            releves.contrat_id,
+            releves.client_id,
+            releves.date_releve, 
+            releves.volume,
+            releves.conso,            
+            releves.etatFacture,
+            releves.image_compteur,
+            
+            client.id AS idClient,
+            client.nom AS nom,
+            client.prenom AS prenom,
+            client.adresse AS adresse,
+            client.commune AS commune,
+            client.region AS region,
+            client.telephone_1 AS client_phone1, 
+            client.telephone_2,
+            client.actif AS actif,
+            
+            compteur.marque AS compteur_marque,
+            compteur.modele AS compteur_modele, 
+            
+            contrat.numero_contrat AS contrat_numero,
+            contrat.date_debut AS contrat_date_debut,
+            contrat.date_fin AS contrat_date_fin,
+            contrat.adresse_contrat AS contrat_adresse_contrat, 
+            contrat.pays_contrat AS contrat_pays_contrat
+            
+          FROM releves
+          JOIN client ON releves.client_id = client.id  
           JOIN compteur ON releves.compteur_id = compteur.id 
           JOIN contrat ON releves.contrat_id = contrat.id
-          JOIN client ON releves.client_id =  client.id
-          WHERE compteur.id = ?
+          WHERE releves.compteur_id = ? 
         ''', [numCompteur]);
 
         print("clientData verrifie : $rows");
@@ -144,13 +175,13 @@ class ClientRepository {
 
           // Créez des objets individuels pour chaque table
           final client = ClientModel(
-            id: row['client_id'],
+            id: row['idClient'],
             nom: row['nom'] ?? '',
             prenom: row['prenom'] ?? '',
             adresse: row['adresse'] ?? '',
             commune: row['commune'] ?? '',
             region: row['region'] ?? '',
-            telephone_1: row['tephone_1'] ?? '',
+            telephone_1: row['client_phone1'] ?? '',
             telephone_2: row['tephone_2'] ?? '',
             actif: row['actif'],
           );
@@ -158,22 +189,22 @@ class ClientRepository {
           final compteur = CompteurModel(
             id: int.parse(
                 row['compteur_id'].toString()), // Conversion de String à int
-            marque: row['marque'] ?? '',
-            modele: row['modele'] ?? '',
+            marque: row['compteur_marque'] ?? '',
+            modele: row['compteur_modele'] ?? '',
           );
 
           final contrat = ContratModel(
             id: row['contrat_id'],
-            numeroContrat: row['numero_contrat'] ?? '',
+            numeroContrat: row['contrat_numero'] ?? '',
             clientId: row['client_id'],
-            dateDebut: row['date_debut'] ?? '',
-            dateFin: row['date_fin'], // Pas besoin d'utiliser ?? '' ici
-            adresseContrat: row['adresse_contrat'] ?? '',
-            paysContrat: row['pays_contrat'] ?? '',
+            dateDebut: row['contrat_date_debut'] ?? '',
+            dateFin: row['contrat_date_fin'], // Pas besoin d'utiliser ?? '' ici
+            adresseContrat: row['contrat_adresse_contrat'] ?? '',
+            paysContrat: row['contrat_pays_contrat'] ?? '',
           );
 
           final releves = rows.map((row) => RelevesModel(
-            id: row['id'],
+            id: row['releve_id'],
             idReleve: int.tryParse(row['id_releve'].toString()) ?? 0,
             compteurId: int.tryParse(row['compteur_id'].toString()) ?? 0,
             contratId: int.tryParse(row['contrat_id'].toString()) ?? 0,

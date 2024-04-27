@@ -8,15 +8,15 @@ class AppInitializer {
 
   static Future<void> initialize() async {
     await _initDatabase();
-    print("Initialisation complète.");
+    // print("Initialisation complète.");
   }
 
   static Future<void> _initDatabase() async {
-    print("Initialisation de la base de données...");
+    // print("Initialisation de la base de données...");
     // Initialise la base de données
     NiADatabases niaDatabases = NiADatabases();
     await niaDatabases.initDatabase(); // Appeler la méthode initDatabase()
-    print("Base de données initialisée.");
+    // print("Base de données initialisée.");
   }
 
 }

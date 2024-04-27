@@ -240,7 +240,7 @@ class _MissionsPageState extends State<MissionsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 10),
-              Text('Adresse: ${mission.id}'),
+              Text('Adresse: ${mission.adresseClient}'),
               Text('Num Compteur: ${mission.numCompteur}'),
               Text('Volume Dernier Releve: ${mission.volumeDernierReleve}'),
               Text(

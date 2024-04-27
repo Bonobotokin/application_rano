@@ -31,15 +31,14 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Center(
         child: BlocConsumer<ServerBloc, ServerStatus>(
           listener: (context, status) async {
-            if (status == ServerStatus.connected) {
-              print(
-                  "Synchronisation réussie. Redirection vers la page de connexion...");
+            if(status == ServerStatus.connected) {
+              // print("Synchronisation réussie. Redirection vers la page de connexion...");
               Future.delayed(const Duration(seconds: 5), () {
                 Get.offNamed(
                     AppRoutes.login); // Redirection vers la page de connexion
               });
             } else if (status == ServerStatus.disconnected) {
-              print("Serveur déconnecté. Affichage du message d'erreur...");
+              // print("Serveur déconnecté. Affichage du message d'erreur...");
               Future.delayed(const Duration(seconds: 5), () {
                 Get.offNamed(AppRoutes.login);
               });
@@ -50,9 +49,11 @@ class _SplashScreenState extends State<SplashScreen> {
               return _buildLoadingWidget("Connexion en cours ...");
             } else if (status == ServerStatus.connected) {
               return _buildLoadingWidget("Connexion rétablie ...");
-            } else if (status == ServerStatus.synchronizing) {
-              return _buildLoadingWidget("Synchronisation en cours ...");
-            } else if (status == ServerStatus.disconnected) {
+            }
+            // else if (status == ServerStatus.synchronizing) {
+            //   return _buildLoadingWidget("Synchronisation en cours ...");
+            // }
+            else if (status == ServerStatus.disconnected) {
               return _buildErrorWidget("serveur erreur, locale demarrer");
             } else {
               return Container(); // Retourner un widget vide par défaut
