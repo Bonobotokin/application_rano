@@ -21,6 +21,7 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
     try {
       final missions =
       await missionsRepository.fetchMissions();
+      print("mission $missions");
       emit(MissionsLoading(missions));
       emit(MissionsLoaded(missions));
     } catch (e) {

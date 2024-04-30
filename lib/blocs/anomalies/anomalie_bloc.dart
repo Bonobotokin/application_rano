@@ -12,7 +12,10 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
   AnomalieBLoc({ required this.anomalieRepository }) : super(AnomalieInitial()) {
     on<LoadAnomalie>(_onLoadAnomalie);
 
-    on<AddAnomalie>(_onAddMission);
+    on<AddAnomalie>(_onAddAnomalie);
+
+    on<GetUpdateAnomalie>(_onGetUpdateAnomalie);
+    // on<UpdateAnomalie>(_onUpdateAnomalie);
   }
   void _onLoadAnomalie(LoadAnomalie event , Emitter<AnomalieState> emit) async{
     try{
@@ -31,7 +34,7 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
     }
   }
 
-  void _onAddMission(AddAnomalie event, Emitter emit) async {
+  void _onAddAnomalie(AddAnomalie event, Emitter emit) async {
     try {
       print("les images: ${event.imagePaths}");
       List<String?> newImagePaths = [];
@@ -52,7 +55,6 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
         event.clientDeclare,
         event.cpCommune,
         event.commune,
-        event.status,
         newImagePaths, // Utiliser la liste des nouveaux chemins d'image
       );
 
@@ -92,6 +94,14 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
     }
   }
 
+  void _onGetUpdateAnomalie(GetUpdateAnomalie event, Emitter emit) async {
+    try{
+      final anomalie = await anomalieRepository.createAnomalie();
+    }
+    cacth(e) {
 
+    }
+
+  }
 }
 

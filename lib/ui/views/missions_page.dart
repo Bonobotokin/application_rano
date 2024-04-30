@@ -194,14 +194,36 @@ class _MissionsPageState extends State<MissionsPage> {
       ),
     );
   }
+  DateTime parseDate(String dateString) {
+    List<String> parts = dateString.split('-');
+    int year = int.parse(parts[0]);
+    int month = int.parse(parts[1]);
+    int day = int.parse(parts[2]);
+    return DateTime(year, month, day);
+  }
+
+  bool isCurrentYearAndMonth(String dateString) {
+    DateTime date = parseDate(dateString);
+    DateTime now = DateTime.now();
+    return date.year == now.year && date.month == now.month;
+  }
+
 
   Widget _buildMissionTile(
-      BuildContext context, MissionModel mission, AuthState authState) {
-    Color cardColor =
-    mission.statut == 1 ? const Color(0xFFFFFFFF) : const Color(0xFFBBDEFB);
-    Color btnColor =
-    mission.statut == 1 ? const Color(0xFFEEE9E9) : const Color(0xFFBBDEFB);
+      BuildContext context,
+      MissionModel mission,
+      AuthState authState
+      ) {
+    Color cardColor = mission.statut == 1 || mission.statut == 2 ? Colors.white : const Color(0xFFBBDEFB);
+
+    Color btnColor = mission.statut == 1 ? const Color(0xFFEEE9E9) : const Color(0xFFBBDEFB);
     String buttonText = mission.statut == 1 ? 'Modifier' : 'Ajouter';
+
+    bool canModify = !(mission.statut == 2 && isCurrentYearAndMonth(mission.dateReleve!));
+
+    Widget linkButton = canModify
+        ? _buildLinkButton(context, mission, authState, buttonText)
+        : SizedBox.shrink();
 
     return GestureDetector(
       onTap: () {
@@ -247,11 +269,12 @@ class _MissionsPageState extends State<MissionsPage> {
                   'Date Dernier Releve: ${DateFormatter.formatFrenchDate(mission.dateReleve!)}'),
             ],
           ),
-          trailing: _buildLinkButton(context, mission, authState, buttonText),
+          trailing: linkButton,
         ),
       ),
     );
   }
+
 
   Widget _buildLinkButton(BuildContext context, MissionModel mission,
       AuthState authState, String buttonText) {

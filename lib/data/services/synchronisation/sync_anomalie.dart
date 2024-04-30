@@ -41,6 +41,7 @@ class SyncAnomalie {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final List<dynamic> anomalie = data['main_courante_list'];
+        print("liste anomalie distant $anomalie");
         return anomalie
             .map((data) => AnomalieModel.fromJson(data))
             .toList();

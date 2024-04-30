@@ -10,14 +10,14 @@ import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/ui/views/anomalie/anomaliePage.dart';
 
-class NewAnomalyPage extends StatefulWidget {
-  const NewAnomalyPage({Key? key}) : super(key: key);
+class UpdateAnomalyPage extends StatefulWidget {
+  const UpdateAnomalyPage({Key? key}) : super(key: key);
 
   @override
-  _NewAnomalyPageState createState() => _NewAnomalyPageState();
+  _UpdateAnomalyPageState createState() => _UpdateAnomalyPageState();
 }
 
-class _NewAnomalyPageState extends State<NewAnomalyPage> {
+class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
   final TextEditingController _typeController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();

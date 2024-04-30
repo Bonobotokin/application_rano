@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'dart:io';
+import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
@@ -8,8 +9,9 @@ import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_state.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
-
 import 'new_anomaly_page.dart';
+import '../../shared/DateFormatter.dart';
+import '../../shared/MaskedTextField.dart';
 
 class AnomaliePage extends StatefulWidget {
   const AnomaliePage({super.key});
@@ -68,9 +70,9 @@ class _AnomaliePageState extends State<AnomaliePage> {
               BlocBuilder<AnomalieBLoc, AnomalieState>(
                 builder: (context, state) {
                   if (state is AnomalieLoading) {
-                    return _buildMissionListWidget(state.anomalie, authState);
+                    return _buildAnomalieListWidget(state.anomalie, authState);
                   } else if (state is AnomalieLoaded) {
-                    return _buildMissionListWidget(state.anomalie, authState);
+                    return _buildAnomalieListWidget(state.anomalie, authState);
                   } else if (state is AnomalieError) {
                     return Center(child: Text('Erreur: ${state.message}'));
                   } else {
@@ -86,7 +88,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
     );
   }
 
-  Widget _buildMissionListWidget(
+  Widget _buildAnomalieListWidget(
       List<AnomalieModel> anomalie, AuthState authState) {
     anomalie.sort((a, b) {
       final aStatut = a.status ?? 0;
@@ -169,8 +171,8 @@ class _AnomaliePageState extends State<AnomaliePage> {
               child: ListView.builder(
                 itemCount: filteredMissions.length,
                 itemBuilder: (context, index) {
-                  final mission = filteredMissions[index];
-                  return _buildMissionTile(context, mission, authState);
+                  final anomalie = filteredMissions[index];
+                  return _buildAnomalieTile(context, anomalie, authState);
                 },
               ),
             ),
@@ -179,19 +181,38 @@ class _AnomaliePageState extends State<AnomaliePage> {
     );
   }
 
-  Widget _buildMissionTile(BuildContext context, AnomalieModel anomalie, AuthState authState) {
+  Widget _buildAnomalieTile(BuildContext context, AnomalieModel anomalie, AuthState authState) {
     String status;
-    if (anomalie.status == 0) {
-      status = "Non Traitée";
-    } else if (anomalie.status == 1) {
-      status = "En Cours";
-    } else {
-      status = "Réussie";
-    }
+    Color statusColor;
+    bool showButton = false;
 
-    Color cardColor = anomalie.status == 1 ? const Color(0xFFFFFFFF) : const Color(0xFFBBDEFB);
-    Color btnColor = anomalie.status == 1 ? const Color(0xFFEEE9E9) : const Color(0xFFBBDEFB);
-    String buttonText = anomalie.status == 1 ? 'Modifier' : 'Ajouter';
+    // Déterminer le statut de l'anomalie et la couleur correspondante
+    switch(anomalie.status) {
+      case 0:
+        status = "Non Traitée";
+        statusColor = Colors.red;
+        break;
+      case 1:
+        status = "En Cours";
+        statusColor = Colors.orange;
+        break;
+      case 2:
+        status = "Réussie";
+        statusColor = Colors.green;
+        break;
+      case 3:
+        status = "En cours de validation";
+        statusColor = Colors.purple;
+        break;
+      case 4:
+        status = "En attente";
+        statusColor = Colors.indigo;
+        showButton = true; // Afficher le bouton si le statut est 4
+        break;
+      default:
+        status = "En attente";
+        statusColor = Colors.indigo;
+    }
 
     return Card(
       elevation: 5,
@@ -199,111 +220,93 @@ class _AnomaliePageState extends State<AnomaliePage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
-      color: cardColor,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0), // Ajustement de la marge interne
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Anomalie : ${anomalie.typeMc}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              title: Row(
+                children: [
+                  Icon(Icons.error_outline_outlined,
+                      color: anomalie.status == 1 ? Colors.grey : Colors.red),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${anomalie.typeMc} ',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Text(
-                  'Status: $status',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: anomalie.status == 0 ? Colors.red : anomalie.status == 1 ? Colors.orange : Colors.green,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            ExpansionTile(
-              title: Text(
-                'Détails',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+                ],
               ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10),
+                  Text('Statut: ${status}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: statusColor,
+                    ),),
+                  Text('Longitude: ${anomalie.longitudeMc}'),
+                  Text('Altitude: ${anomalie.latitudeMc}'),
+                  Text(
+                      'Date: ${DateFormatter.formatFrenchDate(anomalie.dateDeclaration!)}'),
+                ],
+              ),
+              trailing: showButton ? ElevatedButton(
+                onPressed: () {
+                  if (authState is AuthSuccess) {
+                    BlocProvider.of<AnomalieBLoc>(context).add(UpdateAnomalie(
+                        accessToken: authState.userInfo.lastToken ?? '',
+                        numCompteur: mission.numCompteur ?? 0));
+                    Get.toNamed(AppRoutes.detailsReleverCompteur,
+                        arguments: mission.numCompteur);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor : Colors.lightBlueAccent,
+                ),
+                child: Text(
+                  'Modification',
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                ),
+              ) : null,
+            ),
+            SizedBox(height: 8), // Espacement entre le contenu et les images
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
               children: [
-                Text(
-                  'Longitude: ${anomalie.descriptionMc}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                Text(
-                  'Altitude: ${anomalie.descriptionMc}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                Text(
-                  'Déclarant: ${anomalie.clientDeclare}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                Text(
-                  'Date: ${anomalie.dateDeclaration}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Description :',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '${anomalie.descriptionMc}',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Images :',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 8.0,
-                  runSpacing: 8.0,
-                  children: [
-                    for (int i = 1; i <= 5; i++)
-                      if (anomalie.getPhotoAnomalie(i) != null &&
-                          anomalie.getPhotoAnomalie(i)!.isNotEmpty &&
-                          File(anomalie.getPhotoAnomalie(i)!).existsSync())
-                        GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return Dialog(
-                                  child: Image.file(
-                                    File(anomalie.getPhotoAnomalie(i)!),
-                                    fit: BoxFit.contain,
-                                  ),
-                                );
-                              },
+                for (int i = 1; i <= 5; i++)
+                  if (anomalie.getPhotoAnomalie(i) != null &&
+                      anomalie.getPhotoAnomalie(i)!.isNotEmpty &&
+                      File(anomalie.getPhotoAnomalie(i)!).existsSync())
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return Dialog(
+                              child: Image.file(
+                                File(anomalie.getPhotoAnomalie(i)!),
+                                fit: BoxFit.contain,
+                              ),
                             );
                           },
-                          child: Image.file(
-                            File(anomalie.getPhotoAnomalie(i)!),
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                  ],
-                ),
+                        );
+                      },
+                      child: Image.file(
+                        File(anomalie.getPhotoAnomalie(i)!),
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
               ],
             ),
           ],
@@ -311,5 +314,6 @@ class _AnomaliePageState extends State<AnomaliePage> {
       ),
     );
   }
- 
+
+
 }

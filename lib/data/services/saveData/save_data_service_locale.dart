@@ -150,16 +150,17 @@ class SaveDataRepositoryLocale {
       for (final mission in missions) {
         final List<Map<String, dynamic>> existingRows = await txn.query(
           'missions',
-          where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ? ',
+          where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ? AND conso_dernier_releve = ? AND '
+              'volume_dernier_releve = ? AND date_releve = ? AND statut = ? ',
           whereArgs: [
             mission.nomClient,
             mission.prenomClient,
             mission.adresseClient,
-            mission.numCompteur
-            // mission.consoDernierReleve,
-            // mission.volumeDernierReleve,
-            // mission.dateReleve,
-            // mission.statut,
+            mission.numCompteur,
+            mission.consoDernierReleve,
+            mission.volumeDernierReleve,
+            mission.dateReleve,
+            mission.statut
           ],
         );
 
@@ -170,16 +171,17 @@ class SaveDataRepositoryLocale {
           await txn.update(
             'missions',
             mission.toJson(),
-            where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ? ',
+            where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ? AND conso_dernier_releve = ? AND '
+                'volume_dernier_releve = ? AND date_releve = ? AND statut = ? ',
             whereArgs: [
               mission.nomClient,
               mission.prenomClient,
               mission.adresseClient,
-              mission.numCompteur
-              // mission.consoDernierReleve,
-              // mission.volumeDernierReleve,
-              // mission.dateReleve,
-              // mission.statut,
+              mission.numCompteur,
+              mission.consoDernierReleve,
+              mission.volumeDernierReleve,
+              mission.dateReleve,
+              mission.statut
             ],
           );
 

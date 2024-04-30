@@ -61,51 +61,47 @@ class AnomalieRepository {
       String clientDeclare,
       String cpCommune,
       String commune,
-      String status,
       List<String?> imagePaths,
       ) async {
     try {
       final db = await _niaDatabases.database;
-      print('Paramètres de la fonction avant l\'insertion :');
-      print('Type MC: $typeMc');
-      print('Date de déclaration: $dateDeclaration');
-      print('Longitude MC: $longitudeMc');
-      print('Latitude MC: $latitudeMc');
-      print('Description MC: $descriptionMc');
-      print('Client déclaré: $clientDeclare');
-      print('Code postal de la commune: $cpCommune');
-      print('Commune: $commune');
-      print('Statut: $status');
-      print('Chemins des images: $imagePaths');
-      // Insérer une seule ligne avec les chemins d'image correspondant à chaque colonne
-      await db.insert(
-        'anomalie',
-        {
-          'type_mc': typeMc,
-          'date_declaration': dateDeclaration,
-          'longitude_mc': longitudeMc,
-          'latitude_mc': latitudeMc,
-          'description_mc': descriptionMc,
-          'client_declare': clientDeclare,
-          'cp_commune': cpCommune,
-          'commune': commune,
-          'status': status,
-          'photo_anomalie_1': imagePaths.length > 0 ? imagePaths[0] : null,
-          'photo_anomalie_2': imagePaths.length > 1 ? imagePaths[1] : null,
-          'photo_anomalie_3': imagePaths.length > 2 ? imagePaths[2] : null,
-          'photo_anomalie_4': imagePaths.length > 3 ? imagePaths[3] : null,
-          'photo_anomalie_5': imagePaths.length > 4 ? imagePaths[4] : null,
-        },
-      );
-      await _updateAcceuil(db);
-      print('Anomalie insérée avec succès dans la base de données locale');
-      // Récupérer les données insérées et les afficher
-      final insertedAnomalie = await db.query('anomalie',
-          orderBy: 'id DESC', limit: 1); // Récupérer la dernière anomalie insérée
-      if (insertedAnomalie.isNotEmpty) {
-        print('Données de la dernière anomalie insérée : $insertedAnomalie');
+
+      Map<String, dynamic>? lastAnomalie = await db.query('anomalie').then((value) => value.isNotEmpty ? value.last : null);
+      if (lastAnomalie != null) {
+        print("lastAnomalie ${lastAnomalie['id']}" );
+        int newIdMc = lastAnomalie['id'] + 1;
+        await db.insert(
+          'anomalie',
+          {
+            'id_mc': newIdMc,
+            'type_mc': typeMc,
+            'date_declaration': dateDeclaration,
+            'longitude_mc': longitudeMc,
+            'latitude_mc': latitudeMc,
+            'description_mc': descriptionMc,
+            'client_declare': clientDeclare,
+            'cp_commune': cpCommune,
+            'commune': commune,
+            'status': 4,
+            'photo_anomalie_1': imagePaths.length > 0 ? imagePaths[0] : null,
+            'photo_anomalie_2': imagePaths.length > 1 ? imagePaths[1] : null,
+            'photo_anomalie_3': imagePaths.length > 2 ? imagePaths[2] : null,
+            'photo_anomalie_4': imagePaths.length > 3 ? imagePaths[3] : null,
+            'photo_anomalie_5': imagePaths.length > 4 ? imagePaths[4] : null,
+          },
+        );
+        await _updateAcceuil(db);
+        print('Anomalie insérée avec succès dans la base de données locale');
+        // Récupérer les données insérées et les afficher
+        final insertedAnomalie = await db.query('anomalie',
+            orderBy: 'id DESC', limit: 1); // Récupérer la dernière anomalie insérée
+        if (insertedAnomalie.isNotEmpty) {
+          print('Données de la dernière anomalie insérée : $insertedAnomalie');
+        } else {
+          print('Aucune donnée n\'a été trouvée pour la dernière anomalie insérée');
+        }
       } else {
-        print('Aucune donnée n\'a été trouvée pour la dernière anomalie insérée');
+        print("Aucune anomalie n'a été trouvée dans la base de données.");
       }
     } catch (e) {
       print('Échec de l\'enregistrement de l\'anomalie dans la base de données locale: $e');

@@ -1,3 +1,4 @@
+import 'package:application_rano/data/services/synchronisation/anomalieData.dart';
 import 'package:application_rano/data/services/synchronisation/missionData.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_event.dart';
@@ -11,6 +12,7 @@ import 'package:application_rano/data/services/synchronisation/sync_service.dart
 import '../../data/repositories/local/facture_local_repository.dart';
 import '../../data/repositories/local/missions_repository_locale.dart';
 import '../../data/services/synchronisation/payementFacture.dart';
+import '../../data/repositories/local/anomalie_repository_locale.dart';
 
 enum SynchroDetails{
   synchronizing,
@@ -19,9 +21,12 @@ enum SynchroDetails{
 }
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
+
   final AuthRepository authRepository;
+  final AnomalieRepositoryLoale anomalieRepositoryLoale = AnomalieRepositoryLoale();
   final FactureLocalRepository _factureLocalRepository = FactureLocalRepository();
   final MissionsRepositoryLocale _missionsRepositoryLocale = MissionsRepositoryLocale();
+
   String? accessToken;
   final UserInfo? userInfo;
   final SaveDataRepositoryLocale saveDataRepositoryLocale =
@@ -37,6 +42,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
         if (user != null) {
           final accessToken = user.lastToken;
+
+          final anomalieLocale = await anomalieRepositoryLoale.getAnomalieDataFromLocalDatabase();
+
+
+          for (var anomalie in anomalieLocale) {
+            if (anomalie.status != null && anomalie.status == 3) {
+              print("Post anomalie Verrifiess $anomalie");
+              print("anomalie envoir ${anomalie.status}");
+              print("eto envoie anomalie");
+              await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
+            }
+          }
 
 
           final payementFacture = await _factureLocalRepository.getAllPayments();
