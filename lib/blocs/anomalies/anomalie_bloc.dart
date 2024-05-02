@@ -15,24 +15,23 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
     on<AddAnomalie>(_onAddAnomalie);
 
     on<GetUpdateAnomalie>(_onGetUpdateAnomalie);
-    // on<UpdateAnomalie>(_onUpdateAnomalie);
+
+    on<UpdateAnomalie>(_onUpdateAnomalie);
   }
-  void _onLoadAnomalie(LoadAnomalie event , Emitter<AnomalieState> emit) async{
-    try{
+  void _onLoadAnomalie(LoadAnomalie event, Emitter<AnomalieState> emit) async {
+    try {
+
       final anomalie = await anomalieRepository.fetchAnomaleData(event.accessToken);
       print("eto anomalie Page $anomalie");
-      // final anomalie = anomalieListe['anomalie'];
-      // final photoAnomalie = anomalieListe['photoAnomalie'];
 
-      emit(AnomalieLoading(anomalie));
+      emit(AnomalieLoading(anomalie)); // Émettre l'état de chargement
       emit(AnomalieLoaded(anomalie));
-    }
-    catch(error) {
-      print(AnomalieError('Failed to load Anomalie : $error'));
+    } catch (error) {
+      print('Failed to load Anomalie: $error');
       emit(AnomalieError('Failed to load Anomalie: $error'));
-
     }
   }
+
 
   void _onAddAnomalie(AddAnomalie event, Emitter emit) async {
     try {
@@ -66,6 +65,49 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
     }
   }
 
+
+  void _onUpdateAnomalie(UpdateAnomalie event, Emitter emit) async {
+    try {
+      List<String?> newImagePaths = [];
+
+      // Ajouter les chemins d'accès des images s'ils existent
+      if (event.anomalieItem.photoAnomalie1 != null) {
+        newImagePaths.add(await _copyImageToAssetsDirectory(event.anomalieItem.photoAnomalie1!));
+      }
+      if (event.anomalieItem.photoAnomalie2 != null) {
+        newImagePaths.add(await _copyImageToAssetsDirectory(event.anomalieItem.photoAnomalie2!));
+      }
+      if (event.anomalieItem.photoAnomalie3 != null) {
+        newImagePaths.add(await _copyImageToAssetsDirectory(event.anomalieItem.photoAnomalie3!));
+      }
+      if (event.anomalieItem.photoAnomalie4 != null) {
+        newImagePaths.add(await _copyImageToAssetsDirectory(event.anomalieItem.photoAnomalie4!));
+      }
+      if (event.anomalieItem.photoAnomalie5 != null) {
+        newImagePaths.add(await _copyImageToAssetsDirectory(event.anomalieItem.photoAnomalie5!));
+      }
+      // Appeler la méthode createAnomalie avec la liste des nouveaux chemins d'image
+      final anomalie = await anomalieRepository.updateAnomalie(
+        event.anomalieItem.idMc,
+        event.anomalieItem.typeMc,
+        event.anomalieItem.dateDeclaration,
+        event.anomalieItem.longitudeMc,
+        event.anomalieItem.latitudeMc,
+        event.anomalieItem.descriptionMc,
+        event.anomalieItem.clientDeclare,
+        event.anomalieItem.cpCommune,
+        event.anomalieItem.commune,
+        newImagePaths,
+      );
+
+
+    } catch (error) {
+      // En cas d'erreur, émettez un état d'erreur avec un message approprié
+      emit(AnomalieError('Failed to add Anomalie: $error'));
+    }
+  }
+
+
   Future<String?> _copyImageToAssetsDirectory(String? imagePath) async {
     try {
       // Obtenir le répertoire d'assets/images
@@ -95,13 +137,30 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
   }
 
   void _onGetUpdateAnomalie(GetUpdateAnomalie event, Emitter emit) async {
-    try{
-      final anomalie = await anomalieRepository.createAnomalie();
-    }
-    cacth(e) {
+    try {
 
-    }
+      print("verrifiIdMC : ${event.idMc}");
+      final anomalieList = await anomalieRepository.fetchAnomaleDataByIdMc(event.idMc);
+      print("teto : $anomalieList");
+      final anomalie = anomalieList.isNotEmpty ? anomalieList.first : null;
 
+      // Vérifiez si l'anomalie a été récupérée avec succès
+      if (anomalie != null) {
+        // Émettez l'état AnomalieLoaded avec l'anomalie récupérée
+        print("mandea $anomalie");
+        emit(AnomalieUpdateLoading([anomalie]));
+        emit(AnomalieUpdateLoaded([anomalie]));
+      } else {
+        // Si l'anomalie est null, cela peut signifier qu'il n'y a pas de données à charger
+        // Dans ce cas, émettez un état AnomalieError avec un message approprié
+        emit(AnomalieError("No anomalie data found for id: ${event.idMc}"));
+      }
+    } catch (e) {
+      // En cas d'erreur lors de la récupération des données, émettez un état AnomalieError avec le message d'erreur
+      emit(AnomalieError("Failed to get anomalie update data: $e"));
+    }
   }
+
+
 }
 

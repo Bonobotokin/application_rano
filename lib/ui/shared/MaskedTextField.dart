@@ -1,29 +1,24 @@
 import 'package:flutter/material.dart';
 
 class MaskedTextField extends StatefulWidget {
-  final String mask;
+  final String mask; // Ajout du paramètre mask
   final TextEditingController controller;
   final InputDecoration inputDecoration;
+  final ValueChanged<String>? onChanged;
 
-  const MaskedTextField({super.key, 
-    required this.mask,
+  const MaskedTextField({
+    Key? key,
+    required this.mask, // Déclarer le paramètre mask
     required this.controller,
     required this.inputDecoration,
-  });
+    this.onChanged,
+  }) : super(key: key);
 
   @override
   _MaskedTextFieldState createState() => _MaskedTextFieldState();
 }
 
 class _MaskedTextFieldState extends State<MaskedTextField> {
-  late List<String> _maskParts;
-
-  @override
-  void initState() {
-    super.initState();
-    _maskParts = widget.mask.split('');
-  }
-
   @override
   Widget build(BuildContext context) {
     return TextFormField(
@@ -31,25 +26,23 @@ class _MaskedTextFieldState extends State<MaskedTextField> {
       keyboardType: TextInputType.number,
       decoration: widget.inputDecoration,
       onChanged: (text) {
-        String newText = '';
-        int maskIndex = 0;
+        var len = text.length;
+        var cursorPosition = widget.controller.selection.baseOffset;
 
-        for (int i = 0; i < text.length; i++) {
-          if (maskIndex >= _maskParts.length) break;
-
-          if (_maskParts[maskIndex] == 'x') {
-            newText += text[i];
-            maskIndex++;
-          } else {
-            newText += _maskParts[maskIndex];
-            maskIndex++;
-          }
+        if (len == 4 || len == 7) { // Correction des indices pour insérer le séparateur
+          widget.controller.text = text + '-';
+          widget.controller.selection = TextSelection.collapsed(
+            offset: cursorPosition + 1,
+          );
+        } else if (len > 10) {
+          widget.controller.text = text.substring(0, 10);
+          widget.controller.selection = TextSelection.collapsed(
+            offset: 10,
+          );
         }
-
-        widget.controller.value = TextEditingValue(
-          text: newText,
-          selection: TextSelection.collapsed(offset: newText.length),
-        );
+        if (len >= 10 && widget.onChanged != null) {
+          widget.onChanged!(widget.controller.text);
+        }
       },
     );
   }

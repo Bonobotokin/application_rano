@@ -9,9 +9,8 @@ import 'package:application_rano/blocs/payements/payement_event.dart';
 import 'package:application_rano/blocs/payements/payement_state.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 
-
 class PaymentFacture extends StatelessWidget {
-  const PaymentFacture({super.key});
+  const PaymentFacture({Key? key});
 
   @override
   Widget build(BuildContext context) {
@@ -30,43 +29,16 @@ class PaymentFacture extends StatelessWidget {
             body: BlocBuilder<PaymentBloc, PaymentState>(
               builder: (context, state) {
                 final paymentBloc = BlocProvider.of<PaymentBloc>(context);
-                if (state is PayementLoading) {
-                  // Récupérer les données nécessaires pour charger le paiement
-                  final specificDateReleves = state.specificDateReleves;
-                  final previousDateReleves = state.previousDateReleves;
-                  final numCompteur = state.factures.numCompteur;
-                  final date = state.factures.dateFacture; // Ou la date que vous souhaitez utiliser
-
-                  return SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildHeader(context, state),
-                        _buildOrderDetails(context, state),
-                        buildDetails(context, state),
-                        buildTotal(context, state),
-                        buildPayButton(context, state, authState),
-                      ],
-                    ),
-                  );
-                } else if (state is PayementLoaded) {
-                  // Récupérer les données nécessaires pour charger le paiement
-                  final specificDateReleves = state.specificDateReleves;
-                  final previousDateReleves = state.previousDateReleves;
-                  final numCompteur = state.factures.numCompteur;
-                  final date = state.factures.dateFacture; // Ou la date que vous souhaitez utiliser
-
-                  return SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildHeader(context, state),
-                        _buildOrderDetails(context, state),
-                        buildDetails(context, state),
-                        buildTotal(context, state),
-                        buildPayButton(context, state, authState),
-                      ],
-                    ),
+                if (state is PayementLoading || state is PayementLoaded) {
+                  return ListView(
+                    children: [
+                      _buildHeader(context, state),
+                      _buildOrderDetails(context, state),
+                      buildDetails(context, state),
+                      buildTotal(context, state),
+                      buildPayButton(context, state, authState),
+                      SizedBox(height: MediaQuery.of(context).viewInsets.bottom), // Pour s'assurer que le bouton reste visible lorsque le clavier est ouvert
+                    ],
                   );
                 } else if (state is PaymentFailure) {
                   return Center(child: Text(state.message));
@@ -80,7 +52,6 @@ class PaymentFacture extends StatelessWidget {
       },
     );
   }
-
   Widget _buildHeader(BuildContext context, state) {
     final client = state.client;
     final facture = state.factures;

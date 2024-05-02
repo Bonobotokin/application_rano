@@ -12,11 +12,9 @@ abstract class AnomalieState extends Equatable {
 class AnomalieInitial extends AnomalieState {}
 
 class AnomalieLoading extends AnomalieState {
-
   final List<AnomalieModel> anomalie;
 
-  const AnomalieLoading(
-      this.anomalie);
+  const AnomalieLoading(this.anomalie);
 
   @override
   List<Object> get props => [anomalie];
@@ -30,6 +28,27 @@ class AnomalieLoaded extends AnomalieState {
   @override
   List<Object> get props => [anomalie];
 }
+
+class AnomalieUpdateLoading extends AnomalieState {
+  final List<AnomalieModel> anomalieList;
+
+  AnomalieUpdateLoading(this.anomalieList);
+
+  @override
+  List<Object> get props => [anomalieList];
+}
+
+
+
+class AnomalieUpdateLoaded extends AnomalieState {
+  final List<AnomalieModel> anomalieList;
+
+  AnomalieUpdateLoaded(this.anomalieList);
+
+  @override
+  List<Object> get props => [anomalieList];
+}
+
 
 class AnomalieError extends AnomalieState {
   final String message;

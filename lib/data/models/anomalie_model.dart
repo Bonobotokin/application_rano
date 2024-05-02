@@ -1,6 +1,4 @@
-import 'dart:io';
-
-class AnomalieModel{
+class AnomalieModel {
   int? id;
   int? idMc;
   String? typeMc;
@@ -36,6 +34,7 @@ class AnomalieModel{
     this.photoAnomalie4,
     this.photoAnomalie5,
   });
+
   factory AnomalieModel.fromJson(Map<String, dynamic> json) {
     return AnomalieModel(
       id: json['id'] ?? 0,
@@ -56,7 +55,6 @@ class AnomalieModel{
       photoAnomalie5: json['photo_anomalie_5'] ?? '',
     );
   }
-
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -98,11 +96,12 @@ class AnomalieModel{
 
   @override
   String toString() {
-    return 'AnomalieMOdel{id: $id, idMc: $idMc, type_mc: $typeMc, date_declaration: $dateDeclaration, '
-        'longitude_mc: $longitudeMc, latitudeMc: $latitudeMc, descriptionMc: $descriptionMc, clientDeclare: $clientDeclare, '
+    return 'AnomalieModel{id: $id, idMc: $idMc, typeMc: $typeMc, dateDeclaration: $dateDeclaration, '
+        'longitudeMc: $longitudeMc, latitudeMc: $latitudeMc, descriptionMc: $descriptionMc, clientDeclare: $clientDeclare, '
         'cpCommune: $cpCommune, commune: $commune, status: $status, photoAnomalie1: $photoAnomalie1, photoAnomalie2: $photoAnomalie2, '
-        'photoAnomalie3: $photoAnomalie3, photoAnomalie4: $photoAnomalie4, photoAnomalie5: $photoAnomalie5, }';
+        'photoAnomalie3: $photoAnomalie3, photoAnomalie4: $photoAnomalie4, photoAnomalie5: $photoAnomalie5}';
   }
+
   String? getPhotoAnomalie(int index) {
     switch (index) {
       case 1:
@@ -117,6 +116,28 @@ class AnomalieModel{
         return photoAnomalie5;
       default:
         return null;
+    }
+  }
+
+  void setPhotoAnomalie(int index, String path) {
+    switch (index) {
+      case 1:
+        photoAnomalie1 = path;
+        break;
+      case 2:
+        photoAnomalie2 = path;
+        break;
+      case 3:
+        photoAnomalie3 = path;
+        break;
+      case 4:
+        photoAnomalie4 = path;
+        break;
+      case 5:
+        photoAnomalie5 = path;
+        break;
+      default:
+        throw ArgumentError('Index must be between 1 and 5');
     }
   }
 }

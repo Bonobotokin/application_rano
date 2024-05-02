@@ -76,43 +76,11 @@ class GetUpdateAnomalie extends AnomalieEvent {
   ];
 }
 
-
 class UpdateAnomalie extends AnomalieEvent {
-  final String typeMc;
-  final String dateDeclaration;
-  final String longitudeMc;
-  final String latitudeMc;
-  final String descriptionMc;
-  final String clientDeclare;
-  final String cpCommune;
-  final String commune;
-  final String status;
-  final List<String?> imagePaths;
+  final AnomalieModel anomalieItem; // L'objet anomalieItem avec les valeurs mises à jour
 
-  const UpdateAnomalie({
-    required this.typeMc,
-    required this.dateDeclaration,
-    required this.longitudeMc,
-    required this.latitudeMc,
-    required this.descriptionMc,
-    required this.clientDeclare,
-    required this.cpCommune,
-    required this.commune,
-    required this.status,
-    required this.imagePaths,
+  UpdateAnomalie({
+    required this.anomalieItem,
   });
-
-  @override
-  List<Object> get props => [
-    typeMc,
-    dateDeclaration,
-    longitudeMc,
-    latitudeMc,
-    descriptionMc,
-    clientDeclare,
-    cpCommune,
-    commune,
-    status,
-    imagePaths,
-  ];
 }
+

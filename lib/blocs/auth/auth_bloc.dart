@@ -47,7 +47,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
 
           for (var anomalie in anomalieLocale) {
-            if (anomalie.status != null && anomalie.status == 3) {
+            if (anomalie.status != null && anomalie.status == 4) {
               print("Post anomalie Verrifiess $anomalie");
               print("anomalie envoir ${anomalie.status}");
               print("eto envoie anomalie");

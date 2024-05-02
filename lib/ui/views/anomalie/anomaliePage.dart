@@ -9,9 +9,12 @@ import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_state.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
+import 'package:get/get_state_manager/src/simple/list_notifier.dart';
 import 'new_anomaly_page.dart';
 import '../../shared/DateFormatter.dart';
 import '../../shared/MaskedTextField.dart';
+import 'package:application_rano/ui/routing/routes.dart';
+import 'package:get/get.dart';
 
 class AnomaliePage extends StatefulWidget {
   const AnomaliePage({super.key});
@@ -70,11 +73,22 @@ class _AnomaliePageState extends State<AnomaliePage> {
               BlocBuilder<AnomalieBLoc, AnomalieState>(
                 builder: (context, state) {
                   if (state is AnomalieLoading) {
-                    return _buildAnomalieListWidget(state.anomalie, authState);
+                    return FutureBuilder(
+                      future: Future.delayed(Duration(seconds: 2)), // Ajoute un délai de 2 secondes
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(child: CircularProgressIndicator());
+                        } else {
+                          return _buildAnomalieListWidget(state.anomalie, authState);
+                        }
+                      },
+                    );
                   } else if (state is AnomalieLoaded) {
                     return _buildAnomalieListWidget(state.anomalie, authState);
                   } else if (state is AnomalieError) {
                     return Center(child: Text('Erreur: ${state.message}'));
+                  } else if (state is AnomalieUpdateLoaded) {
+                    return _buildAnomalieListWidget(state.anomalieList, authState);
                   } else {
                     return Container();
                   }
@@ -93,7 +107,8 @@ class _AnomaliePageState extends State<AnomaliePage> {
     anomalie.sort((a, b) {
       final aStatut = a.status ?? 0;
       final bStatut = b.status ?? 0;
-      return aStatut.compareTo(bStatut);
+      // Trie les anomalies en fonction du statut dans l'ordre décroissant
+      return bStatut.compareTo(aStatut);
     });
 
     final filteredMissions = _searchText.isEmpty
@@ -181,6 +196,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
     );
   }
 
+
   Widget _buildAnomalieTile(BuildContext context, AnomalieModel anomalie, AuthState authState) {
     String status;
     Color statusColor;
@@ -232,10 +248,12 @@ class _AnomaliePageState extends State<AnomaliePage> {
                   Icon(Icons.error_outline_outlined,
                       color: anomalie.status == 1 ? Colors.grey : Colors.red),
                   const SizedBox(width: 8),
-                  Text(
-                    '${anomalie.typeMc} ',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+                  Flexible( // Utilisation de Flexible pour ajuster la taille du texte
+                    child: Text(
+                      '${anomalie.typeMc} ',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -249,21 +267,30 @@ class _AnomaliePageState extends State<AnomaliePage> {
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                       color: statusColor,
-                    ),),
+                    ),
+                  ),
                   Text('Longitude: ${anomalie.longitudeMc}'),
                   Text('Altitude: ${anomalie.latitudeMc}'),
+                  Text('Desscription : ${anomalie.descriptionMc}'),
+                  Text('Client : ${anomalie.clientDeclare}'),
+                  Text('Commune : ${anomalie.commune} '),
+                  Text('Cp Commune : ${anomalie.cpCommune}'),
                   Text(
-                      'Date: ${DateFormatter.formatFrenchDate(anomalie.dateDeclaration!)}'),
+                    'Date: ${DateFormatter.formatFrenchDate(anomalie.dateDeclaration!)}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: statusColor,
+                    ),
+                  ),
                 ],
               ),
               trailing: showButton ? ElevatedButton(
                 onPressed: () {
                   if (authState is AuthSuccess) {
-                    BlocProvider.of<AnomalieBLoc>(context).add(UpdateAnomalie(
-                        accessToken: authState.userInfo.lastToken ?? '',
-                        numCompteur: mission.numCompteur ?? 0));
-                    Get.toNamed(AppRoutes.detailsReleverCompteur,
-                        arguments: mission.numCompteur);
+                    BlocProvider.of<AnomalieBLoc>(context).add(GetUpdateAnomalie(idMc: anomalie.idMc!));
+                    Get.toNamed(AppRoutes.anomalieUpdate,
+                        arguments: anomalie.idMc);
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -314,6 +341,4 @@ class _AnomaliePageState extends State<AnomaliePage> {
       ),
     );
   }
-
-
 }

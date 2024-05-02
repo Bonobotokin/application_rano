@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 class ApiConfig {
   static const List<String> ipAddresses = [
     // 'http://10.0.2.2:8000',
-    'http://192.168.0.100:8000',
+    'http://192.168.88.177:8000',
     // Ajoutez d'autres adresses IP au besoin
   ];
 

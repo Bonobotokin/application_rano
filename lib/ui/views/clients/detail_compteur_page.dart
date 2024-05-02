@@ -111,6 +111,17 @@ class DetailCompteurPage extends StatelessWidget {
 
     final Random random = Random();
 
+    // Trier les relevés par état de facture (Impayé d'abord)
+    releves.sort((a, b) {
+      if (a.etatFacture == 'Impayé' && b.etatFacture != 'Impayé') {
+        return -1; // a est avant b
+      } else if (a.etatFacture != 'Impayé' && b.etatFacture == 'Impayé') {
+        return 1; // b est avant a
+      } else {
+        return 0; // Pas de changement dans l'ordre
+      }
+    });
+
     return Column(
       children: releves.map((releve) {
         Color randomColor = Color.fromRGBO(

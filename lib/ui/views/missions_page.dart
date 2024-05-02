@@ -323,6 +323,8 @@ class _MissionsPageState extends State<MissionsPage> {
     dateController.text = formattedDate;
     String dateValue = formattedDate;
 
+    late String _imagePath = ''; // Déclaration du chemin de l'image à l'intérieur de la méthode
+
     final formKey = GlobalKey<FormState>();
 
     await showDialog<void>(
@@ -356,13 +358,24 @@ class _MissionsPageState extends State<MissionsPage> {
                         },
                       ),
                       const SizedBox(height: 10),
-                      MaskedTextField(
-                        mask: 'xxxx-xx-xx',
+                      MaskedTextField( // Utiliser le widget MaskedTextField pour la date
+                        mask: 'xxxx-xx-xx', // Masque pour le format YYYY-MM-DD
                         controller: dateController,
-                        inputDecoration: const InputDecoration(
-                          labelText: 'Date',
-                          hintText: 'YYYY-MM-DD',
+                        inputDecoration: InputDecoration(
+                          labelText: 'Date', // Label de la date
+                          border: InputBorder.none, // Supprime toutes les bordures par défaut
+                          enabledBorder: UnderlineInputBorder( // Ajoute seulement la bordure inférieure
+                            borderSide: BorderSide(color: Colors.grey), // Couleur de la bordure inférieure
+                          ),
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          hintStyle: TextStyle(color: Colors.black),
+                          labelStyle: TextStyle(color: Color(0xFF012225)),
+                          floatingLabelBehavior: FloatingLabelBehavior.never,
                         ),
+                        onChanged: (value) {
+                          dateValue = value; // Mettre à jour la valeur de la date
+                        },
                       ),
                       const SizedBox(height: 10),
                       if (_imagePath.isNotEmpty)
@@ -376,7 +389,9 @@ class _MissionsPageState extends State<MissionsPage> {
                         onPressed: () async {
                           // _imagePath = await _getImage();
                           String? imagePath = await _getImage();
-                          setState(() {});
+                          setState(() {
+                            _imagePath = imagePath ?? ''; // Mettre à jour le chemin de l'image
+                          });
                         },
                         icon: const Icon(Icons.camera_alt),
                         label: const Text('Prendre une photo'),
@@ -399,63 +414,73 @@ class _MissionsPageState extends State<MissionsPage> {
                           ElevatedButton(
                             onPressed: () async {
                               if (formKey.currentState!.validate()) {
-                                String volumeValue = volumeController.text;
-                                String dateValue = dateController.text;
-                                DateTime parsedDate =
-                                DateFormat('dd-MM-yyyy').parse(dateValue);
-                                String formattedDate =
-                                DateFormat('yyyy-MM-dd').format(parsedDate);
-                                try {
-                                  if (isUpdate) {
-                                    BlocProvider.of<MissionsBloc>(context).add(
-                                      UpdateMission(
-                                        missionId: mission.numCompteur.toString(),
-                                        adresseClient:
-                                        mission.adresseClient.toString(),
-                                        consoValue: volumeValue,
-                                        date: formattedDate,
-                                        accessToken: authState is AuthSuccess
-                                            ? authState.userInfo.lastToken ?? ''
-                                            : '',
-                                        imageCompteur: _imagePath,
+                                // Vérification si l'image est vide
+                                if (_imagePath.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Veuillez prendre une photo'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                } else {
+                                  String volumeValue = volumeController.text;
+                                  String dateValue = dateController.text;
+                                  DateTime parsedDate =
+                                  DateFormat('dd-MM-yyyy').parse(dateValue);
+                                  String formattedDate =
+                                  DateFormat('yyyy-MM-dd').format(parsedDate);
+                                  try {
+                                    if (isUpdate) {
+                                      BlocProvider.of<MissionsBloc>(context).add(
+                                        UpdateMission(
+                                          missionId: mission.numCompteur.toString(),
+                                          adresseClient:
+                                          mission.adresseClient.toString(),
+                                          consoValue: volumeValue,
+                                          date: formattedDate,
+                                          accessToken: authState is AuthSuccess
+                                              ? authState.userInfo.lastToken ?? ''
+                                              : '',
+                                          imageCompteur: _imagePath,
+                                        ),
+                                      );
+                                    } else {
+                                      BlocProvider.of<MissionsBloc>(context).add(
+                                        AddMission(
+                                          missionId: mission.numCompteur.toString(),
+                                          adresseClient:
+                                          mission.adresseClient.toString(),
+                                          consoValue: volumeValue,
+                                          date: formattedDate,
+                                          accessToken: authState is AuthSuccess
+                                              ? authState.userInfo.lastToken ?? ''
+                                              : '',
+                                          imageCompteur: _imagePath,
+                                        ),
+                                      );
+                                    }
+                                    Navigator.of(context).pop(); // Ferme la boîte de dialogue
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Mission ${isUpdate ? 'modifiée' : 'créée'} avec succès'),
                                       ),
                                     );
-                                  } else {
                                     BlocProvider.of<MissionsBloc>(context).add(
-                                      AddMission(
-                                        missionId: mission.numCompteur.toString(),
-                                        adresseClient:
-                                        mission.adresseClient.toString(),
-                                        consoValue: volumeValue,
-                                        date: formattedDate,
+                                      LoadMissions(
                                         accessToken: authState is AuthSuccess
                                             ? authState.userInfo.lastToken ?? ''
                                             : '',
-                                        imageCompteur: _imagePath,
+                                      ),
+                                    ); // Recharge la liste des missions
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Erreur lors de la ${isUpdate ? 'modification' : 'création'} de la mission: $e',
+                                        ),
                                       ),
                                     );
                                   }
-                                  Navigator.of(context).pop(); // Ferme la boîte de dialogue
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Mission ${isUpdate ? 'modifiée' : 'créée'} avec succès'),
-                                    ),
-                                  );
-                                  BlocProvider.of<MissionsBloc>(context).add(
-                                    LoadMissions(
-                                      accessToken: authState is AuthSuccess
-                                          ? authState.userInfo.lastToken ?? ''
-                                          : '',
-                                    ),
-                                  ); // Recharge la liste des missions
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Erreur lors de la ${isUpdate ? 'modification' : 'création'} de la mission: $e',
-                                      ),
-                                    ),
-                                  );
                                 }
                               }
                             },
@@ -483,9 +508,6 @@ class _MissionsPageState extends State<MissionsPage> {
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      setState(() {
-        _imagePath = pickedFile.path; // Enregistrer le chemin de l'image sélectionnée
-      });
       return pickedFile.path; // Retourner le chemin de l'image sélectionnée
     } else {
       print('Aucune image sélectionnée.');
