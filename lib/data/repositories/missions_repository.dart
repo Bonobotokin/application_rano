@@ -243,6 +243,7 @@ class MissionsRepository {
     try {
       print("image $imageCompteur");
 
+<<<<<<< HEAD
       if (imageCompteur.isNotEmpty) {
         // Obtenir la date actuelle
         DateTime currentDate = DateTime.now();
@@ -305,7 +306,49 @@ class MissionsRepository {
             print('Erreur: Aucune mise à jour effectuée.');
           }
         }
+=======
+      // Récupérer la date du mois précédent
+      DateTime previousMonthDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
+
+      String formattedPreviousMonthDate = DateFormat('yyyy-MM').format(previousMonthDate);
+      print("moiss $formattedPreviousMonthDate");
+      // Récupérer le dernier relevé avec le compteur_id donné pour le mois en cours
+      Map<String, dynamic>? latestMonthReleve = await db.query(
+        'releves',
+        where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
+        whereArgs: [compteurId, formattedPreviousMonthDate],
+      ).then((value) => value.isNotEmpty ? value.last : null);
+
+      print("Laste Relves $latestMonthReleve");
+      String formattedCurrentDate = DateFormat('yyyy-MM').format(currentDate);
+
+      List<Map<String, dynamic>>  RelevesNow = await db.query(
+        'releves',
+        where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
+        whereArgs: [compteurId, formattedCurrentDate],
+      );
+
+      if (RelevesNow.isNotEmpty && latestMonthReleve != null && latestMonthReleve.isNotEmpty) {
+        int RelevesNowId = RelevesNow.last['id'] ?? 0; // Utilisation de l'opérateur de null-aware pour éviter les erreurs si 'RelevesNow' ou 'latestMonthReleve' est null
+        int latestMonthReleveId = latestMonthReleve['id'] ?? 0; // Utilisation de l'opérateur de null-aware pour éviter les erreurs si 'RelevesNow' ou 'latestMonthReleve' est null
+
+        int consoValue = (int.parse(volumeValue) - latestMonthReleve['volume']).toInt();
+        await db.update(
+          'releves',
+          {
+            'date_releve': date,
+            'volume': volumeValue,
+            'conso': consoValue,
+            // Ajoutez d'autres champs à mettre à jour si nécessaire
+          },
+          where: 'id = ?',
+          whereArgs: [RelevesNowId],
+        );
+        print('Mise à jour du relevé à partir du dernier relevé réussie.');
+>>>>>>> 207204b (Fonctionnalite des Update Mission and releve Terminer.)
       }
+
+
     } catch (e) {
       throw Exception('Failed to update releve from existing data: $e');
     }
