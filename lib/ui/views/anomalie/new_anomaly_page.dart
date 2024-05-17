@@ -9,7 +9,8 @@ import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/ui/views/anomalie/anomaliePage.dart';
-
+import '../../shared/DateFormatter.dart';
+import '../../shared/MaskedTextField.dart';
 class NewAnomalyPage extends StatefulWidget {
   const NewAnomalyPage({Key? key}) : super(key: key);
 
@@ -27,13 +28,18 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
   final TextEditingController _cpCommuneController = TextEditingController();
   final TextEditingController _communeController = TextEditingController();
 
+  DateTime currentDate = DateTime.now();
   List<File> _images = [];
   final ImagePicker _picker = ImagePicker();
+  late DateFormat _dateFormat;
+  late TextEditingController _textEditingController;
 
   @override
   void initState() {
     super.initState();
     initializeDateFormatting('fr_FR');
+    _dateFormat = DateFormat('dd-MM-yyyy');
+    _textEditingController = _dateController;
   }
 
   @override
@@ -98,7 +104,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       children: [
         _buildTextField('Type Anomalie', _typeController),
         SizedBox(height: 10),
-        _buildTextField('Date', _dateController),
+        _buildDateField('Date', _dateController),
         SizedBox(height: 10),
         Row(
           children: [
@@ -122,6 +128,39 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       ],
     );
   }
+
+  Widget _buildDateField(String label, TextEditingController _textEditingController) {
+    return TextFormField(
+      controller: _textEditingController,
+      keyboardType: TextInputType.datetime,
+      decoration: InputDecoration(
+        labelText: 'Date',
+        hintText: 'Saisissez la date (DD-MM-YYYY)',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Veuillez saisir une date';
+        }
+        return null;
+      },
+      onTap: () async {
+        DateTime? selectedDate = await showDatePicker(
+          context: context,
+          initialDate: DateTime.now(),
+          firstDate: DateTime(1900),
+          lastDate: DateTime.now(),
+        );
+
+        if (selectedDate != null) {
+          _textEditingController.text = _dateFormat.format(selectedDate);
+        }
+      },
+    );
+  }
+
 
   Widget _buildTextField(String label, TextEditingController controller) {
     return TextFormField(

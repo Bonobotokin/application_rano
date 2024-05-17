@@ -245,34 +245,55 @@ class MissionsRepository {
 
 <<<<<<< HEAD
       if (imageCompteur.isNotEmpty) {
+        // Récupérer les relevés du mois en cours
+        Map<String, dynamic>? latestReleve = await db.query(
+          'releves',
+          where: 'compteur_id = ?',
+          whereArgs: [compteurId],
+        ).then((value) => value.isNotEmpty ? value.last : null);
+
         // Obtenir la date actuelle
         DateTime currentDate = DateTime.now();
 
-        // Récupérer la date du mois précédent
-        DateTime previousMonthDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
-
-        String formattedPreviousMonthDate = DateFormat('yyyy-MM').format(previousMonthDate);
-
-        // Récupérer le dernier relevé avec le compteur_id donné pour le mois en cours
-        Map<String, dynamic>? latestMonthReleve = await db.query(
-          'releves',
-          where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
-          whereArgs: [compteurId, formattedPreviousMonthDate],
-        ).then((value) => value.isNotEmpty ? value.last : null);
-
+        // Formatter la date actuelle au format 'yyyy-MM'
         String formattedCurrentDate = DateFormat('yyyy-MM').format(currentDate);
 
-        List<Map<String, dynamic>>  RelevesNow = await db.query(
-          'releves',
-          where: 'compteur_id = ? AND strftime("%Y-%m", date_releve) = ?',
-          whereArgs: [compteurId, formattedCurrentDate],
-        );
+        // Initialisation du mois précédent
+        DateTime previousMonthDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
 
-        if (RelevesNow.isNotEmpty && latestMonthReleve != null && latestMonthReleve.isNotEmpty) {
-          int RelevesNowId = RelevesNow.last['id'] ?? 0;
-          int consoValue = (int.parse(volumeValue) -
-              latestMonthReleve['volume']).toInt();
+        // Formatter la date précédente au format 'yyyy-MM'
+        String formattedPreviousMonthDate = DateFormat('yyyy-MM').format(previousMonthDate);
 
+        // Initialisation de la liste de relevés
+        List<Map<String, dynamic>> releves = [];
+
+        // Récupérer les relevés du mois précédent ou des mois antérieurs s'il n'y a pas de données pour le mois précédent
+        while (releves.isEmpty && previousMonthDate.isAfter(DateTime(2000))) {
+          // Récupérer les relevés pour le mois précédent
+          releves = await db.query(
+            'releves',
+            where: 'strftime("%Y-%m", date_releve) = ?',
+            whereArgs: [formattedPreviousMonthDate],
+          );
+
+          // Si aucune donnée n'a été trouvée pour le mois précédent, décaler la date d'un mois en arrière
+          if (releves.isEmpty) {
+            previousMonthDate = DateTime(previousMonthDate.year, previousMonthDate.month - 1, previousMonthDate.day);
+            formattedPreviousMonthDate = DateFormat('yyyy-MM').format(previousMonthDate);
+          }
+        }
+
+        if (latestReleve != null) {
+          // Calculer la consommation en soustrayant le nouveau volume du volume du dernier relevé
+          int consoValue = int.parse(volumeValue) - (releves.first['volume'] as int);
+
+          // Incrémenter l'ID du nouveau relevé en ajoutant 1 à l'ID du dernier relevé
+          int newReleveId = latestReleve['id'] + 1;
+          print("Relever trouver $consoValue");
+
+          // Insérer les données de relevé dans la table "releves"
+
+          // Mettre à jour le dernier relevé avec les nouvelles valeurs
           final updateResult = await db.update(
             'releves',
             {
@@ -283,28 +304,19 @@ class MissionsRepository {
               'image_compteur': imageCompteur,
             },
             where: 'id = ?',
-            whereArgs: [RelevesNowId],
+            whereArgs: [latestReleve['id']],
           );
-          if (updateResult == 1) {
-            // Récupérer les données mises à jour
-            final updatedData = await db.query(
-              'releves',
-              where: 'id = ?',
-              whereArgs: [RelevesNowId],
-            );
 
-            // Vérifier si les données ont été récupérées
-            if (updatedData.isNotEmpty) {
-              // Les données ont été mises à jour avec succès
-              print('Données mises à jour: $updatedData');
-            } else {
-              // Aucune donnée n'a été récupérée
-              print('Erreur: Aucune donnée mise à jour trouvée.');
-            }
+          if (updateResult == 1) {
+            // Les données ont été mises à jour avec succès
+            print('Données mises à jour.');
           } else {
             // Aucune mise à jour n'a été effectuée
             print('Erreur: Aucune mise à jour effectuée.');
           }
+        } else {
+          // Aucun relevé trouvé pour le mois en cours
+          print('Aucun relevé trouvé pour le mois en cours.');
         }
 =======
       // Récupérer la date du mois précédent
@@ -354,4 +366,8 @@ class MissionsRepository {
     }
   }
 
+
+
+
 }
+

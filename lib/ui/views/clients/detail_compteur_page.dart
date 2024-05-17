@@ -72,14 +72,16 @@ class DetailCompteurPage extends StatelessWidget {
                 child: Icon(Icons.account_circle, size: 40),
               ),
               const SizedBox(width: 10.0),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    clientName,
-                    style: const TextStyle(fontSize: 20),
-                  ),
-                ],
+              Expanded( // Ajout de l'Expanded autour de la Column
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      clientName,
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                  ],
+                ),
               ),
             ],
           );
@@ -89,6 +91,7 @@ class DetailCompteurPage extends StatelessWidget {
       },
     );
   }
+
 
   Widget _buildClientData(BuildContext context, ClientLoaded state,
       AuthState authState) {

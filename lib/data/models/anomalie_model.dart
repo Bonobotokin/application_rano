@@ -18,7 +18,7 @@ class AnomalieModel {
 
   AnomalieModel({
     this.id,
-    required this.idMc,
+    this.idMc,
     this.typeMc,
     this.dateDeclaration,
     this.longitudeMc,

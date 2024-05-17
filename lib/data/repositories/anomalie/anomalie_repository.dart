@@ -13,6 +13,8 @@ class AnomalieRepository {
     try {
       final anomalie =  getAnomalieData();
 
+
+
       return anomalie;
 
     } catch (e) {
@@ -25,6 +27,7 @@ class AnomalieRepository {
     try {
       final Database db = await _niaDatabases.database;
       final List<Map<String, dynamic>> maps = await db.query('anomalie');
+      print("mapas $maps");
       return List.generate(maps.length, (i) {
         return AnomalieModel(
             id: maps[i]['id'],
@@ -67,6 +70,7 @@ class AnomalieRepository {
       final db = await _niaDatabases.database;
 
       Map<String, dynamic>? lastAnomalie = await db.query('anomalie').then((value) => value.isNotEmpty ? value.last : null);
+
       if (lastAnomalie != null) {
         print("lastAnomalie ${lastAnomalie['id']}" );
         int newIdMc = lastAnomalie['id'] + 1;
@@ -102,6 +106,38 @@ class AnomalieRepository {
         }
       } else {
         print("Aucune anomalie n'a été trouvée dans la base de données.");
+
+        int newIdMc = 1;
+        await db.insert(
+          'anomalie',
+          {
+            'id_mc': newIdMc,
+            'type_mc': typeMc,
+            'date_declaration': dateDeclaration,
+            'longitude_mc': longitudeMc,
+            'latitude_mc': latitudeMc,
+            'description_mc': descriptionMc,
+            'client_declare': clientDeclare,
+            'cp_commune': cpCommune,
+            'commune': commune,
+            'status': 4,
+            'photo_anomalie_1': imagePaths.length > 0 ? imagePaths[0] : null,
+            'photo_anomalie_2': imagePaths.length > 1 ? imagePaths[1] : null,
+            'photo_anomalie_3': imagePaths.length > 2 ? imagePaths[2] : null,
+            'photo_anomalie_4': imagePaths.length > 3 ? imagePaths[3] : null,
+            'photo_anomalie_5': imagePaths.length > 4 ? imagePaths[4] : null,
+          },
+        );
+        await _updateAcceuil(db);
+        print('Anomalie insérée avec succès dans la base de données locale');
+        // Récupérer les données insérées et les afficher
+        final insertedAnomalie = await db.query('anomalie',
+            orderBy: 'id DESC', limit: 1); // Récupérer la dernière anomalie insérée
+        if (insertedAnomalie.isNotEmpty) {
+          print('Données de la dernière anomalie insérée : $insertedAnomalie');
+        } else {
+          print('Aucune donnée n\'a été trouvée pour la dernière anomalie insérée');
+        }
       }
     } catch (e) {
       print('Échec de l\'enregistrement de l\'anomalie dans la base de données locale: $e');

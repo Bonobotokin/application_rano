@@ -13,8 +13,7 @@ import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 import '../../shared/DateFormatter.dart';
 import '../../shared/MaskedTextField.dart';
-import 'package:application_rano/ui/routing/routes.dart';
-import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 class UpdateAnomalyPage extends StatefulWidget {
   const UpdateAnomalyPage({Key? key});
@@ -24,7 +23,7 @@ class UpdateAnomalyPage extends StatefulWidget {
 }
 
 class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
-  final _formKey = GlobalKey<FormState>(); // Clé globale pour le formulaire
+  final _formKey = GlobalKey<FormState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   TextEditingController _typeMcController = TextEditingController();
@@ -32,8 +31,15 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
   TextEditingController _latitudeMcController = TextEditingController();
   TextEditingController _dateDeclarationController = TextEditingController();
 
-  // Ajoutez la déclaration du contrôleur _hiddenDateController
-  TextEditingController _hiddenDateController = TextEditingController();
+  late DateFormat _dateFormat;
+  late TextEditingController _textEditingController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dateFormat = DateFormat('dd-MM-yyyy');
+    _textEditingController = _dateDeclarationController;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +54,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
-                const SizedBox(height: 20), // Espacement entre le haut de la page et le titre
+                const SizedBox(height: 20),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
@@ -60,12 +66,12 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20), // Espacement entre le titre et la liste d'anomalies
+                const SizedBox(height: 20),
                 BlocBuilder<AnomalieBLoc, AnomalieState>(
                   builder: (context, state) {
                     if (state is AnomalieLoading) {
                       return FutureBuilder(
-                        future: Future.delayed(Duration(seconds: 2)), // Ajoute un délai de 2 secondes
+                        future: Future.delayed(Duration(seconds: 2)),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
                             return Center(child: CircularProgressIndicator());
@@ -98,9 +104,9 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
         itemBuilder: (context, index) {
           final anomalieItem = anomalie[index];
           return Card(
-            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10), // Marge autour de chaque carte
+            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: Padding(
-              padding: const EdgeInsets.all(16.0), // Espacement interne de la carte
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -115,29 +121,36 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                       ),
                       SizedBox(width: 20),
                       Expanded(
-                        child: MaskedTextField(
-                          mask: 'xxxx-xx-xx', // Passer le masque ici
-                          controller: _hiddenDateController,
-                          inputDecoration: InputDecoration(
-                            labelText: '${DateFormatter.formatFrenchDate(anomalieItem.dateDeclaration ?? '')}',
-                            hintText: '${anomalieItem.dateDeclaration ?? ''}',
+                        child: TextFormField(
+                          controller: _textEditingController,
+                          keyboardType: TextInputType.datetime,
+                          decoration: InputDecoration(
+                            labelText: 'Date',
+                            hintText: 'Saisissez la date (DD-MM-YYYY)',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            filled: true,
-                            fillColor: Colors.transparent,
-                            hintStyle: TextStyle(color: Colors.black),
-                            labelStyle: TextStyle(color: Color(0xFF012225)),
-                            floatingLabelBehavior: FloatingLabelBehavior.never,
                           ),
-                          onChanged: (value) {
-                            setState(() { 
-                              anomalieItem.dateDeclaration = value;
-                            });
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Veuillez saisir une date';
+                            }
+                            return null;
+                          },
+                          onTap: () async {
+                            DateTime? selectedDate = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime(1900),
+                              lastDate: DateTime.now(),
+                            );
+
+                            if (selectedDate != null) {
+                              _textEditingController.text = _dateFormat.format(selectedDate);
+                            }
                           },
                         ),
                       ),
-
                     ],
                   ),
                   SizedBox(height: 12),
@@ -170,6 +183,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                   SizedBox(height: 12),
                   Row(
                     children: [
+
                       Expanded(
                         child: _buildTextField(
                           label: 'Client declarant',
@@ -292,13 +306,30 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
   }
 
   void _updateAnomalyAndShowSnackBar(AnomalieModel anomalieItem) {
-    // Mettre à jour la date avec la valeur du champ caché
-    anomalieItem.dateDeclaration = _hiddenDateController.text;
-    BlocProvider.of<AnomalieBLoc>(context).add(UpdateAnomalie(
-      anomalieItem: anomalieItem,
-    ));
-    _showSuccessSnackBar();
+    // Valider le formulaire
+    if (_formKey.currentState!.validate()) {
+      // Mettre à jour la date avec la valeur du champ caché
+      anomalieItem.dateDeclaration = _textEditingController.text;
+      BlocProvider.of<AnomalieBLoc>(context).add(UpdateAnomalie(
+        anomalieItem: anomalieItem,
+      ));
+      _showSuccessSnackBar();
+    } else {
+      // Afficher un message d'erreur et mettre en surbrillance le champ de date
+      setState(() {
+        // Définir une couleur rouge sur le champ de date
+        _textEditingController.selection = TextSelection.collapsed(offset: 0);
+      });
+      // Afficher un SnackBar avec un message d'erreur
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Veuillez saisir une date'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
+
 
 
   void _showSuccessSnackBar() {

@@ -15,6 +15,8 @@ import '../../shared/DateFormatter.dart';
 import '../../shared/MaskedTextField.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+
 
 class AnomaliePage extends StatefulWidget {
   const AnomaliePage({super.key});
@@ -276,13 +278,18 @@ class _AnomaliePageState extends State<AnomaliePage> {
                   Text('Commune : ${anomalie.commune} '),
                   Text('Cp Commune : ${anomalie.cpCommune}'),
                   Text(
-                    'Date: ${DateFormatter.formatFrenchDate(anomalie.dateDeclaration!)}',
+                    'Date: ${
+                        (anomalie.dateDeclaration != null || anomalie.dateDeclaration != '' || DateFormatter.isValidFrenchDate(anomalie.dateDeclaration!))
+                            ? DateFormatter.formatFrenchDate(anomalie.dateDeclaration!)
+                            : 'Erreur de date'
+                    }',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                       color: statusColor,
                     ),
                   ),
+
                 ],
               ),
               trailing: showButton ? ElevatedButton(

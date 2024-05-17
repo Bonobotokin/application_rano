@@ -143,69 +143,54 @@ class SaveDataRepositoryLocale {
     }
   }
 
-
-
   Future<void> saveMissionsDataToLocalDatabase(Transaction txn, List<MissionModel> missions) async {
     try {
       for (final mission in missions) {
         final List<Map<String, dynamic>> existingRows = await txn.query(
           'missions',
-          where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ? AND conso_dernier_releve = ? AND '
-              'volume_dernier_releve = ? AND date_releve = ? AND statut = ? ',
+          where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ?',
           whereArgs: [
             mission.nomClient,
             mission.prenomClient,
             mission.adresseClient,
             mission.numCompteur,
-            mission.consoDernierReleve,
-            mission.volumeDernierReleve,
-            mission.dateReleve,
-            mission.statut
           ],
         );
 
         if (existingRows.isNotEmpty) {
           print('Les données de mission existent déjà dans la base de données locale.');
 
-          // Update des données de mission
+          // Mettre à jour les données de mission
           await txn.update(
             'missions',
             mission.toJson(),
-            where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ? AND conso_dernier_releve = ? AND '
-                'volume_dernier_releve = ? AND date_releve = ? AND statut = ? ',
+            where: 'nom_client = ? AND prenom_client = ? AND adresse_client = ? AND num_compteur = ?',
             whereArgs: [
               mission.nomClient,
               mission.prenomClient,
               mission.adresseClient,
               mission.numCompteur,
-              mission.consoDernierReleve,
-              mission.volumeDernierReleve,
-              mission.dateReleve,
-              mission.statut
             ],
           );
 
           // Affichage de l'aperçu pour chaque mission mise à jour
           print('Données de mission mises à jour avec succès dans la base de données locale : $mission');
+        } else {
+          // Si aucune donnée de mission existante, alors effectuer une insertion
+          await txn.insert(
+            'missions',
+            mission.toJson(),
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
 
-          continue;
+          // Affichage de l'aperçu pour chaque mission enregistrée
+          print('Données de mission enregistrées avec succès dans la base de données locale : $mission');
         }
-
-        // Si aucune donnée de mission existante, alors effectuer une insertion
-        await txn.insert(
-          'missions',
-          mission.toJson(),
-          conflictAlgorithm: ConflictAlgorithm.replace,
-        );
-
-        // Affichage de l'aperçu pour chaque mission enregistrée
-        print('Données de mission enregistrées avec succès dans la base de données locale : $mission');
       }
     } catch (error) {
       throw Exception("Failed to save missions data to local database: $error");
     }
   }
-
 
 
   Future<void> saveCompteurDetailsRelever(CompteurModel compteurModel) async {
@@ -331,8 +316,8 @@ class SaveDataRepositoryLocale {
 
         String modifiedImageCompteur = releve.imageCompteur;
 
-        if (releve.imageCompteur.isNotEmpty && releve.imageCompteur.startsWith("/media/compteurs/1234/")) {
-          modifiedImageCompteur = releve.imageCompteur.replaceAll("/media/compteurs/1234/", "/data/user/0/com.example.application_rano/app_flutter/assets/images/");
+        if (releve.imageCompteur.isNotEmpty && releve.imageCompteur.startsWith("/media/compteurs/${releve.compteurId}/")) {
+          modifiedImageCompteur = releve.imageCompteur.replaceAll("/media/compteurs/${releve.compteurId}/", "/data/user/0/com.example.application_rano/app_flutter/assets/images/");
         }
 
         final List<Map<String, dynamic>> existingRows = await db.query(
@@ -493,87 +478,24 @@ class SaveDataRepositoryLocale {
     }
   }
 
-
-  // Future<void> saveFactureData(FactureModel factureModel) async {
-  //   try {
-  //     final db = await NiADatabases().database;
-  //
-  //     // Vérifiez d'abord si une facture avec les mêmes données existe déjà
-  //     final List<Map<String, dynamic>> existingRows = await db.query(
-  //       'facture',
-  //       where: 'relevecompteur_id = ? AND num_facture = ? AND num_compteur = ? AND date_facture = ? AND total_conso_ht = ? AND tarif_m3 = ? AND avoir_avant = ? AND avoir_utilise = ? AND restant_precedant = ? AND montant_total_ttc = ? AND statut = ?',
-  //       whereArgs: [
-  //         factureModel.relevecompteurId,
-  //         factureModel.numFacture,
-  //         factureModel.numCompteur,
-  //         factureModel.dateFacture,
-  //         factureModel.totalConsoHT,
-  //         factureModel.tarifM3,
-  //         factureModel.avoirAvant,
-  //         factureModel.avoirUtilise,
-  //         factureModel.restantPrecedant,
-  //         factureModel.montantTotalTTC,
-  //         factureModel.statut
-  //       ],
-  //     );
-  //
-  //     if (existingRows.isNotEmpty) {
-  //       print('Les données de facture existent déjà dans la base de données locale.');
-  //       // Mise à jour du statut du paiement de la facture si elle est payée
-  //       if (factureModel.statut == "Payé") {
-  //         final factureId = existingRows[0]['id'];
-  //
-  //         await db.update(
-  //           'facture_paiment',
-  //           {'statut': 'Payé'},
-  //           where: 'facture_id = ?',
-  //           whereArgs: [factureId],
-  //         );
-  //       }
-  //
-  //       return;
-  //     } else {
-  //       // Vérifiez si le montant total TTC de la facture est différent de 0.0 ou 0
-  //       if (factureModel.montantTotalTTC != 0.0 || factureModel.montantTotalTTC != 0) {
-  //         final factureId = await db.insert(
-  //           'facture',
-  //           factureModel.toMap(),
-  //           conflictAlgorithm: ConflictAlgorithm.replace,
-  //         );
-  //
-  //         final DateTime now = DateTime.now();
-  //         // Vérifiez également le statut de la facture
-  //         final statutPaiement = factureModel.statut == "Payé" ? '1' : 'null';
-  //
-  //         await db.insert(
-  //           'facture_paiment',
-  //           {
-  //             'facture_id': factureId,
-  //             'relevecompteur_id': factureModel.relevecompteurId ?? 0,
-  //             'paiement': factureModel.montantPayer.toInt(), // Convertir en entier
-  //             'date_paiement': DateFormat('yyyy-MM-dd').format(now),
-  //             'statut': statutPaiement,
-  //             // Ajoutez d'autres champs si nécessaire
-  //           },
-  //         );
-  //       } else {
-  //         print('Le montant total TTC de la facture est 0, ne pas enregistrer dans la base de données');
-  //       }
-  //
-  //       // Affichage de l'aperçu pour la facture enregistrée
-  //       print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
-  //     }
-  //   } catch (error) {
-  //     throw Exception("Failed to save facture data to local database: $error");
-  //   }
-  // }
-
-
   Future<void> saveAnomalieData(List<AnomalieModel> anomalie) async {
     try {
-      print(anomalie);
       final db = await NiADatabases().database;
       for (final anomalies in anomalie) {
+        // Modification du chemin de l'image de compteur
+        String modifiedImageCompteur = anomalies.photoAnomalie1 ?? '';
+        if (modifiedImageCompteur.isNotEmpty && modifiedImageCompteur.startsWith("/mmedia/mc/")) {
+          modifiedImageCompteur = modifiedImageCompteur.replaceAll("/media/mc/", "/data/user/0/com.example.application_rano/app_flutter/assets/images/");
+        }
+
+        // Modification des chemins des images d'anomalie
+        String modifiedImageAnomalie1 = modifyImagePath(anomalies.photoAnomalie1 ?? '', anomalies.idMc ?? 0);
+        String modifiedImageAnomalie2 = modifyImagePath(anomalies.photoAnomalie2 ?? '', anomalies.idMc ?? 0);
+        String modifiedImageAnomalie3 = modifyImagePath(anomalies.photoAnomalie3 ?? '', anomalies.idMc ?? 0);
+        String modifiedImageAnomalie4 = modifyImagePath(anomalies.photoAnomalie4 ?? '', anomalies.idMc ?? 0);
+        String modifiedImageAnomalie5 = modifyImagePath(anomalies.photoAnomalie5 ?? '', anomalies.idMc ?? 0);
+
+        // Vérification de l'existence de données d'anomalie dans la base de données locale
         final List<Map<String, dynamic>> existingRows = await db.query(
           'anomalie',
           where: 'id_mc = ? AND type_mc = ? AND date_declaration = ? AND longitude_mc = ? AND latitude_mc = ? AND '
@@ -590,20 +512,27 @@ class SaveDataRepositoryLocale {
             anomalies.cpCommune,
             anomalies.commune,
             anomalies.status,
-            anomalies.photoAnomalie1,
-            anomalies.photoAnomalie2,
-            anomalies.photoAnomalie3,
-            anomalies.photoAnomalie4,
-            anomalies.photoAnomalie5
+            modifiedImageAnomalie1,
+            modifiedImageAnomalie2,
+            modifiedImageAnomalie3,
+            modifiedImageAnomalie4,
+            modifiedImageAnomalie5
           ],
         );
 
         if (existingRows.isNotEmpty) {
           print('Les données d\'anomalie existent déjà dans la base de données locale.');
-          // Mise à jour des données
+          // Mise à jour des données d'anomalie
           await db.update(
-            'releves',
-            anomalies.toMap(), // Mettre à jour l'image_compteur avec la valeur modifiée
+            'anomalie',
+            {
+              ...anomalies.toMap(),
+              'photo_anomalie_1': modifiedImageAnomalie1,
+              'photo_anomalie_2': modifiedImageAnomalie2,
+              'photo_anomalie_3': modifiedImageAnomalie3,
+              'photo_anomalie_4': modifiedImageAnomalie4,
+              'photo_anomalie_5': modifiedImageAnomalie5,
+            },
             where: 'id_mc = ? AND type_mc = ? AND date_declaration = ? AND longitude_mc = ? AND latitude_mc = ? AND '
                 'description_mc = ? AND client_declare = ? AND cp_commune = ? AND commune = ? AND status = ? AND '
                 'photo_anomalie_1 = ? AND photo_anomalie_2 = ? AND photo_anomalie_3 = ? AND photo_anomalie_4 = ? AND photo_anomalie_5 = ? ',
@@ -618,30 +547,41 @@ class SaveDataRepositoryLocale {
               anomalies.cpCommune,
               anomalies.commune,
               anomalies.status,
-              anomalies.photoAnomalie1,
-              anomalies.photoAnomalie2,
-              anomalies.photoAnomalie3,
-              anomalies.photoAnomalie4,
-              anomalies.photoAnomalie5
+              modifiedImageAnomalie1,
+              modifiedImageAnomalie2,
+              modifiedImageAnomalie3,
+              modifiedImageAnomalie4,
+              modifiedImageAnomalie5
             ],
           );
-          print('Données de anomalie mises à jour avec succès dans la base de données locale : $anomalies');
-          continue;
+          print('Données d\'anomalie mises à jour avec succès dans la base de données locale : $anomalies');
 
-          return;
-        } else {
+        }  else {
+          // Insertion de nouvelles données d'anomalie dans la base de données
           await db.insert(
             'anomalie',
-            anomalies.toMap(),
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
+           {
+             ...anomalies.toMap(),
+             'id': anomalies.id,
+             'id_mc': anomalies.idMc,
+             'type_mc': anomalies.typeMc,
+             'date_declaration': anomalies.dateDeclaration,
+             'longitude_mc': anomalies.longitudeMc,
+             'latitude_mc': anomalies.latitudeMc,
+             'description_mc': anomalies.descriptionMc,
+             'client_declare': anomalies.clientDeclare,
+             'cp_commune': anomalies.cpCommune,
+             'commune': anomalies.commune,
+             'status': anomalies.status,
+             'photo_anomalie_1': modifiedImageAnomalie1,
+             'photo_anomalie_2': modifiedImageAnomalie2,
+             'photo_anomalie_3': modifiedImageAnomalie3,
+             'photo_anomalie_4': modifiedImageAnomalie4,
+             'photo_anomalie_5': modifiedImageAnomalie5,
+           },
 
-          await db.insert(
-            'anomalie',
-            anomalies.toMap(),
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
-          // Affichage de l'aperçu pour l'anomalie enregistrée
           print('Données d\'Anomalie enregistrées avec succès dans la base de données locale : $anomalies');
         }
       }
@@ -649,5 +589,14 @@ class SaveDataRepositoryLocale {
       throw Exception("Échec de l'enregistrement des données d'anomalie dans la base de données locale : $e");
     }
   }
+
+// Fonction pour modifier les chemins des images d'anomalie en fonction de l'identifiant idMc
+  String modifyImagePath(String imagePath, int idMc) {
+    if (imagePath.isNotEmpty && imagePath.startsWith("/media/mc/$idMc/")) {
+      return imagePath.replaceAll("/media/mc/$idMc/", "/data/user/0/com.example.application_rano/app_flutter/assets/images/");
+    }
+    return imagePath;
+  }
+
 
 }

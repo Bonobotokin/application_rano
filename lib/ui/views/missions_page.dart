@@ -250,10 +250,12 @@ class _MissionsPageState extends State<MissionsPage> {
               Icon(Icons.account_circle,
                   color: mission.statut == 1 ? Colors.grey : Colors.blue),
               const SizedBox(width: 8),
-              Text(
-                '${mission.nomClient} ${mission.prenomClient}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  '${mission.nomClient} ${mission.prenomClient}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -270,6 +272,7 @@ class _MissionsPageState extends State<MissionsPage> {
             ],
           ),
           trailing: linkButton,
+
         ),
       ),
     );

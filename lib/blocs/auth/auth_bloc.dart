@@ -43,8 +43,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (user != null) {
           final accessToken = user.lastToken;
 
-          final anomalieLocale = await anomalieRepositoryLoale.getAnomalieDataFromLocalDatabase();
 
+          // POst anomalie local in Bdd distant
+          final anomalieLocale = await anomalieRepositoryLoale.getAnomalieDataFromLocalDatabase();
 
           for (var anomalie in anomalieLocale) {
             if (anomalie.status != null && anomalie.status == 4) {
@@ -55,7 +56,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             }
           }
 
-
+          // POst facture payement local in Bdd distant
           final payementFacture = await _factureLocalRepository.getAllPayments();
 
           print("payement Facture All :${(payementFacture.isNotEmpty)}");
@@ -69,12 +70,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             }
           }
 
+          // POst Mission local in Bdd distant
           final missionsDataLocal = await _missionsRepositoryLocale.getMissionsDataFromLocalDatabase();
           print("Missions data from locale post: $missionsDataLocal");
 
           for (var mission in missionsDataLocal) {
 
-            if (mission.statut != null && mission.statut != 0) {
+            if (mission.statut != null && mission.statut == 1) {
               print("missiosn envoir ${mission.volumeDernierReleve}");
               print("eto envoie mission");
               await MissionData.sendLocalDataToServer(mission, accessToken);
@@ -105,7 +107,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
   }
 
-  @override
   Stream<AuthState> mapEventToState(AuthEvent event) async* {
     if (event is LoginRequested) {
       yield* _mapLoginRequestedToState(event);

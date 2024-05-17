@@ -62,7 +62,7 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
 
       // Copier l'image dans le répertoire d'assets/images et obtenir le nouveau chemin
       String? newImagePath = await _copyImageToAssetsDirectory(event.imageCompteur);
-
+      print("reverrifiaction Image  $newImagePath");
       // Vérifier si la copie de l'image s'est bien déroulée
       if (newImagePath != null) {
         // Mettre à jour la mission avec le nouveau chemin de l'image

@@ -6,8 +6,25 @@ class DateFormatter {
     // Initialise les données de localisation pour le français
     initializeDateFormatting('fr_FR', null);
 
-    DateTime date = DateTime.parse(dateString); // Convertir la chaîne en objet DateTime
-    // Utiliser le package intl pour formater la date en français
-    return DateFormat.yMMMMd('fr_FR').format(date);
+    try {
+      // Convertir la chaîne en objet DateTime
+      DateTime date = DateTime.parse(dateString);
+      // Utiliser le package intl pour formater la date en français
+      return DateFormat('dd-MM-yyyy').format(date);
+    } catch (e) {
+      print('Erreur de format de date: $e');
+      return 'Format de date invalide';
+    }
   }
+  static bool isValidFrenchDate(String dateStr) {
+    try {
+      // Utiliser le parseur de dates de intl package pour vérifier la validité de la date
+      DateFormat('dd-MM-yyyy').parseStrict(dateStr);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+
 }

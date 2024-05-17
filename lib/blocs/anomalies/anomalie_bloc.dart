@@ -5,6 +5,8 @@ import 'package:application_rano/blocs/anomalies/anomalie_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/data/repositories/anomalie/anomalie_repository.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
+
 
 class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
   final AnomalieRepository anomalieRepository;
@@ -35,7 +37,13 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
 
   void _onAddAnomalie(AddAnomalie event, Emitter emit) async {
     try {
-      print("les images: ${event.imagePaths}");
+      String dateStr = event.dateDeclaration;
+      DateFormat inputFormat = DateFormat("dd-MM-yyyy");
+      DateFormat outputFormat = DateFormat("yyyy-MM-dd");
+
+      DateTime date = inputFormat.parse(dateStr);
+      String formattedDate = outputFormat.format(date);
+
       List<String?> newImagePaths = [];
       for (String? imagePath in event.imagePaths) {
         String? newImagePath = await _copyImageToAssetsDirectory(imagePath);
@@ -47,7 +55,7 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
       // Appeler la méthode createAnomalie avec la liste des nouveaux chemins d'image
       final anomalie = await anomalieRepository.createAnomalie(
         event.typeMc,
-        event.dateDeclaration,
+        formattedDate,
         event.longitudeMc,
         event.latitudeMc,
         event.descriptionMc,
@@ -56,6 +64,7 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
         event.commune,
         newImagePaths, // Utiliser la liste des nouveaux chemins d'image
       );
+
 
       print("les images data : $newImagePaths"); // Afficher les nouveaux chemins d'image
 
@@ -68,9 +77,15 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
 
   void _onUpdateAnomalie(UpdateAnomalie event, Emitter emit) async {
     try {
+      String dateStr = event.anomalieItem.dateDeclaration!;
+      DateFormat inputFormat = DateFormat("dd-MM-yyyy");
+      DateFormat outputFormat = DateFormat("yyyy-MM-dd");
+
+      DateTime date = inputFormat.parse(dateStr);
+      String formattedDate = outputFormat.format(date);
       List<String?> newImagePaths = [];
 
-      // Ajouter les chemins d'accès des images s'ils existent
+      // // Ajouter les chemins d'accès des images s'ils existent
       if (event.anomalieItem.photoAnomalie1 != null) {
         newImagePaths.add(await _copyImageToAssetsDirectory(event.anomalieItem.photoAnomalie1!));
       }
@@ -90,7 +105,7 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
       final anomalie = await anomalieRepository.updateAnomalie(
         event.anomalieItem.idMc,
         event.anomalieItem.typeMc,
-        event.anomalieItem.dateDeclaration,
+        formattedDate,
         event.anomalieItem.longitudeMc,
         event.anomalieItem.latitudeMc,
         event.anomalieItem.descriptionMc,
@@ -99,7 +114,7 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
         event.anomalieItem.commune,
         newImagePaths,
       );
-
+      //
 
     } catch (error) {
       // En cas d'erreur, émettez un état d'erreur avec un message approprié
