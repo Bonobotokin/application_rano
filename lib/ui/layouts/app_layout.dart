@@ -1,8 +1,7 @@
-import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
-import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
-import 'package:application_rano/blocs/factures/facture_bloc.dart';
-import 'package:application_rano/blocs/factures/facture_event.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:application_rano/ui/routing/routes.dart';
@@ -12,6 +11,10 @@ import 'package:application_rano/blocs/home/home_bloc.dart';
 import 'package:application_rano/blocs/home/home_event.dart';
 import 'package:application_rano/blocs/missions/missions_bloc.dart';
 import 'package:application_rano/blocs/missions/missions_event.dart';
+import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
+import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
+import 'package:application_rano/blocs/factures/facture_bloc.dart';
+import 'package:application_rano/blocs/factures/facture_event.dart';
 
 class AppLayout extends StatelessWidget {
   final Widget body;
@@ -20,12 +23,12 @@ class AppLayout extends StatelessWidget {
   final AuthState authState;
 
   const AppLayout({
-    super.key,
+    Key? key,
     required this.body,
     required this.backgroundColor,
     required this.currentIndex,
     required this.authState,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +43,7 @@ class AppLayout extends StatelessWidget {
           ),
           bottomNavigationBar: _buildBottomNavigationBar(context, authState),
           extendBody:
-              true, // Permet au corps de s'étendre derrière le BottomNavigationBar
+          true, // Permet au corps de s'étendre derrière le BottomNavigationBar
         );
       },
     );
@@ -73,28 +76,25 @@ class AppLayout extends StatelessWidget {
                   Get.offNamed(AppRoutes.missions);
                 }
                 break;
-              case 2: // Correspond à l'icône de notification
-                // Ajoutez ici la logique pour gérer les notifications
+              case 2:
                 if (authState is AuthSuccess) {
                   BlocProvider.of<AnomalieBLoc>(context).add(LoadAnomalie(
                       accessToken: authState.userInfo.lastToken ?? ''));
                   Get.offNamed(AppRoutes.anomaliePage);
                 }
                 break;
-              case 3: // Correspond à l'icône de notification
-              // Ajoutez ici la logique pour gérer les notifications
+              case 3:
                 if (authState is AuthSuccess) {
                   BlocProvider.of<FactureBloc>(context).add(LoadClientFacture(
                       accessToken: authState.userInfo.lastToken ?? ''));
                   Get.offNamed(AppRoutes.listeClient);
                 }
                 break;
-              case 5: // Correspond à l'icône de profil
+              case 5:
                 if (authState is AuthSuccess) {
-                  _showUserInfoDialog(context, authState);
+                  _showLogoutConfirmationDialog(context);
                 }
                 break;
-              // Ajoutez d'autres cas selon vos besoins
               default:
                 break;
             }
@@ -120,12 +120,12 @@ class AppLayout extends StatelessWidget {
               icon: GestureDetector(
                 onTap: () {
                   if (authState is AuthSuccess) {
-                    _showUserInfoDialog(context, authState);
+                    _showLogoutConfirmationDialog(context);
                   }
                 },
-                child: const Icon(Icons.person_2_outlined),
+                child: const Icon(Icons.power_off),
               ),
-              label: 'Profil',
+              label: 'Quiter',
             ),
           ],
         ),
@@ -149,82 +149,31 @@ class AppLayout extends StatelessWidget {
     );
   }
 
-  void _showUserInfoDialog(BuildContext context, AuthSuccess authState) {
-    showModalBottomSheet(
+  void _showLogoutConfirmationDialog(BuildContext context) {
+    showDialog(
       context: context,
       builder: (BuildContext context) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.of(context).pop(); // Close modal on tap
-          },
-          child: Container(
-            padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
-                  blurRadius: 7,
-                  offset: const Offset(0, -3), // changes position of shadow
-                ),
-              ],
+        return AlertDialog(
+          title: const Text("Déconnexion"),
+          content: const Text("Êtes-vous sûr de vouloir vous déconnecter ?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+              },
+              child: const Text("Annuler"),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(5),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Informations de l\'utilisateur',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 20),
-                _buildUserInfoItem('Nom', authState.userInfo.name),
-                _buildUserInfoItem('Commune', authState.userInfo.cpCommune),
-                Container(
-                  alignment: Alignment.center, // Aligner le bouton au centre
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // Déclencher l'événement de déconnexion ici
-                      // BlocProvider.of<AuthBloc>(context).add(Logout());
-                      Navigator.of(context).pop(); // Fermer la boîte de dialogue
-                    },
-                    child: const Text('Déconnexion'),
-                  ),
-                ),
-              ],
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+                // Fermer l'application
+                SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+              },
+              child: const Text("Confirmer"),
             ),
-          ),
+          ],
         );
       },
-    );
-  }
-
-  Widget _buildUserInfoItem(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        '$label: ${value ?? 'Non spécifié'}',
-        style: const TextStyle(fontSize: 16),
-      ),
     );
   }
 }

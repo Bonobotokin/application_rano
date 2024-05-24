@@ -33,6 +33,10 @@ class LoginPage extends StatelessWidget {
           builder: (context, state) {
             if (state is AuthLoading) {
               return _buildLoadingState(context);
+            } else if (state is LoadingSynchronisationInProgress) {
+              return _buildLoadingSynchronisationState(context);
+            } else if (state is LoadingSynchronisationEnd) {
+              return _buildLoadingSynchronisationEndState(context);
             } else if (state is AuthFailure) {
               return _buildLoginForm(context, authBloc,
                   errorMessage: state.error);
@@ -52,6 +56,38 @@ class LoginPage extends StatelessWidget {
   Widget _buildLoadingState(BuildContext context) {
     return const Center(
       child: CircularProgressIndicator(),
+    );
+  }
+
+  Widget _buildLoadingSynchronisationState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          CircularProgressIndicator(),
+          SizedBox(height: 20),
+          Text(
+            'Synchronisation en cours, veuillez patienter...',
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingSynchronisationEndState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          CircularProgressIndicator(),
+          SizedBox(height: 20),
+          Text(
+            'Synchronisation terminée, connexion en cours...',
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
     );
   }
 

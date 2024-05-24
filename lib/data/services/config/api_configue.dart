@@ -1,24 +1,33 @@
 import 'package:http/http.dart' as http;
 
 class ApiConfig {
-  // Remplacez par votre adresse IP
-  static const String ipAddress = 'http://89.116.38.149:8000';
+  static const List<String> ipAddresses = [
+    // 'http://192.168.88.177:8000', // Android Emulator
+    'http://89.116.38.149:8000',
+    // 'http://192.168.0.102:8000',
+    // Ajoutez d'autres adresses IP au besoin
+  ];
 
   static Future<String> determineBaseUrl() async {
     try {
-      var response = await http.get(Uri.parse('$ipAddress/api/serveurTest')).timeout(Duration(seconds: 5));
-      if (response.statusCode == 200) {
-        print("Connexion réussie à $ipAddress");
-        return '$ipAddress/api';
-      } else {
-        print("Connexion à $ipAddress échouée avec le code de statut ${response.statusCode}");
+      for (String ipAddress in ipAddresses) {
+        try {
+          var response = await http.get(Uri.parse('$ipAddress/api/serveurTest')).timeout(Duration(seconds: 5));
+          if (response.statusCode == 200) {
+            print("ipAddress connected in $ipAddress");
+            return '$ipAddress/api';
+          }
+        } catch (error) {
+          print('Erreur lors de la connexion à $ipAddress: $error');
+        }
       }
-    } catch (error) {
-      print('Erreur lors de la connexion à $ipAddress: $error');
-    }
 
-    // Si l'adresse IP n'est pas disponible, retourner une chaîne vide
-    print('L\'adresse IP n\'a pas pu être connectée.');
-    return '';
+      // Si aucune des adresses IP n'est disponible, retournez une chaîne vide
+      return '';
+    } catch (error) {
+      // En cas d'erreur, retournez une chaîne vide
+      print('Erreur lors de la détermination de la base URL: $error');
+      return '';
+    }
   }
 }

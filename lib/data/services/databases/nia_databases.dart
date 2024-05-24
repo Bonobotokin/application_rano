@@ -45,7 +45,7 @@ class NiADatabases {
 
       // Afficher les tables disponibles une fois la base de données initialisée
       List<Map<String, dynamic>> tables =
-          await database.query("sqlite_master", where: "type = 'table'");
+      await database.query("sqlite_master", where: "type = 'table'");
 
       for (Map<String, dynamic> table in tables) {
         print(table["name"]);
@@ -59,19 +59,21 @@ class NiADatabases {
 
   Future<void> create(Database db, int version) async {
     try {
-      await users_db().createTable(db);
-      await acceuil_db().createTable(db);
-      await missions_db().createTable(db);
-      await compteurs_db().createTable(db);
-      await client_db().createTable(db);
-      await contrat_db().createTable(db);
-      await releves_db().createTable(db);
-      await last_connected_db().createTable(db);
-      await synchro_db().createTable(db);
-      await facture_db().createTable(db);
-      await facture_payment_db().createTable(db);
-      await anomalie_db().createTable(db);
-      await photo_anomalie_db().createTable(db);
+      await db.transaction((txn) async {
+        await users_db().createTable(db);
+        await acceuil_db().createTable(db);
+        await missions_db().createTable(db);
+        await compteurs_db().createTable(db);
+        await client_db().createTable(db);
+        await contrat_db().createTable(db);
+        await releves_db().createTable(db);
+        await last_connected_db().createTable(db);
+        await synchro_db().createTable(db);
+        await facture_db().createTable(db);
+        await facture_payment_db().createTable(db);
+        await anomalie_db().createTable(db);
+        await photo_anomalie_db().createTable(db);
+      });
     } catch (e) {
       throw Exception("Failed to create tables: $e");
     }

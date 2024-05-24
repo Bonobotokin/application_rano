@@ -24,33 +24,40 @@ class SyncService {
 
   Future<void> synchronizeLocalData(String accessToken) async {
     try {
+      final List<Future<void>> syncTasks = [];
+
       // Synchronisation des anomalies
       final anomalieLocale = await AnomalieRepositoryLoale().getAnomalieDataFromLocalDatabase();
-      final anomalyFutures = anomalieLocale.where((anomalie) => anomalie.status == 4).map((anomalie) async {
-        print("Post anomalie Verrifiess $anomalie");
+      final anomaliesToSync = anomalieLocale.where((anomalie) => anomalie.status == 4).toList();
+      syncTasks.add(_processInBatches(anomaliesToSync, (anomalie) async {
+        print("Post anomalie Verifiess $anomalie");
         await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
-      }).toList();
+      }));
 
       // Synchronisation des paiements de facture
       final payementFacture = await FactureLocalRepository().getAllPayments();
-      final paymentFutures = payementFacture.where((payment) => payment.statut == 'En cours').map((payment) async {
-        print("tsy mbola");
-        await PayementFacture.sendPaymentToServer(payment, accessToken);
-      }).toList();
+      final paymentsToSync = payementFacture.where((payment) => payment.statut == 'En cours').toList();
+      syncTasks.add(_processInBatches(paymentsToSync, (payment) async {
+
+        if( payment.statut == 'En cours' ){
+          print("tsy mbola");
+          await PayementFacture.sendPaymentToServer(payment, accessToken);
+        }
+
+      }));
 
       // Synchronisation des missions
       final missionsDataLocal = await MissionsRepositoryLocale().getMissionsDataFromLocalDatabase();
-      final missionFutures = missionsDataLocal.where((mission) => mission.statut == 1).map((mission) async {
-        print("missiosn envoir ${mission.volumeDernierReleve}");
-        await MissionData.sendLocalDataToServer(mission, accessToken);
-      }).toList();
+      final missionsToSync = missionsDataLocal.where((mission) => mission.statut == 1).toList();
+      syncTasks.add(_processInBatches(missionsToSync, (mission) async {
+        if (mission.statut != null && mission.statut != 0) {
+          print("missiosn envoir ${mission.volumeDernierReleve}");
+          await MissionData.sendLocalDataToServer(mission, accessToken);
+        }
+      }));
 
-      // Exécuter toutes les futures en parallèle
-      await Future.wait([
-        ...anomalyFutures,
-        ...paymentFutures,
-        ...missionFutures,
-      ]);
+      // Exécuter toutes les tâches en parallèle
+      await Future.wait(syncTasks);
 
       print('Toutes les données ont été synchronisées avec succès !');
     } catch (e) {
@@ -60,42 +67,52 @@ class SyncService {
 
   Future<void> syncDataWithServer(String? accessToken) async {
     try {
-      final idRelievers = <int>[]; // Déclaration de la liste en dehors de la boucle for
+      final idRelievers = <int>[];
 
       // Synchronisation anomalie
       await _syncAnomalie.syncAnomalieTable(accessToken);
 
+      // Récupération des données de missions
       final missionsData = await _syncMission.syncMissionTable(accessToken);
 
-      for (var mission in missionsData) {
+      // Traitement des missions par lot
+      await _processInBatches(missionsData, (mission) async {
         final numCompteur = int.parse(mission.numCompteur.toString());
         print("num_compteur $numCompteur");
 
         final clientDetails = await authRepository.fetchDataClientDetails(numCompteur, accessToken);
 
-        await saveDataRepositoryLocale.saveCompteurDetailsRelever(clientDetails['compteur']);
-        await saveDataRepositoryLocale.saveContraDetailsRelever(clientDetails['contrat']);
-        await saveDataRepositoryLocale.saveClientDetailsRelever(clientDetails['client']);
-        print("date verrifie Releve ${clientDetails['releves']}");
+        await Future.wait([
+          saveDataRepositoryLocale.saveCompteurDetailsRelever(clientDetails['compteur']),
+          saveDataRepositoryLocale.saveContraDetailsRelever(clientDetails['contrat']),
+          saveDataRepositoryLocale.saveClientDetailsRelever(clientDetails['client']),
+        ]);
+
+        print("date verifie Releve ${clientDetails['releves']}");
 
         for (var releveData in clientDetails['releves']) {
-          print("date id Releve ${releveData.id}");
           final idReliever = int.parse(releveData.id.toString());
-          print("idReliever $idReliever");
-          idRelievers.add(idReliever); // Ajout de l'idReliever à la liste
+          idRelievers.add(idReliever);
         }
 
         await saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves']);
-      }
+      });
 
-      print("tableaux : $idRelievers");
-
-      for (var idReliever in idRelievers) {
-        print("idTableaux : $idReliever");
+      // Traitement des idRelievers par lot
+      await _processInBatches(idRelievers, (idReliever) async {
         await _syncFacture.syncFactureTable(accessToken, idReliever);
-      }
+      });
     } catch (error) {
       throw Exception('Failed to sync data: $error');
+    }
+  }
+
+  Future<void> _processInBatches<T>(List<T> data, Future<void> Function(T) processFunction) async {
+    final batchSize = 50; // Taille du lot à traiter simultanément
+
+    for (var i = 0; i < data.length; i += batchSize) {
+      final batchData = data.skip(i).take(batchSize).toList();
+      await Future.wait(batchData.map((item) async => await processFunction(item)));
     }
   }
 }

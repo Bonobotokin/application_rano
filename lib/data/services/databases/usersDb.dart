@@ -11,7 +11,7 @@ class users_db {
         CREATE TABLE IF NOT EXISTS users (
         id_utilisateur INTEGER PRIMARY KEY,
         nom_utilisateur TEXT,
-        prenom_utilisateur TEXT,
+        prenom_utilisateur TEXT, 
         num_utilisateur TEXT,
         password TEXT,
         cp_commune TEXT,
@@ -25,19 +25,4 @@ class users_db {
     }
   }
 
-  Future<User?> authenticate(String phoneNumber, String password) async {
-    final Database db = await database;
-    final List<Map<String, dynamic>> result = await db.query(
-      'users',
-      where: 'num_utilisateur = ? AND password = ?',
-      whereArgs: [phoneNumber, password],
-    );
-
-    if (result.isNotEmpty) {
-      return User.fromMap(
-          result.first); // Si l'utilisateur est trouvé, retournez-le
-    } else {
-      return null; // Si aucun utilisateur correspondant n'est trouvé, retournez null
-    }
-  }
 }

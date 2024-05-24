@@ -64,3 +64,20 @@ class AuthSyncError extends AuthState {
 
   AuthSyncError(this.errorMessage);
 }
+
+
+class LoadingSynchronisationInProgress extends AuthState {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'Synchronisation en cours';
+}
+
+class LoadingSynchronisationEnd extends AuthState {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'Synchronisation en Terminer';
+}
