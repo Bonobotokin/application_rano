@@ -65,6 +65,22 @@ class AuthSyncError extends AuthState {
   AuthSyncError(this.errorMessage);
 }
 
+class LoadSendDataLocal extends AuthState {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'envoie de donner en cours';
+}
+
+class LoadSendDataLocalEnd extends AuthState {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'envoie de donner Terminer';
+}
+
 
 class LoadingSynchronisationInProgress extends AuthState {
   @override

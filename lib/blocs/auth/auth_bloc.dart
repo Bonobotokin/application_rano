@@ -10,6 +10,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
   late final SyncService syncService;
 
+
   String? accessToken;
   final UserInfo? userInfo;
   final SaveDataRepositoryLocale saveDataRepositoryLocale = SaveDataRepositoryLocale();
@@ -28,14 +29,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (user != null) {
         accessToken = user.lastToken;
 
+        emit(LoadSendDataLocal());
+          await syncService.synchronizeLocalData(accessToken!);
+        emit(LoadSendDataLocalEnd());
         final homeData = await authRepository.fetchHomeDataFromEndpoint(accessToken);
 
         if (homeData['data'] == 0) {
           emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
         } else {
           emit(LoadingSynchronisationInProgress());
-          await syncService.synchronizeLocalData(accessToken!);
-          await syncService.syncDataWithServer(accessToken!);
+            await syncService.syncDataWithServer(accessToken!);
           emit(LoadingSynchronisationEnd());
 
           emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));

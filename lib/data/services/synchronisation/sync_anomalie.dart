@@ -20,7 +20,7 @@ class SyncAnomalie {
       print("Anomalie data from online: $anomalieDataOnline");
 
       // Save each anomalie in the local database
-      await _saveDataRepositoryLocale.saveAnomalieDataToLocalDatabase(anomalieDataOnline);
+      await _saveDataRepositoryLocale.saveAnomalieData(anomalieDataOnline);
 
       print("Local Anomalie data saved successfully.");
     } catch (error) {

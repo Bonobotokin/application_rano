@@ -29,32 +29,40 @@ class SyncService {
       // Synchronisation des anomalies
       final anomalieLocale = await AnomalieRepositoryLoale().getAnomalieDataFromLocalDatabase();
       final anomaliesToSync = anomalieLocale.where((anomalie) => anomalie.status == 4).toList();
-      syncTasks.add(_processInBatches(anomaliesToSync, (anomalie) async {
-        print("Post anomalie Verifiess $anomalie");
-        await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
-      }));
+      if (anomaliesToSync.isNotEmpty) {
+        syncTasks.add(_processInBatches(anomaliesToSync, (anomalie) async {
+          print("Envoi de l'anomalie ${anomalie.id}...");
+          await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
+        }));
+      } else {
+        print("Aucune anomalie avec le statut 4 à synchroniser.");
+      }
+
 
       // Synchronisation des paiements de facture
       final payementFacture = await FactureLocalRepository().getAllPayments();
       final paymentsToSync = payementFacture.where((payment) => payment.statut == 'En cours').toList();
-      syncTasks.add(_processInBatches(paymentsToSync, (payment) async {
-
-        if( payment.statut == 'En cours' ){
-          print("tsy mbola");
+      if (paymentsToSync.isNotEmpty) {
+        syncTasks.add(_processInBatches(paymentsToSync, (payment) async {
+          print("Envoi du paiement de facture ${payment.id}...");
           await PayementFacture.sendPaymentToServer(payment, accessToken);
-        }
+        }));
+      } else {
+        print("Aucun paiement de facture en cours à synchroniser.");
+      }
 
-      }));
 
       // Synchronisation des missions
       final missionsDataLocal = await MissionsRepositoryLocale().getMissionsDataFromLocalDatabase();
       final missionsToSync = missionsDataLocal.where((mission) => mission.statut == 1).toList();
-      syncTasks.add(_processInBatches(missionsToSync, (mission) async {
-        if (mission.statut != null && mission.statut != 0) {
-          print("missiosn envoir ${mission.volumeDernierReleve}");
+      if (missionsToSync.isNotEmpty) {
+        syncTasks.add(_processInBatches(missionsToSync, (mission) async {
+          print("Envoi de la mission ${mission.id}...");
           await MissionData.sendLocalDataToServer(mission, accessToken);
-        }
-      }));
+        }));
+      } else {
+        print("Aucune mission avec le statut 1 à synchroniser.");
+      }
 
       // Exécuter toutes les tâches en parallèle
       await Future.wait(syncTasks);
@@ -86,6 +94,7 @@ class SyncService {
           saveDataRepositoryLocale.saveCompteurDetailsRelever(clientDetails['compteur']),
           saveDataRepositoryLocale.saveContraDetailsRelever(clientDetails['contrat']),
           saveDataRepositoryLocale.saveClientDetailsRelever(clientDetails['client']),
+          saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves']),
         ]);
 
         print("date verifie Releve ${clientDetails['releves']}");
@@ -95,7 +104,6 @@ class SyncService {
           idRelievers.add(idReliever);
         }
 
-        await saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves']);
       });
 
       // Traitement des idRelievers par lot

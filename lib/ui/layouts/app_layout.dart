@@ -167,7 +167,7 @@ class AppLayout extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop(); // Fermer la boîte de dialogue
                 // Fermer l'application
-                SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                exit(0); // Utiliser exit(0) pour quitter l'application
               },
               child: const Text("Confirmer"),
             ),

@@ -33,6 +33,10 @@ class LoginPage extends StatelessWidget {
           builder: (context, state) {
             if (state is AuthLoading) {
               return _buildLoadingState(context);
+            } else if (state is LoadSendDataLocal) {
+              return _buildStartSendDataState(context);
+            } else if (state is LoadSendDataLocalEnd) {
+              return _buildStartSendDataEndState(context);
             } else if (state is LoadingSynchronisationInProgress) {
               return _buildLoadingSynchronisationState(context);
             } else if (state is LoadingSynchronisationEnd) {
@@ -54,8 +58,49 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(),
+    return Center(
+      child: CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Couleur bleue pour la bordure
+        backgroundColor: Colors.white, // Fond blanc
+      ),
+    );
+  }
+
+  Widget _buildStartSendDataState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
+            backgroundColor: Colors.white, // Fond blanc
+          ),
+          SizedBox(height: 20),
+          Text(
+            'Envoi des données en cours, veuillez patienter....',
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStartSendDataEndState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
+            backgroundColor: Colors.white, // Fond blanc
+          ),
+          SizedBox(height: 20),
+          Text(
+            'Envoi des données terminé, synchronisation en cours....',
+            style: TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
     );
   }
 
@@ -64,7 +109,10 @@ class LoginPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: const [
-          CircularProgressIndicator(),
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
+            backgroundColor: Colors.white, // Fond blanc
+          ),
           SizedBox(height: 20),
           Text(
             'Synchronisation en cours, veuillez patienter...',
@@ -80,7 +128,10 @@ class LoginPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: const [
-          CircularProgressIndicator(),
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
+            backgroundColor: Colors.white, // Fond blanc
+          ),
           SizedBox(height: 20),
           Text(
             'Synchronisation terminée, connexion en cours...',
