@@ -26,7 +26,7 @@ import 'package:application_rano/ui/views/factures/client_list_page.dart';
 List<BlocProvider> createBlocProviders(String baseUrl) {
   return [
     BlocProvider<ServerBloc>(
-      create: (context) => ServerBloc(NiADatabases(), SyncService()),
+      create: (context) => ServerBloc(NiADatabases()),
     ),
     BlocProvider<AuthBloc>(
       create: (context) => AuthBloc(

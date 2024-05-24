@@ -17,9 +17,9 @@ enum ServerStatus {
 
 class ServerBloc extends Bloc<ServerEvent, ServerStatus> {
   final NiADatabases niADatabases;
-  final SyncService syncService;
 
-  ServerBloc(this.niADatabases, this.syncService)
+
+  ServerBloc(this.niADatabases)
       : super(ServerStatus.disconnected) {
     on<CheckServerStatusEvent>(_onCheckServerStatus);
     // on<LoadingSynchronisation>(_onLoadingSynchronisation);

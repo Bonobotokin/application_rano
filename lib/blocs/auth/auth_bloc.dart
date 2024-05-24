@@ -1,101 +1,46 @@
-import 'package:application_rano/data/services/synchronisation/anomalieData.dart';
-import 'package:application_rano/data/services/synchronisation/missionData.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_event.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
-// Importez la classe User
-import 'package:application_rano/data/models/user_info.dart'; // Importez le modèle UserInfo
+import 'package:application_rano/data/models/user_info.dart';
 import 'package:application_rano/data/services/saveData/save_data_service_locale.dart';
 import 'package:application_rano/data/services/synchronisation/sync_service.dart';
 
-import '../../data/repositories/local/facture_local_repository.dart';
-import '../../data/repositories/local/missions_repository_locale.dart';
-import '../../data/services/synchronisation/payementFacture.dart';
-import '../../data/repositories/local/anomalie_repository_locale.dart';
-
-enum SynchroDetails{
-  synchronizing,
-  synchronizationSuccess,
-  synchronizationError,
-}
-
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-
   final AuthRepository authRepository;
-  final AnomalieRepositoryLoale anomalieRepositoryLoale = AnomalieRepositoryLoale();
-  final FactureLocalRepository _factureLocalRepository = FactureLocalRepository();
-  final MissionsRepositoryLocale _missionsRepositoryLocale = MissionsRepositoryLocale();
+  late final SyncService syncService;
 
   String? accessToken;
   final UserInfo? userInfo;
-  final SaveDataRepositoryLocale saveDataRepositoryLocale =
-  SaveDataRepositoryLocale();
+  final SaveDataRepositoryLocale saveDataRepositoryLocale = SaveDataRepositoryLocale();
 
   AuthBloc({required this.authRepository, this.userInfo})
       : super(AuthInitial()) {
+    syncService = SyncService(authRepository: authRepository);
     on<LoginRequested>((event, emit) async {
       try {
         emit(AuthLoading());
-        final user =
-        await authRepository.login(event.phoneNumber, event.password);
+        final user = await authRepository.login(event.phoneNumber, event.password);
 
         if (user != null) {
-          final accessToken = user.lastToken;
+          accessToken = user.lastToken;
 
+          // Commencez la synchronisation
+          _startSync();
 
-          // POst anomalie local in Bdd distant
-          final anomalieLocale = await anomalieRepositoryLoale.getAnomalieDataFromLocalDatabase();
+          await syncService.synchronizeLocalData(accessToken!);
 
-          for (var anomalie in anomalieLocale) {
-            if (anomalie.status != null && anomalie.status == 4) {
-              print("Post anomalie Verrifiess $anomalie");
-              print("anomalie envoir ${anomalie.status}");
-              print("eto envoie anomalie");
-              await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
-            }
-          }
-
-          // POst facture payement local in Bdd distant
-          final payementFacture = await _factureLocalRepository.getAllPayments();
-
-          print("payement Facture All :${(payementFacture.isNotEmpty)}");
-
-          if(payementFacture.isNotEmpty){
-            for (var payment in payementFacture) { 
-              if( payment.statut == 'En cours' ){
-                print("tsy mbola");
-                await PayementFacture.sendPaymentToServer(payment, accessToken);
-              }
-            }
-          }
-
-          // POst Mission local in Bdd distant
-          final missionsDataLocal = await _missionsRepositoryLocale.getMissionsDataFromLocalDatabase();
-          print("Missions data from locale post: $missionsDataLocal");
-
-          for (var mission in missionsDataLocal) {
-
-            if (mission.statut != null && mission.statut == 1) {
-              print("missiosn envoir ${mission.volumeDernierReleve}");
-              print("eto envoie mission");
-              await MissionData.sendLocalDataToServer(mission, accessToken);
-            }
-          }
-
-          final homeData =
-          await authRepository.fetchHomeDataFromEndpoint(accessToken);
+          final homeData = await authRepository.fetchHomeDataFromEndpoint(accessToken);
 
           if (homeData['data'] == 0) {
             emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
           } else {
-            // await _processMissionsData(accessToken);
             print('Eto...');
+            // Attendre la fin de la synchronisation
             await _onLoadingSynchronisation(accessToken);
           }
 
           emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
-
         } else {
           print("Échec de l'authentification");
           emit(const AuthFailure(error: "Échec de l'authentification"));
@@ -107,10 +52,30 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
   }
 
+  void _startSync() async {
+    try {
+      // Commencez la synchronisation
+      emit(AuthSyncInProgress(0.0));
+
+      // Exemple de progression de synchronisation
+      for (int i = 0; i <= 100; i += 10) {
+        // Supposez que vous mettiez à jour la progression de la synchronisation ici
+        await Future.delayed(const Duration(seconds: 1)); // Simulez un travail de synchronisation
+        emit(AuthSyncInProgress(i / 100)); // Mettez à jour la progression de la synchronisation
+      }
+
+      // Synchronisation réussie
+      emit(AuthSyncSuccess());
+    } catch (e) {
+      // Gérer les erreurs de synchronisation
+      emit(AuthSyncError('Erreur de synchronisation: $e'));
+    }
+  }
+
   Stream<AuthState> mapEventToState(AuthEvent event) async* {
     if (event is LoginRequested) {
       yield* _mapLoginRequestedToState(event);
-    }else if (event is LoadingSynchronisationSuccess) {
+    } else if (event is LoadingSynchronisationSuccess) {
       yield LoadingSynchronisationSuccessState(); // Mettez à jour l'état pour indiquer que la synchronisation est réussie
     }
   }
@@ -119,8 +84,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       yield AuthLoading();
 
-      final user =
-      await authRepository.login(event.phoneNumber, event.password);
+      final user = await authRepository.login(event.phoneNumber, event.password);
       if (user != null) {
         emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
       } else {
@@ -131,35 +95,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  // Future<void> _processMissionsData(String? accessToken) async {
-  //   final missionsData =
-  //   await authRepository.fetchMissionsDataFromEndpoint(accessToken);
-  //
-  //   for (var mission in missionsData['compteurs_liste']) {
-  //     final int numCompteur = int.parse(mission['num_compteur']);
-  //     final clientDetails =
-  //     await authRepository.fetchDataClientDetails(numCompteur, accessToken);
-  //
-  //     await Future.wait([
-  //       saveDataRepositoryLocale.saveCompteurDetailsRelever(
-  //           clientDetails['compteur']),
-  //       saveDataRepositoryLocale.saveContraDetailsRelever(
-  //           clientDetails['contrat']),
-  //       saveDataRepositoryLocale.saveClientDetailsRelever(
-  //           clientDetails['client']),
-  //       saveDataRepositoryLocale.saveReleverDetailsRelever(
-  //           clientDetails['releves'])
-  //     ]);
-  //   }
-  // }
-
   // Méthode pour la synchronisation des données avec le serveur
   Future<void> _onLoadingSynchronisation(String? accessToken) async {
     try {
-      await SyncService().syncDataWithServer(accessToken);
+      await syncService.syncDataWithServer(accessToken);
     } catch (error) {
       print('Erreur lors de la synchronisation: $error');
     }
   }
-
 }

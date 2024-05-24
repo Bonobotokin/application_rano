@@ -50,3 +50,17 @@ class LoadingSynchronisationSuccessState extends AuthState {
   @override
   String toString() => 'LoadingSynchronisationSuccessState';
 }
+
+class AuthSyncInProgress extends AuthState {
+  final double progress;
+
+  AuthSyncInProgress(this.progress);
+}
+
+class AuthSyncSuccess extends AuthState {}
+
+class AuthSyncError extends AuthState {
+  final String errorMessage;
+
+  AuthSyncError(this.errorMessage);
+}

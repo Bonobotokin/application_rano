@@ -5,17 +5,16 @@ import 'package:application_rano/data/services/AppInitializer.dart';
 import 'package:application_rano/blocs/splash/splash_bloc.dart';
 import 'package:application_rano/ui/views/splash_screen.dart';
 import 'package:application_rano/ui/routing/routes.dart';
-import 'package:application_rano/data/services/config/api_configue.dart'; // Importez ApiConfig
-import 'package:application_rano/data/services/config/bloc_config.dart'; // Importez le fichier où vous définissez la configuration des blocs
+import 'package:application_rano/data/services/config/api_configue.dart';
+import 'package:application_rano/data/services/config/bloc_config.dart';
 
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppInitializer.initialize();
   final baseUrl = await ApiConfig.determineBaseUrl();
-  runApp(MyApp( 
+  runApp(MyApp(
     baseUrl: baseUrl,
-    blocProviders: createBlocProviders(
-        baseUrl), // Passer la liste des BlocProvider avec la base URL
+    blocProviders: createBlocProviders(baseUrl),
   ));
 }
 
@@ -28,7 +27,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: blocProviders, // Utilisez la liste de configurations de blocs
+      providers: blocProviders,
       child: GetMaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'Agent Relever APK',
