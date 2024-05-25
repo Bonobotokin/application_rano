@@ -8,8 +8,7 @@ import '../saveData/save_data_service_locale.dart';
 
 class SyncMission {
   final MissionsRepositoryLocale _missionsRepositoryLocale;
-  final SaveDataRepositoryLocale _saveDataRepositoryLocale =
-  SaveDataRepositoryLocale();
+  final SaveDataRepositoryLocale _saveDataRepositoryLocale = SaveDataRepositoryLocale();
 
   SyncMission() : _missionsRepositoryLocale = MissionsRepositoryLocale();
 
@@ -19,35 +18,16 @@ class SyncMission {
       final missionsDataOnline = await _fetchMissionsDataFromEndpoint(baseUrl, accessToken);
       print("Missions data from online: $missionsDataOnline");
 
-      final missionsDataLocal = await _missionsRepositoryLocale.getMissionsDataFromLocalDatabase();
-      print("Missions data from locale: $missionsDataLocal");
+      final db = await NiADatabases().database;
+      await _saveDataRepositoryLocale.saveMissionsDataToLocalDatabase(missionsDataOnline);
 
-      if (missionsDataLocal.isEmpty) {
-        print("Local missions data is empty.");
-        final db = await NiADatabases().database;
-        await db.transaction((txn) async {
-          await _saveDataRepositoryLocale.saveMissionsDataToLocalDatabase(txn, missionsDataOnline);
-        });
-
-        return missionsDataOnline;
-      } else {
-        // await _compareAndSyncData(missionsDataOnline, missionsDataLocal, baseUrl, accessToken);
-        print("Facture already exists locally.");
-        print("Local missions data is empty.");
-        final db = await NiADatabases().database;
-        await db.transaction((txn) async {
-          await _saveDataRepositoryLocale.saveMissionsDataToLocalDatabase(txn, missionsDataOnline);
-        });
-        return missionsDataOnline;
-      }
+      return missionsDataOnline;
     } catch (error) {
       throw Exception('Failed to sync mission data: $error');
     }
   }
 
-
-  Future<List<MissionModel>> _fetchMissionsDataFromEndpoint(
-      String baseUrl, String? accessToken) async {
+  Future<List<MissionModel>> _fetchMissionsDataFromEndpoint(String baseUrl, String? accessToken) async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/missions'),
@@ -58,12 +38,9 @@ class SyncMission {
         final missionsData = jsonDecode(response.body);
         if (missionsData.containsKey('compteurs_liste')) {
           final List<dynamic> missions = missionsData['compteurs_liste'];
-          return missions
-              .map((missionData) => MissionModel.fromJson(missionData))
-              .toList();
+          return missions.map((missionData) => MissionModel.fromJson(missionData)).toList();
         } else {
-          throw Exception(
-              'Failed to fetch missions data: Data structure does not contain "compteurs_liste"');
+          throw Exception('Failed to fetch missions data: Data structure does not contain "compteurs_liste"');
         }
       } else {
         throw Exception('Failed to fetch missions data: ${response.statusCode}');
@@ -72,5 +49,4 @@ class SyncMission {
       throw Exception('Failed to fetch missions data: $error');
     }
   }
-
 }

@@ -29,10 +29,15 @@ class SyncService {
       // Synchronisation des anomalies
       final anomalieLocale = await AnomalieRepositoryLoale().getAnomalieDataFromLocalDatabase();
       final anomaliesToSync = anomalieLocale.where((anomalie) => anomalie.status == 4).toList();
+
       if (anomaliesToSync.isNotEmpty) {
         syncTasks.add(_processInBatches(anomaliesToSync, (anomalie) async {
-          print("Envoi de l'anomalie ${anomalie.id}...");
-          await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
+          if (anomalie.status != null && anomalie.status != 0) {
+            print("Envoi de l'anomalie ${anomalie.id} avec statut ${anomalie.status}...");
+            await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
+          } else {
+            print("Anomalie ${anomalie.id} ignorée car son statut est nul ou égal à 0.");
+          }
         }));
       } else {
         print("Aucune anomalie avec le statut 4 à synchroniser.");
@@ -55,10 +60,15 @@ class SyncService {
       // Synchronisation des missions
       final missionsDataLocal = await MissionsRepositoryLocale().getMissionsDataFromLocalDatabase();
       final missionsToSync = missionsDataLocal.where((mission) => mission.statut == 1).toList();
+
       if (missionsToSync.isNotEmpty) {
         syncTasks.add(_processInBatches(missionsToSync, (mission) async {
-          print("Envoi de la mission ${mission.id}...");
-          await MissionData.sendLocalDataToServer(mission, accessToken);
+          if (mission.statut != null && mission.statut != 0) {
+            print("Envoi de la mission ${mission.id} avec statut ${mission.statut}...");
+            await MissionData.sendLocalDataToServer(mission, accessToken);
+          } else {
+            print("Mission ${mission.id} ignorée car son statut est nul ou égal à 0.");
+          }
         }));
       } else {
         print("Aucune mission avec le statut 1 à synchroniser.");
@@ -78,12 +88,14 @@ class SyncService {
       final idRelievers = <int>[];
 
       // Synchronisation anomalie
+      print("eto222");
       await _syncAnomalie.syncAnomalieTable(accessToken);
 
       // Récupération des données de missions
       final missionsData = await _syncMission.syncMissionTable(accessToken);
+      print("eto222");
 
-      // Traitement des missions par lot
+      // // Traitement des missions par lot
       await _processInBatches(missionsData, (mission) async {
         final numCompteur = int.parse(mission.numCompteur.toString());
         print("num_compteur $numCompteur");

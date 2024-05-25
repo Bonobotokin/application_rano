@@ -19,9 +19,9 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
 
   void _onLoadMissions(LoadMissions event, Emitter<MissionsState> emit) async {
     try {
-      final missions =
-      await missionsRepository.fetchMissions();
-      print("mission $missions");
+      final missions = await missionsRepository.fetchMissions();
+      print("Nombre total de missions: ${missions.length}");
+      print("Détails des missions: $missions");
       emit(MissionsLoading(missions));
       emit(MissionsLoaded(missions));
     } catch (e) {
@@ -29,6 +29,7 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
       emit(MissionsLoadFailure(e.toString()));
     }
   }
+
 
   void _onAddMission(AddMission event, Emitter<MissionsState> emit) async {
     try {

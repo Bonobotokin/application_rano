@@ -34,4 +34,16 @@ class ReleverRepository {
       throw Exception('Failed to get releves data by date from local database: $e');
     }
   }
+
+  Future<List<Map<String, dynamic>>> getAllReleves(Database db) async {
+    try {
+      // Exécuter la requête SQL pour sélectionner toutes les lignes de la table releves
+      List<Map<String, dynamic>> rows = await db.rawQuery('''
+        SELECT * FROM releves
+      ''');
+      return rows; // Retourner les lignes de la table releves
+    } catch (e) {
+      throw Exception("Failed to get all releves: $e");
+    }
+  }
 }

@@ -9,7 +9,7 @@ class missions_db {
           nom_client TEXT,
           prenom_client TEXT,
           adresse_client TEXT,
-          num_compteur INTEGER,
+          num_compteur INTEGER UNIQUE,
           conso_dernier_releve INTEGER,
           volume_dernier_releve INTEGER,
           date_releve TEXT,
