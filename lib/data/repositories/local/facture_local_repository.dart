@@ -7,6 +7,19 @@ import 'package:intl/intl.dart';
 class FactureLocalRepository {
   final NiADatabases _niaDatabases = NiADatabases();
 
+  Future<List<Map<String, dynamic>>> getAllFactures(Database db) async {
+    try {
+    // Exécuter la requête SQL pour sélectionner toutes les lignes de la table releves
+    List<Map<String, dynamic>> rows = await db.rawQuery('''
+        SELECT * FROM facture
+      ''');
+    return rows;
+    } catch (e) {
+      throw Exception("Erreur to retrieve factures: $e");
+    }
+  }
+
+
 
   Future<List<FactureModel>> getFactureDataFromLocalDatabase() async {
     try {
