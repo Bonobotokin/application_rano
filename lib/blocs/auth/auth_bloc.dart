@@ -29,17 +29,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if (user != null) {
         accessToken = user.lastToken;
 
-        emit(LoadSendDataLocal());
-          await syncService.synchronizeLocalData(accessToken!);
-        emit(LoadSendDataLocalEnd());
+        // emit(LoadSendDataLocal());
+        //   await syncService.synchronizeLocalData(accessToken!);
+        // emit(LoadSendDataLocalEnd());
         final homeData = await authRepository.fetchHomeDataFromEndpoint(accessToken);
 
         if (homeData['data'] == 0) {
           emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
         } else {
-          emit(LoadingSynchronisationInProgress());
-            await syncService.syncDataWithServer(accessToken!);
-          emit(LoadingSynchronisationEnd());
+          // emit(LoadingSynchronisationInProgress());
+          //   await syncService.syncDataWithServer(accessToken!);
+          // emit(LoadingSynchronisationEnd());
 
           emit(AuthSuccess(userInfo: UserInfo.fromUser(user)));
         }

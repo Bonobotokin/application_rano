@@ -277,6 +277,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
                   Text('Client : ${anomalie.clientDeclare}'),
                   Text('Commune : ${anomalie.commune} '),
                   Text('Cp Commune : ${anomalie.cpCommune}'),
+                  // Text('COmmentaire : ${anomalie.}'),
                   Text(
                     'Date: ${
                         (anomalie.dateDeclaration != null || anomalie.dateDeclaration != '' || DateFormatter.isValidFrenchDate(anomalie.dateDeclaration!))

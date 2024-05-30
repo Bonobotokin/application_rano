@@ -30,7 +30,7 @@ class SyncMission {
   Future<List<MissionModel>> _fetchMissionsDataFromEndpoint(String baseUrl, String? accessToken) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/missions'),
+        Uri.parse('http://89.116.38.149:8000/api/missions'),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 

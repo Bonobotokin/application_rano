@@ -9,6 +9,7 @@ import 'package:application_rano/data/models/last_connected_model.dart';
 import 'package:application_rano/data/models/missions_model.dart';
 import 'package:application_rano/data/models/releves_model.dart';
 import 'package:application_rano/data/models/user.dart';
+import 'package:application_rano/data/repositories/local/facture_local_repository.dart';
 import 'package:application_rano/data/repositories/relever_repository.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
 import 'package:intl/intl.dart';
@@ -19,7 +20,10 @@ class SaveDataRepositoryLocale {
 
   final MissionsRepositoryLocale _missionsRepositoryLocale;
   final ReleverRepository _releverRepository;
-  SaveDataRepositoryLocale() : _missionsRepositoryLocale = MissionsRepositoryLocale(), _releverRepository = ReleverRepository();
+  final FactureLocalRepository _factureLocalRepository;
+  SaveDataRepositoryLocale() : _missionsRepositoryLocale = MissionsRepositoryLocale(),
+        _releverRepository = ReleverRepository(),
+  _factureLocalRepository = FactureLocalRepository();
   Future<void> saveUserToLocalDatabase(User user) async {
     try {
       final Database db = await NiADatabases().database;
@@ -440,8 +444,6 @@ class SaveDataRepositoryLocale {
     }
   }
 
-
-
   Future<void> _updateRelever(Transaction txn, RelevesModel relever, String modifiedImageCompteur) async {
     try {
       await txn.update(
@@ -488,95 +490,100 @@ class SaveDataRepositoryLocale {
     }
   }
 
+  Future<void> saveFactureData(List<FactureModel> factureDataOnline, Transaction txn) async {
+    print("Début de la synchronisation des factures");
 
-  Future<void> saveFactureData(FactureModel factureModel) async {
-    try {
-      final db = await NiADatabases().database;
+    final List<Map<String, dynamic>> factureLocal = await FactureLocalRepository().getAllFactures(txn);
+    print("Factures locales synchronisées : $factureLocal");
 
-      // Vérifiez d'abord si une facture avec les mêmes données existe déjà
-      final List<Map<String, dynamic>> existingRows = await db.query(
-        'facture',
-        where: 'relevecompteur_id = ? AND num_facture = ? AND num_compteur = ? AND date_facture = ? AND total_conso_ht = ? AND tarif_m3 = ? AND avoir_avant = ? AND avoir_utilise = ? AND restant_precedant = ? AND montant_total_ttc = ? AND statut = ?',
-        whereArgs: [
-          factureModel.relevecompteurId,
-          factureModel.numFacture,
-          factureModel.numCompteur,
-          factureModel.dateFacture,
-          factureModel.totalConsoHT,
-          factureModel.tarifM3,
-          factureModel.avoirAvant,
-          factureModel.avoirUtilise,
-          factureModel.restantPrecedant,
-          factureModel.montantTotalTTC,
-          factureModel.statut
-        ],
-      );
+    for (final factureOnline in factureDataOnline) {
+      try {
+        final existingFacture = factureLocal.firstWhere(
+              (facture) => facture['relevecompteur_id'] == factureOnline.relevecompteurId,
+          orElse: () => <String, dynamic>{},
+        );
 
-      if (existingRows.isNotEmpty) {
-        print('Les données de facture existent déjà dans la base de données locale.');
+        if (existingFacture.isNotEmpty) {
+          print('Les données de facture existent déjà dans la base de données locale.');
+          final existingFactureId = existingFacture['id'];
 
-        final existingFacture = existingRows[0];
-        final existingFactureId = existingFacture['id'];
 
-        // Vérifiez les attributs et mettez à jour si nécessaire
-        if (factureModel.montantTotalTTC != existingFacture['montant_total_ttc'] || factureModel.statut != existingFacture['statut']) {
-          await db.update(
-            'facture',
-            {
-              'montant_total_ttc': factureModel.montantTotalTTC,
-              'statut': factureModel.statut,
-            },
-            where: 'id = ?',
-            whereArgs: [existingFactureId],
-          );
+          print('factureOnline.montantTotalTTC: ${factureOnline.montantTotalTTC}');
+          print('existingFacture["montant_total_ttc"]: ${existingFacture["montant_total_ttc"]}');
+          print('montantTotalTTC different: ${factureOnline.montantTotalTTC != existingFacture["montant_total_ttc"]}');
+          print('factureOnline.statut: ${factureOnline.statut}');
+          print('existingFacture["statut"]: ${existingFacture["statut"]}');
+          print('statut different: ${factureOnline.statut != existingFacture["statut"]}');
+          print('verrification data ${factureOnline.montantTotalTTC == existingFacture['montant_total_ttc'] || factureOnline.statut == existingFacture['statut']}');
 
-          print('Les données de facture existante ont été mises à jour.');
-          if (factureModel.statut == "Payé") {
-            final factureId = existingRows[0]['id'];
-
-            await db.update(
+          await _updateFacture(txn, factureOnline);
+          print('gggggggggggg');
+          if (factureOnline.statut == "Payé") {
+            await txn.update(
               'facture_paiment',
               {'statut': 'Payé'},
               where: 'facture_id = ?',
-              whereArgs: [factureId],
+              whereArgs: [existingFactureId],
             );
           }
-        } else {
-          print('Les données de facture existante sont déjà à jour.');
-        }
 
-        return;
-      } else {
-        // Vérifiez si le montant total TTC de la facture est différent de 0.0 ou 0
-        if (factureModel.montantTotalTTC != 0.0 || factureModel.montantTotalTTC != 0) {
-          final factureId = await db.insert(
-            'facture',
-            factureModel.toMap(),
-            conflictAlgorithm: ConflictAlgorithm.replace,
-          );
+          print('hhhhhhhhhhhhhh');
+        } else {
+          final factureId = await _insertFacture(txn, factureOnline);
 
           final DateTime now = DateTime.now();
-          // Vérifiez également le statut de la facture
-          final statutPaiement = factureModel.statut == "Payé" ? '1' : 'null';
+          final statutPaiement = factureOnline.statut == "Payé" ? '1' : 'null';
 
-          await db.insert(
+          await txn.insert(
             'facture_paiment',
             {
               'facture_id': factureId,
-              'relevecompteur_id': factureModel.relevecompteurId ?? 0,
-              'paiement': factureModel.montantPayer.toInt(), // Convertir en entier
+              'relevecompteur_id': factureOnline.relevecompteurId ?? 0,
+              'paiement': factureOnline.montantPayer.toInt(),
               'date_paiement': DateFormat('yyyy-MM-dd').format(now),
               'statut': statutPaiement,
-              // Ajoutez d'autres champs si nécessaire
             },
           );
-        } else {
-          print('Le montant total TTC de la facture est 0, ne pas enregistrer dans la base de données');
         }
-        print('Données de facture enregistrées avec succès dans la base de données locale : $factureModel');
+      } catch (e) {
+        print('Erreur lors de la mise à jour ou de l\'insertion des données de facture : $e');
       }
-    } catch (error) {
-      throw Exception("Failed to save facture data to local database: $error");
+    }
+
+    print("Synchronisation des factures terminée.");
+  }
+
+  Future<void> _updateFacture(Transaction txn, FactureModel facture) async {
+    try {
+      await txn.update(
+        'facture',
+        {
+          'montant_total_ttc': facture.montantTotalTTC,
+          'statut': facture.statut,
+        },
+        where: 'id = ?',
+        whereArgs: [facture.id],
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      print('Facture mise à jour : ${facture.toJson()}');
+    } catch (e) {
+      print('Erreur lors de la mise à jour de la facture : $e');
+      rethrow;
+    }
+  }
+
+  Future<int> _insertFacture(Transaction txn, FactureModel facture) async {
+    try {
+      final factureId = await txn.insert(
+        'facture',
+        facture.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+      print('Facture insérée : ${facture.toJson()}');
+      return factureId;
+    } catch (e) {
+      print('Erreur lors de l\'insertion de la facture : $e');
+      rethrow;
     }
   }
 

@@ -26,17 +26,20 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
   void _onloadPayement(LoadPayment event, Emitter<PaymentState> emit) async {
     try {
-      print("teste locale ${event.numCompteur}");
+      print("releveCompteurId ${event.relevecompteurId}");
+      final getAllFacturessss = await factureLocalRepository.getFactureDataFromLocalDatabase();
 
+      print("all Facture ${getAllFacturessss}");
       final factureData = await factureLocalRepository.getFactureById(event.relevecompteurId);
       final factures = factureData['factures'];
 
+      print("facturesByid ${factures}");
       final statusPayment = await factureLocalRepository.getStatuPaymentFacture(factures.id);
 
       print("Status Facture ${statusPayment['payment']}");
       final paymentData = statusPayment['payment'];
 
-      final clientData = await clientRepository.fetchClientData(
+      final clientData = await clientRepository.fetcClientDataFacture(
           event.numCompteur, event.accessToken);
       final client = clientData['client'];
 

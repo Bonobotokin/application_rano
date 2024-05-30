@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'package:application_rano/data/services/databases/nia_databases.dart';
 import 'package:http/http.dart' as http;
+import 'package:sqflite/sqflite.dart';
+import 'package:intl/intl.dart';
 import '../../models/facture_model.dart';
 import '../../repositories/local/facture_local_repository.dart';
 import '../config/api_configue.dart';
@@ -7,19 +10,21 @@ import '../saveData/save_data_service_locale.dart';
 
 class SyncFacture {
   final FactureLocalRepository _factureLocalRepository;
-  final SaveDataRepositoryLocale _saveDataRepositoryLocale =
-  SaveDataRepositoryLocale();
+  final SaveDataRepositoryLocale _saveDataRepositoryLocale = SaveDataRepositoryLocale();
 
   SyncFacture() : _factureLocalRepository = FactureLocalRepository();
 
-  Future<void> syncFactureTable(String? accessToken, int? idReliever) async {
+  Future<void> syncFactureTable(String? accessToken, int? idReleve) async {
     try {
-      final baseUrl = await ApiConfig.determineBaseUrl();
+      if (idReleve != null) {
+        final baseUrl = await ApiConfig.determineBaseUrl();
+        final Database db = await NiADatabases().database;
 
-      if (idReliever != null) {
-        await _fetchFacturedataFromEndPoint(baseUrl, accessToken, idReliever);
+        await db.transaction((txn) async {
+          await _fetchFactureDataFromEndPoint(baseUrl, accessToken, idReleve, txn);
+        });
       } else {
-        throw Exception('idReliever is null');
+        throw Exception('idReleve is null');
       }
     } on FormatException catch (e) {
       throw Exception('Failed to sync Facture data: $e');
@@ -30,11 +35,11 @@ class SyncFacture {
     }
   }
 
-  Future<void> _fetchFacturedataFromEndPoint(
-      String baseUrl, String? accessToken, int? idReliever) async {
+  Future<void> _fetchFactureDataFromEndPoint(
+      String baseUrl, String? accessToken, int idReleve, Transaction txn) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/facture?id_releve=$idReliever'),
+        Uri.parse('http://89.116.38.149:8000/api/facture?id_releve=$idReleve'),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 
@@ -59,7 +64,7 @@ class SyncFacture {
         );
 
         // Enregistrer ou mettre à jour les données de la facture dans la base de données locale
-        await _saveDataRepositoryLocale.saveFactureData(facture);
+        await _saveDataRepositoryLocale.saveFactureData([facture], txn);
       } else if (response.statusCode == 404) {
         // La facture n'existe pas sur le serveur
         print('La facture n\'existe pas sur le serveur.');

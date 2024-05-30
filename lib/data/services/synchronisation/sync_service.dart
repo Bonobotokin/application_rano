@@ -1,3 +1,4 @@
+import 'package:application_rano/data/models/missions_model.dart';
 import 'package:application_rano/data/repositories/local/anomalie_repository_locale.dart';
 import 'package:application_rano/data/repositories/local/missions_repository_locale.dart';
 import 'package:application_rano/data/services/synchronisation/anomalieData.dart';
@@ -31,7 +32,7 @@ class SyncService {
       final anomaliesToSync = anomalieLocale.where((anomalie) => anomalie.status == 4).toList();
 
       if (anomaliesToSync.isNotEmpty) {
-        syncTasks.add(_processInBatches(anomaliesToSync, (anomalie) async {
+        syncTasks.add(_processInBatches(anomaliesToSync, 50, (anomalie) async {
           if (anomalie.status != null && anomalie.status != 0) {
             print("Envoi de l'anomalie ${anomalie.id} avec statut ${anomalie.status}...");
             await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
@@ -43,12 +44,11 @@ class SyncService {
         print("Aucune anomalie avec le statut 4 à synchroniser.");
       }
 
-
       // Synchronisation des paiements de facture
       final payementFacture = await FactureLocalRepository().getAllPayments();
       final paymentsToSync = payementFacture.where((payment) => payment.statut == 'En cours').toList();
       if (paymentsToSync.isNotEmpty) {
-        syncTasks.add(_processInBatches(paymentsToSync, (payment) async {
+        syncTasks.add(_processInBatches(paymentsToSync, 50, (payment) async {
           print("Envoi du paiement de facture ${payment.id}...");
           await PayementFacture.sendPaymentToServer(payment, accessToken);
         }));
@@ -56,13 +56,12 @@ class SyncService {
         print("Aucun paiement de facture en cours à synchroniser.");
       }
 
-
       // Synchronisation des missions
       final missionsDataLocal = await MissionsRepositoryLocale().getMissionsDataFromLocalDatabase();
       final missionsToSync = missionsDataLocal.where((mission) => mission.statut == 1).toList();
 
       if (missionsToSync.isNotEmpty) {
-        syncTasks.add(_processInBatches(missionsToSync, (mission) async {
+        syncTasks.add(_processInBatches(missionsToSync, 50, (mission) async {
           if (mission.statut != null && mission.statut != 0) {
             print("Envoi de la mission ${mission.id} avec statut ${mission.statut}...");
             await MissionData.sendLocalDataToServer(mission, accessToken);
@@ -85,22 +84,25 @@ class SyncService {
 
   Future<void> syncDataWithServer(String? accessToken) async {
     try {
-      final idRelievers = <int>[];
+      final List<int> idRelievers = [];
 
-      // Synchronisation anomalie
-      print("eto222");
+      // Étape 1: Synchronisation des anomalies
+      print("Début de la synchronisation des anomalies");
       await _syncAnomalie.syncAnomalieTable(accessToken);
+      print("Synchronisation des anomalies terminée");
 
-      // Récupération des données de missions
-      final missionsData = await _syncMission.syncMissionTable(accessToken);
-      print("eto222");
+      // Étape 2: Récupération des missions
+      print("Début de la synchronisation des missions");
+      final List<MissionModel> missionsData = await _syncMission.syncMissionTable(accessToken);
+      print("Récupération des missions terminée");
 
-      // // Traitement des missions par lot
-      await _processInBatches(missionsData, (mission) async {
-        final numCompteur = int.parse(mission.numCompteur.toString());
-        print("num_compteur $numCompteur");
+      // Étape 3: Traitement des missions par lots
+      const int missionBatchSize = 50; // Taille des lots pour les missions
+      await _processInBatches(missionsData, missionBatchSize, (mission) async {
+        final int numCompteur = int.parse(mission.numCompteur.toString());
+        print("Traitement du compteur $numCompteur");
 
-        final clientDetails = await authRepository.fetchDataClientDetails(numCompteur, accessToken);
+        final Map<String, dynamic> clientDetails = await authRepository.fetchDataClientDetails(numCompteur, accessToken);
 
         await Future.wait([
           saveDataRepositoryLocale.saveCompteurDetailsRelever(clientDetails['compteur']),
@@ -109,30 +111,32 @@ class SyncService {
           saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves']),
         ]);
 
-        print("date verifie Releve ${clientDetails['releves']}");
+        print("Détails du relevé vérifiés : ${clientDetails['releves']}");
 
         for (var releveData in clientDetails['releves']) {
-          final idReliever = int.parse(releveData.id.toString());
+          final int idReliever = int.parse(releveData.id.toString());
           idRelievers.add(idReliever);
         }
-
       });
 
-      // Traitement des idRelievers par lot
-      await _processInBatches(idRelievers, (idReliever) async {
+      // Étape 4: Synchronisation des factures après le traitement des missions
+      print("Début de la synchronisation des factures");
+      const int factureBatchSize = 50; // Taille des lots pour les factures
+      await _processInBatches(idRelievers, factureBatchSize, (idReliever) async {
         await _syncFacture.syncFactureTable(accessToken, idReliever);
       });
+      print("Synchronisation des factures terminée");
+
     } catch (error) {
       throw Exception('Failed to sync data: $error');
     }
   }
 
-  Future<void> _processInBatches<T>(List<T> data, Future<void> Function(T) processFunction) async {
-    final batchSize = 50; // Taille du lot à traiter simultanément
-
-    for (var i = 0; i < data.length; i += batchSize) {
-      final batchData = data.skip(i).take(batchSize).toList();
-      await Future.wait(batchData.map((item) async => await processFunction(item)));
+  // Helper function to process items in batches
+  Future<void> _processInBatches<T>(List<T> items, int batchSize, Future<void> Function(T item) process) async {
+    for (int i = 0; i < items.length; i += batchSize) {
+      final List<T> batch = items.skip(i).take(batchSize).toList();
+      await Future.wait(batch.map(process));
     }
   }
 }

@@ -116,7 +116,6 @@ class _ClientFactureListState extends State<ClientFactureList> {
       return const Center(child: Text('Aucun relevé disponible'));
     }
 
-
     final Random random = Random();
 
     return SingleChildScrollView(
@@ -126,7 +125,6 @@ class _ClientFactureListState extends State<ClientFactureList> {
           // Générer une couleur aléatoire sombre pour l'icône et le titre
           Color randomColor = Color.fromRGBO(
             random.nextInt(100),
-            // Plage de valeurs de 0 à 99 pour obtenir des couleurs sombres
             random.nextInt(100),
             random.nextInt(100),
             1,
@@ -136,11 +134,10 @@ class _ClientFactureListState extends State<ClientFactureList> {
             child: GestureDetector(
               onTap: () {
                 // Envoi de l'événement MakePayment au PaymentBloc
-
                 if (authState is AuthSuccess) {
                   BlocProvider.of<PaymentBloc>(context).add(LoadPayment(
                       accessToken: authState.userInfo.lastToken ?? '',
-                      relevecompteurId: releve.idReleve ?? 0,
+                      relevecompteurId: releve.idReleve ?? releve.id ?? 0,
                       numCompteur: releve.compteurId,
                       date: releve.dateReleve));
                   Navigator.pushNamed(context, AppRoutes.facturePayed);

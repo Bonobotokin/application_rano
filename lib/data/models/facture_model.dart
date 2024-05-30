@@ -107,7 +107,7 @@ class FactureModel {
 
   @override
   String toString() {
-    return 'FactureModel{id: $id, nomClient: $relevecompteurId, num_facture: $numFacture, num_compteur: $numCompteur, date_facture: $dateFacture, '
+    return 'FactureModel{id: $id, relevecompteur_id: $relevecompteurId, num_facture: $numFacture, num_compteur: $numCompteur, date_facture: $dateFacture, '
         'total_conso_ht: $totalConsoHT, tarif_m3: $tarifM3, avoir_avant: $avoirAvant, avoir_utilise: $avoirUtilise, '
         'restant_precedant: $restantPrecedant, montant_total_ttc: $montantTotalTTC, montant_payer: $montantPayer, statut: $statut }';
   }

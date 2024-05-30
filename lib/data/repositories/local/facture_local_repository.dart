@@ -7,13 +7,17 @@ import 'package:intl/intl.dart';
 class FactureLocalRepository {
   final NiADatabases _niaDatabases = NiADatabases();
 
-  Future<List<Map<String, dynamic>>> getAllFactures(Database db) async {
+  Future<List<Map<String, dynamic>>> getAllFactures(dynamic dbOrTxn) async {
     try {
-    // Exécuter la requête SQL pour sélectionner toutes les lignes de la table releves
-    List<Map<String, dynamic>> rows = await db.rawQuery('''
-        SELECT * FROM facture
-      ''');
-    return rows;
+      List<Map<String, dynamic>> rows;
+      if (dbOrTxn is Database) {
+        rows = await dbOrTxn.rawQuery('SELECT * FROM facture');
+      } else if (dbOrTxn is Transaction) {
+        rows = await dbOrTxn.rawQuery('SELECT * FROM facture');
+      } else {
+        throw Exception("Invalid argument type: ${dbOrTxn.runtimeType}");
+      }
+      return rows;
     } catch (e) {
       throw Exception("Erreur to retrieve factures: $e");
     }

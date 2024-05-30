@@ -140,7 +140,7 @@ class DetailCompteurPage extends StatelessWidget {
               if (authState is AuthSuccess) {
                 BlocProvider.of<PaymentBloc>(context).add(LoadPayment(
                     accessToken: authState.userInfo.lastToken ?? '',
-                    relevecompteurId: releve.idReleve ?? 0,
+                    relevecompteurId: releve.id ?? 0,
                     numCompteur: releve.compteurId,
                     date: releve.dateReleve
                 ));

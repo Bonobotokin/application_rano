@@ -24,7 +24,7 @@ class PaymentFacture extends StatelessWidget {
           ),
           body: AppLayout(
             backgroundColor: const Color(0xFFF5F5F5),
-            currentIndex: 1,
+            currentIndex: 3,
             authState: authState,
             body: BlocBuilder<PaymentBloc, PaymentState>(
               builder: (context, state) {

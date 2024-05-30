@@ -47,6 +47,8 @@ class FactureBloc extends Bloc<FactureEvent, FactureState> {
   void _onLoadClientInvoices(
       LoadClientInvoices event, Emitter<FactureState> emit) async {
     try {
+
+      print("compteurIddd ${event.numCompteur}");
       emit(LoadingPage());
       print("eto ClientData ${event.numCompteur}");
       final clientData = await clientRepository.fetchClientData(

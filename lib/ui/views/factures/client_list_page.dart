@@ -57,10 +57,10 @@ class _ClientListPageState extends State<ClientListPage> {
                     return const Center(child: CircularProgressIndicator());
                   }
                   else if (state is FactureLoading) {
-                    return _buildClientListWidget(state.clients, state.compteurs, state.nombreEtatImpaye,state.nombreEtatPaye , authState);
+                    return _buildClientListWidget(state.clients, state.compteurs, state.nombreEtatImpaye, state.nombreEtatPaye, authState);
                   }
                   if(state is FactureLoaded) {
-                    return _buildClientListWidget(state.clients, state.compteurs, state.nombreEtatImpaye,state.nombreEtatPaye, authState); // Utiliser state.clients au lieu de state.client
+                    return _buildClientListWidget(state.clients, state.compteurs, state.nombreEtatImpaye, state.nombreEtatPaye, authState);
                   } else if (state is FactureFailure) {
                     return Center(child: Text('Erreur: ${state.message}'));
                   } else {
@@ -75,13 +75,23 @@ class _ClientListPageState extends State<ClientListPage> {
     );
   }
 
-  Widget _buildClientListWidget(List<ClientModel> clients, List<CompteurModel> compteurs, List<int> releves,List<int> releve, AuthState authState) {
-    final filteredClients = _searchText.isEmpty
-        ? clients
-        : clients.where((client) =>
-    (client.nom?.toLowerCase() ?? '').contains(_searchText.toLowerCase()) ||
-        (client.prenom?.toLowerCase() ?? '').contains(_searchText.toLowerCase()) ||
-        (client.adresse?.toLowerCase() ?? '').contains(_searchText.toLowerCase())).toList();
+  Widget _buildClientListWidget(List<ClientModel> clients, List<CompteurModel> compteurs, List<int> releves, List<int> releve, AuthState authState) {
+    // Filtrer les clients, compteurs et relevés ensemble
+    final filteredData = clients.asMap().entries.where((entry) {
+      final client = entry.value;
+      return _searchText.isEmpty ||
+          (client.nom?.toLowerCase() ?? '').contains(_searchText.toLowerCase()) ||
+          (client.prenom?.toLowerCase() ?? '').contains(_searchText.toLowerCase()) ||
+          (client.adresse?.toLowerCase() ?? '').contains(_searchText.toLowerCase());
+    }).map((entry) {
+      final index = entry.key;
+      return {
+        'client': clients[index],
+        'compteur': compteurs[index],
+        'releveImpaye': releves[index],
+        'relevePaye': releve[index],
+      };
+    }).toList();
 
     return Expanded(
       child: Column(
@@ -121,7 +131,7 @@ class _ClientListPageState extends State<ClientListPage> {
               ),
             ),
           ),
-          if (filteredClients.isEmpty)
+          if (filteredData.isEmpty)
             const Padding(
               padding: EdgeInsets.all(8.0),
               child: Column(
@@ -146,14 +156,14 @@ class _ClientListPageState extends State<ClientListPage> {
           else
             Expanded(
               child: ListView.builder(
-                itemCount: filteredClients.length,
+                itemCount: filteredData.length,
                 itemBuilder: (context, index) {
-                  final client = filteredClients[index];
-                  final compteur = compteurs[index];
-                  // Trouver les relevés de facture correspondant au client actuel
-                  final nombreEtatImpaye = releves[index];
-                  final nombreEtatPaye = releve[index];
-                  return _buildClientTile(context, client, compteur ,nombreEtatImpaye,nombreEtatPaye, authState);
+                  final data = filteredData[index];
+                  final client = data['client'] as ClientModel;
+                  final compteur = data['compteur'] as CompteurModel;
+                  final nombreEtatImpaye = data['releveImpaye'] as int;
+                  final nombreEtatPaye = data['relevePaye'] as int;
+                  return _buildClientTile(context, client, compteur, nombreEtatImpaye, nombreEtatPaye, authState);
                 },
               ),
             ),
@@ -162,13 +172,12 @@ class _ClientListPageState extends State<ClientListPage> {
     );
   }
 
-
-  Widget _buildClientTile(BuildContext context, ClientModel client, CompteurModel compteur ,int nombreEtatImpaye, int nombreEtatPaye, authState) {
+  Widget _buildClientTile(BuildContext context, ClientModel client, CompteurModel compteur, int nombreEtatImpaye, int nombreEtatPaye, authState) {
     return GestureDetector(
       onTap: () {
         BlocProvider.of<FactureBloc>(context).add(LoadClientInvoices(
             accessToken: authState.userInfo.lastToken ?? '',
-            numCompteur: compteur.id ?? 0));
+            numCompteur: client.id ?? 0));
         Get.toNamed(AppRoutes.listeFactureClient, arguments: compteur.id);
       },
       child: Card(
@@ -195,7 +204,9 @@ class _ClientListPageState extends State<ClientListPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 10),
-              Text('Adresse: ${client.adresse}'),
+              Text('Adresse: ${compteur.id}'),
+              Text('Téléphone: ${client.telephone_1 == "" ? "pas de numero" : client.telephone_1}'),
+              Text('Contrat: ${client.actif == 1 ? "Actif" : "Desactivé"}'),  // Ajout de la condition pour afficher l'état du contrat
               const SizedBox(height: 10),
               Text('Totale facture: ${nombreEtatImpaye + nombreEtatPaye}'),
               const SizedBox(height: 10),
@@ -237,5 +248,4 @@ class _ClientListPageState extends State<ClientListPage> {
       ),
     );
   }
-
 }

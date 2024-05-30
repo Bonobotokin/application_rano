@@ -54,16 +54,16 @@ class _HomePageState extends State<HomePage> {
               BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
                   if (state is HomeLoaded) {
-                    return _buildHomePageWithData(
-                        context, state.data, authState);
+                    return _buildHomePageWithData(context, state.data, authState);
                   } else if (state is HomeLoading) {
-                    return _buildHomePageWithData(
-                        context, state.data, authState);
+                    return _buildHomePageWithData(context, state.data, authState);
                   } else if (state is HomeError) {
                     return Center(
-                        child: Text(
-                            'Oh non! Une erreur s\'est produite: ${state.message}',
-                            style: const TextStyle(color: Colors.red)));
+                      child: Text(
+                        'Oh non! Une erreur s\'est produite: ${state.message}',
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    );
                   } else {
                     return Container();
                   }
@@ -75,222 +75,236 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-}
 
-Widget _buildHomePageWithData(
-    BuildContext context, HomeModel? data, AuthState authState) {
-  if (data != null) {
-    return Expanded(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
+  Widget _buildHomePageWithData(BuildContext context, HomeModel? data, AuthState authState) {
+    if (data != null) {
+      return Expanded(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                _buildCard(
+                  context,
+                  data.nombreReleverEffectuer,
+                  data.nombreTotalCompteur,
+                  "Relevé de compteurs",
+                  Icons.assignment,
+                  const Color(0x80FAD203),
+                  authState,
+                ),
+                const SizedBox(height: 16),
+                _buildCard(
+                  context,
+                  data.realise,
+                  data.totaleAnomalie,
+                  "Main courante",
+                  Icons.report_problem,
+                  const Color(0x9987D9E1),
+                  authState,
+                  enCours: data.enCours,
+                  nonTraite: data.nonTraite,
+                  realise: data.realise,
+                ),
+                const SizedBox(height: 16),
+                _buildCard(
+                  context,
+                  data.nombreTotalFacturePayer,
+                  data.nombreTotalFactureImpayer,
+                  "Factures",
+                  Icons.receipt,
+                  const Color(0xA6BE9BF3),
+                  authState,
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+        ),
+      );
+    }
+  }
+
+  Widget _buildCard(
+      BuildContext context,
+      int current,
+      int total,
+      String label,
+      IconData icon,
+      Color bgColor,
+      AuthState authState, {
+        int? enCours,
+        int? nonTraite,
+        int? realise,
+      }) {
+    Color iconColor = Colors.black54;
+    Color progressColor = getProgressColor(label);
+
+    double progress = total != 0 ? current / total : 0.0;
+    String tasksText = getTaskText(label, current, total, extraData: {
+      'En cours': enCours ?? 0,
+      'Non traité': nonTraite ?? 0,
+      'Réalisé': realise ?? 0,
+    });
+
+    return GestureDetector(
+      onTap: () {
+        if (authState is AuthSuccess) {
+          if (label == "Relevé de compteurs") {
+            _handleReleveDeCompteurs(context, authState);
+          } else if (label == "Main courante") {
+            _handleAnomalie(context, authState);
+          } else if (label == "Factures") {
+            _handleFactures(context, authState);
+          }
+        }
+      },
+      child: Card(
+        elevation: 4,
+        child: Container(
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(10.0),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFFF6F1F1).withOpacity(0.1),
+                spreadRadius: 2,
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(25.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              _buildCard(
-                context,
-                data.nombreReleverEffectuer,
-                data.nombreTotalCompteur,
-                "Relevé de compteurs",
-                Icons.assignment,
-                const Color(0x80FAD203),
-                authState,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    label.toUpperCase(),
+                    style: const TextStyle(
+                      color: Color(0xEA020D1C),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Icon(
+                    icon,
+                    color: iconColor,
+                    size: 30,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildCard(
-                context,
-                data.realise,
-                data.totaleAnomalie,
-                "Main courante",
-                Icons.report_problem,
-                const Color(0x9987D9E1),
-                authState,
-                enCours: data.enCours,
-                nonTraite: data.nonTraite,
-                realise: data.realise,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tasksText,
+                    style: const TextStyle(
+                      color: Colors.black54,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: const Color(0xE5ECE6E3),
+                    valueColor: AlwaysStoppedAnimation<Color>(progressColor),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '$current / $total',
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (label == "Relevé de compteurs" && current > 0)
+                        ElevatedButton(
+                          onPressed: () {
+                            // Logique pour envoyer les données locales vers le serveur distant
+                          },
+                          child: const Text('Envoyer les données'),
+                        ),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildCard(
-                context,
-                data.nombreTotalFacturePayer,
-                data.nombreTotalFactureImpayer,
-                "Factures",
-                Icons.receipt,
-                const Color(0xA6BE9BF3),
-                authState,
-              ),
-              const SizedBox(height: 16),
             ],
           ),
         ),
       ),
     );
-  } else {
-    return const Center(
-        child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.orange)));
   }
-}
 
-Widget _buildCard(
-    BuildContext context,
-    int current,
-    int total,
-    String label,
-    IconData icon,
-    Color bgColor,
-    AuthState authState, {
-      int? enCours,
-      int? nonTraite,
-      int? realise,
-    }) {
-  Color iconColor = Colors.black54;
-  Color progressColor = getProgressColor(label);
+  Color getProgressColor(String label) {
+    Map<String, Color> titleToProgressColor = {
+      "Relevé de compteurs": Colors.deepOrange,
+      "Main courante": Colors.blue,
+      "Factures": Colors.purple,
+    };
 
-  double progress = total != 0 ? current / total : 0.0;
-  String tasksText = getTaskText(label, current, total,
-      extraData: {'En cours': enCours ?? 0, 'Non traité': nonTraite ?? 0, 'Réalisé': realise ?? 0});
+    return titleToProgressColor[label] ?? Colors.grey;
+  }
 
-  return GestureDetector(
-    onTap: () {
-      if (authState is AuthSuccess) {
-        if (label == "Relevé de compteurs") {
-          _handleReleveDeCompteurs(context, authState);
-        } else if (label == "Main courante") {
-          _handleAnomalie(context, authState);
-        } else if (label == "Factures") {
-          _handleFactures(context, authState);
-        }
+  String getTaskText(String label, int current, int total, {Map<String, int>? extraData}) {
+    String taskText;
+    int remainingTasks = total - current;
+
+    if (label == "Main courante" && extraData != null) {
+      return extraData.entries.map((entry) => '${entry.key}: ${entry.value}').join(', ');
+    }
+
+    if (current != 0 || total != 0) {
+      if (remainingTasks > 0) {
+        taskText = 'Reste à faire : $remainingTasks';
+      } else {
+        taskText = 'Tâches terminées';
       }
-    },
-    child: Card(
-      elevation: 4,
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(10.0),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFF6F1F1).withOpacity(0.1),
-              spreadRadius: 2,
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(25.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  label.toUpperCase(),
-                  style: const TextStyle(
-                    color: Color(0xEA020D1C),
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Icon(
-                  icon,
-                  color: iconColor,
-                  size: 30,
-                ),
-              ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tasksText,
-                  style: const TextStyle(
-                    color: Colors.black54,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: const Color(0xE5ECE6E3),
-                  valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '$current / $total',
-                  style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-
-Color getProgressColor(String label) {
-  Map<String, Color> titleToProgressColor = {
-    "Relevé de compteurs": Colors.deepOrange,
-    "Main courante": Colors.blue,
-    "Factures": Colors.purple,
-  };
-
-  return titleToProgressColor[label] ?? Colors.grey;
-}
-
-String getTaskText(String label, int current, int total, {Map<String, int>? extraData}) {
-  String taskText;
-  int remainingTasks = total - current;
-
-  if (label == "Main courante" && extraData != null) {
-    return extraData.entries.map((entry) => '${entry.key}: ${entry.value}').join(', ');
-  }
-
-  if (current != 0 || total != 0) {
-    if (remainingTasks > 0) {
-      taskText = 'Reste à faire : $remainingTasks';
     } else {
-      taskText = 'Tâches terminées';
+      switch (label) {
+        case "Relevé de compteurs":
+          taskText = 'Pas de relevé';
+          break;
+        case "Main courante":
+          taskText = 'Pas de main courantes';
+          break;
+        case "Factures":
+          taskText = 'Aucune facture';
+          break;
+        default:
+          taskText = 'Pas de tâche';
+      }
     }
-  } else {
-    switch (label) {
-      case "Relevé de compteurs":
-        taskText = 'Pas de relevé';
-        break;
-      case "Main courante":
-        taskText = 'Pas de main courantes';
-        break;
-      case "Factures":
-        taskText = 'Aucune facture';
-        break;
-      default:
-        taskText = 'Pas de tâche';
-    }
+    return taskText;
   }
-  return taskText;
-}
 
-void _handleReleveDeCompteurs(BuildContext context, AuthSuccess authState) {
-  BlocProvider.of<MissionsBloc>(context)
-      .add(LoadMissions(accessToken: authState.userInfo.lastToken ?? ''));
-  Get.toNamed(AppRoutes.missions);
-}
+  void _handleReleveDeCompteurs(BuildContext context, AuthSuccess authState) {
+    BlocProvider.of<MissionsBloc>(context)
+        .add(LoadMissions(accessToken: authState.userInfo.lastToken ?? ''));
+    Get.toNamed(AppRoutes.missions);
+  }
 
-void _handleAnomalie(BuildContext context, AuthSuccess authState) {
-  BlocProvider.of<AnomalieBLoc>(context)
-      .add(LoadAnomalie(accessToken: authState.userInfo.lastToken ?? ''));
-  Get.toNamed(AppRoutes.anomaliePage);
-}
+  void _handleAnomalie(BuildContext context, AuthSuccess authState) {
+    BlocProvider.of<AnomalieBLoc>(context)
+        .add(LoadAnomalie(accessToken: authState.userInfo.lastToken ?? ''));
+    Get.toNamed(AppRoutes.anomaliePage);
+  }
 
-void _handleFactures(BuildContext context, AuthSuccess authState) {
-  final factureBloc = BlocProvider.of<FactureBloc>(context)
-      .add(LoadClientFacture(accessToken: authState.userInfo.lastToken ?? ''));
-
-  Get.toNamed(AppRoutes.listeClient);
+  void _handleFactures(BuildContext context, AuthSuccess authState) {
+    BlocProvider.of<FactureBloc>(context).add(LoadClientFacture(accessToken: authState.userInfo.lastToken ?? ''));
+    Get.toNamed(AppRoutes.listeClient);
+  }
 }
