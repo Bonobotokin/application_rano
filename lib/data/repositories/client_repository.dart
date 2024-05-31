@@ -121,7 +121,7 @@ class ClientRepository {
       throw Exception('Failed to fetch client data: $error');
     }
   }
-
+  // fetch data releves Client par compteur
   Future<Map<String, dynamic>> fetchClientData(
       int numCompteur, String accessToken) async {
     try {
@@ -235,8 +235,10 @@ class ClientRepository {
     }
   }
 
+
+  // fetcDataFacture compteur releve
   Future<Map<String, dynamic>> fetcClientDataFacture(
-      int numCompteur, String accessToken) async {
+      int relevecompteurId, String accessToken) async {
     try {
 
       final Database db = await _niaDatabases.database;
@@ -277,8 +279,122 @@ class ClientRepository {
           JOIN compteur ON releves.compteur_id = compteur.id 
           JOIN contrat ON releves.contrat_id = contrat.id
           
-          WHERE releves.compteur_id = ? 
-        ''', [numCompteur]);
+          WHERE releves.id_releve = ?  
+        ''', [relevecompteurId]);
+
+      print("clientData verrifiesssss  : $rows");
+
+      // Vérifiez si des données ont été récupérées
+      if (rows.isNotEmpty) {
+        // Récupérez les données de la première ligne
+        final row = rows[0];
+
+        // Créez des objets individuels pour chaque table
+        final client = ClientModel(
+          id: row['idClient'],
+          nom: row['nom'] ?? '',
+          prenom: row['prenom'] ?? '',
+          adresse: row['adresse'] ?? '',
+          commune: row['commune'] ?? '',
+          region: row['region'] ?? '',
+          telephone_1: row['client_phone1'] ?? '',
+          telephone_2: row['tephone_2'] ?? '',
+          actif: row['actif'],
+        );
+
+        final compteur = CompteurModel(
+          id: int.parse(
+              row['compteur_id'].toString()), // Conversion de String à int
+          marque: row['compteur_marque'] ?? '',
+          modele: row['compteur_modele'] ?? '',
+        );
+
+        final contrat = ContratModel(
+          id: row['contrat_id'],
+          numeroContrat: row['contrat_numero'] ?? '',
+          clientId: row['client_id'],
+          dateDebut: row['contrat_date_debut'] ?? '',
+          dateFin: row['contrat_date_fin'], // Pas besoin d'utiliser ?? '' ici
+          adresseContrat: row['contrat_adresse_contrat'] ?? '',
+          paysContrat: row['contrat_pays_contrat'] ?? '',
+        );
+
+        final releves = rows.map((row) => RelevesModel(
+          id: row['releve_id'],
+          idReleve: int.tryParse(row['id_releve'].toString()) ?? 0,
+          compteurId: int.tryParse(row['compteur_id'].toString()) ?? 0,
+          contratId: int.tryParse(row['contrat_id'].toString()) ?? 0,
+          clientId: int.tryParse(row['client_id'].toString()) ?? 0,
+          dateReleve: row['date_releve'] ?? '',
+          volume: row['volume'] ?? 0,
+          conso: row['conso'] ?? 0,
+          etatFacture: row['etatFacture'] ?? '',
+          imageCompteur: row['image_compteur'] ?? '',
+        )).toList();
+
+
+        print("client : $releves");
+
+        return {
+          'client': client,
+          'compteur': compteur,
+          'contrat': contrat,
+          'releves': releves,
+        };
+      } else {
+        // Si aucune donnée n'a été trouvée, lancez une exception
+        throw Exception('Aucune donnée trouvée.');
+      }
+    } catch (error) {
+      throw Exception('Failed to fetch client data: $error');
+    }
+  }
+
+  // fetcDataFacture facture view
+  Future<Map<String, dynamic>> fetcDataFacture(
+      int clientId, String accessToken) async {
+    try {
+
+      final Database db = await _niaDatabases.database;
+      List<Map<String, dynamic>> rows = await db.rawQuery('''
+        SELECT 
+          releves.id AS releve_id, 
+          releves.id_releve,
+          releves.compteur_id,
+          releves.contrat_id,
+          releves.client_id,
+          releves.date_releve, 
+          releves.volume,
+          releves.conso,            
+          releves.etatFacture,
+          releves.image_compteur,
+          
+          client.id AS idClient,
+          client.nom AS nom,
+          client.prenom AS prenom,
+          client.adresse AS adresse,
+          client.commune AS commune,
+          client.region AS region,
+          client.telephone_1 AS client_phone1, 
+          client.telephone_2,
+          client.actif AS actif,
+          
+          compteur.marque AS compteur_marque,
+          compteur.modele AS compteur_modele, 
+          
+          contrat.numero_contrat AS contrat_numero,
+          contrat.date_debut AS contrat_date_debut,
+          contrat.date_fin AS contrat_date_fin,
+          contrat.adresse_contrat AS contrat_adresse_contrat, 
+          contrat.pays_contrat AS contrat_pays_contrat
+          
+        FROM releves
+        JOIN client ON releves.client_id = client.id  
+        JOIN compteur ON releves.compteur_id = compteur.id 
+        JOIN contrat ON releves.contrat_id = contrat.id
+        
+        WHERE releves.client_id = ? 
+      ''', [clientId]);
 
       print("clientData verrifie : $rows");
 

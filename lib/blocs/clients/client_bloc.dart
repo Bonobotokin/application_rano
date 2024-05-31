@@ -14,7 +14,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     try {
       emit(ClientLoading());
 
-      print("eto ClientData ${event.numCompteur}");
+      print("eto ClientData numCompteur ${event.numCompteur}");
       final clientData = await clientRepository.fetchClientData(
           event.numCompteur, event.accessToken);
       print("eto ClientData $clientData");

@@ -1,6 +1,6 @@
 class RelevesModel {
   final int? id;
-  final int idReleve;
+  final int? idReleve;
   final int compteurId;
   final int contratId;
   final int clientId;

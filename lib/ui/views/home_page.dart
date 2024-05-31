@@ -2,9 +2,11 @@ import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/blocs/factures/facture_bloc.dart';
 import 'package:application_rano/blocs/factures/facture_event.dart';
+import 'package:application_rano/data/services/synchronisation/missions/send_data_mission_sync.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
+import 'dart:async';
 import 'package:application_rano/blocs/home/home_bloc.dart';
 import 'package:application_rano/blocs/home/home_state.dart';
 import 'package:application_rano/data/models/home_model.dart';
@@ -14,6 +16,9 @@ import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/blocs/missions/missions_bloc.dart';
 import 'package:application_rano/blocs/missions/missions_event.dart';
 import 'package:application_rano/ui/routing/routes.dart';
+import 'package:application_rano/blocs/send_data/send_data_bloc.dart';
+import 'package:application_rano/blocs/send_data/send_data_event.dart';
+import 'package:application_rano/blocs/send_data/send_data_state.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -23,6 +28,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  TextEditingController _controller = TextEditingController();
+  double _progressValue = 0.0;
+
+  late SendDataBloc _sendDataBloc; // Déclaration du sendDataBloc
+
+  @override
+  void initState() {
+    super.initState();
+    _sendDataBloc = SendDataBloc(); // Initialisation du sendDataBloc
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
@@ -133,17 +149,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCard(
-      BuildContext context,
-      int current,
-      int total,
-      String label,
-      IconData icon,
-      Color bgColor,
-      AuthState authState, {
-        int? enCours,
-        int? nonTraite,
-        int? realise,
-      }) {
+    BuildContext context,
+    int current,
+    int total,
+    String label,
+    IconData icon,
+    Color bgColor,
+    AuthState authState, {
+    int? enCours,
+    int? nonTraite,
+    int? realise,
+  }) {
     Color iconColor = Colors.black54;
     Color progressColor = getProgressColor(label);
 
@@ -208,7 +224,8 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     tasksText,
-                    style: const TextStyle(
+                    style: const
+TextStyle(
                       color: Colors.black54,
                       fontSize: 16,
                     ),
@@ -231,13 +248,38 @@ class _HomePageState extends State<HomePage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (label == "Relevé de compteurs" && current > 0)
-                        ElevatedButton(
-                          onPressed: () {
-                            // Logique pour envoyer les données locales vers le serveur distant
-                          },
-                          child: const Text('Envoyer les données'),
-                        ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.send),
+                            onPressed: () {
+                              if (label == "Relevé de compteurs" && current > 0) {
+                                _sendMissionData(context, authState);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Aucune donnée à envoyer',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                            tooltip: 'Envoyer les données',
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.sync),
+                            onPressed: () {
+                              if (label == "Relevé de compteurs") {
+                                _syncData(context, authState);
+                              }
+                            },
+                            tooltip: 'Synchroniser les données',
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ],
@@ -247,6 +289,112 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void _sendMissionData(BuildContext context, AuthState authState) async {
+    if (authState is AuthSuccess) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Envoyer les données'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _controller,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Veuillez entrer un nombre';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+                // Utilisez la valeur de progression mise à jour ici
+                LinearProgressIndicator(value: _progressValue),
+                SizedBox(height: 10),
+                Text('Veuillez patienter...'),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Annuler'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  int numData = int.tryParse(_controller.text) ?? 0;
+                  if (numData >= 50) {
+                    // Envoyer les données des missions
+                    final sendDataMissionSync = SendDataMissionSync();
+                    // Mettez à jour la valeur de progression ici
+                    setState(() {
+                      _progressValue = 0.0; // Réinitialiser la progression
+                    });
+                    // Envoyer les données des missions en mettant à jour la progression
+                    await sendDataMissionSync.sendDataMissionInserver(authState.userInfo.lastToken ?? '', (progress) {
+                      // Mettre à jour la valeur de progression ici
+                      setState(() {
+                        _progressValue = progress;
+                      });
+                    });
+
+                    // Fermer la boîte de dialogue après l'envoi des données
+                    Navigator.of(context).pop();
+                  } else {
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Le nombre minimum de données à envoyer est de 50',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: Text('Valider'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Gérer le cas où authState n'est pas AuthSuccess
+    }
+  }
+
+  void _syncData(BuildContext context, AuthState authState) async {
+    if (authState is AuthSuccess) {
+      final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
+      await sendDataMissionSync.syncDataMissionToLocal(authState.userInfo.lastToken ?? '');
+      await sendDataMissionSync.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
+
+      print("Synchronisation des factures terminée");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Missions synchronisées avec succès',
+            style: TextStyle(color: Colors.white),
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Color getProgressColor(String label) {
@@ -304,7 +452,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _handleFactures(BuildContext context, AuthSuccess authState) {
-    BlocProvider.of<FactureBloc>(context).add(LoadClientFacture(accessToken: authState.userInfo.lastToken ?? ''));
+    BlocProvider.of<FactureBloc>(context).add(LoadClientFacture(accessToken: authState?.userInfo.lastToken ?? ''));
     Get.toNamed(AppRoutes.listeClient);
   }
 }

@@ -506,15 +506,15 @@ class SaveDataRepositoryLocale {
         if (existingFacture.isNotEmpty) {
           print('Les données de facture existent déjà dans la base de données locale.');
           final existingFactureId = existingFacture['id'];
-
-
-          print('factureOnline.montantTotalTTC: ${factureOnline.montantTotalTTC}');
-          print('existingFacture["montant_total_ttc"]: ${existingFacture["montant_total_ttc"]}');
-          print('montantTotalTTC different: ${factureOnline.montantTotalTTC != existingFacture["montant_total_ttc"]}');
-          print('factureOnline.statut: ${factureOnline.statut}');
-          print('existingFacture["statut"]: ${existingFacture["statut"]}');
-          print('statut different: ${factureOnline.statut != existingFacture["statut"]}');
-          print('verrification data ${factureOnline.montantTotalTTC == existingFacture['montant_total_ttc'] || factureOnline.statut == existingFacture['statut']}');
+          //
+          //
+          // print('factureOnline.montantTotalTTC: ${factureOnline.montantTotalTTC}');
+          // print('existingFacture["montant_total_ttc"]: ${existingFacture["montant_total_ttc"]}');
+          // print('montantTotalTTC different: ${factureOnline.montantTotalTTC != existingFacture["montant_total_ttc"]}');
+          // print('factureOnline.statut: ${factureOnline.statut}');
+          // print('existingFacture["statut"]: ${existingFacture["statut"]}');
+          // print('statut different: ${factureOnline.statut != existingFacture["statut"]}');
+          // print('verrification data ${factureOnline.montantTotalTTC == existingFacture['montant_total_ttc'] || factureOnline.statut == existingFacture['statut']}');
 
           await _updateFacture(txn, factureOnline);
           print('gggggggggggg');
@@ -550,7 +550,7 @@ class SaveDataRepositoryLocale {
       }
     }
 
-    print("Synchronisation des factures terminée.");
+    print("Synchronisation des factures terminée.222");
   }
 
   Future<void> _updateFacture(Transaction txn, FactureModel facture) async {

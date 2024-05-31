@@ -21,7 +21,7 @@ class SyncFacture {
         final Database db = await NiADatabases().database;
 
         await db.transaction((txn) async {
-          await _fetchFactureDataFromEndPoint(baseUrl, accessToken, idReleve, txn);
+          await _fetchFactureDataFromEndPoint(accessToken, idReleve, txn);
         });
       } else {
         throw Exception('idReleve is null');
@@ -35,18 +35,21 @@ class SyncFacture {
     }
   }
 
-  Future<void> _fetchFactureDataFromEndPoint(
-      String baseUrl, String? accessToken, int idReleve, Transaction txn) async {
+  Future<void> _fetchFactureDataFromEndPoint( String? accessToken, int idReleve, Transaction txn) async {
+
+    print("ID Releve: $idReleve");
+    print("AccessToken Facture: $accessToken");
+    String baseUrl = 'http://89.116.38.149:8000/api'; // Déclarez baseUrl comme une variable locale
     try {
       final response = await http.get(
-        Uri.parse('http://89.116.38.149:8000/api/facture?id_releve=$idReleve'),
+        Uri.parse('$baseUrl/facture?id_releve=$idReleve'),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final factureData = data['facture'];
-
+        print("facture geting start");
         final facture = FactureModel(
           id: factureData['id'],
           relevecompteurId: factureData['relevecompteur_id'] ?? 0,

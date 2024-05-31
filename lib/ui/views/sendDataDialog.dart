@@ -1,3 +1,5 @@
+import 'dart:async'; // Importez Timer depuis dart:async
+
 import 'package:flutter/material.dart';
 
 class SendDataDialog extends StatefulWidget {

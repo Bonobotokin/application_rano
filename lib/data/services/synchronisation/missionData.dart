@@ -1,7 +1,7 @@
-// Importez les bibliothèques nécessaires
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../models/missions_model.dart';
@@ -34,13 +34,17 @@ class MissionData {
 
         // Vérifier si le fichier existe avant de l'envoyer
         if (imageCompteurFile.existsSync()) {
+          // Redimensionner l'image
+          File resizedImageFile = await resizeImage(imageCompteurFile);
+
           // Créer une requête multipart
           var request = http.MultipartRequest('POST', Uri.parse(url))
             ..headers.addAll(headers)
             ..fields['num_compteur'] = mission.numCompteur.toString()
             ..fields['date_releve'] = mission.dateReleve.toString()
             ..fields['volume'] = mission.volumeDernierReleve.toString()
-            ..files.add(await http.MultipartFile.fromPath('image_compteur', imageCompteurFile.path));
+            ..files.add(await http.MultipartFile.fromPath(
+                'image_compteur', resizedImageFile.path));
 
           // Envoyer la requête
           var response = await request.send();
@@ -49,10 +53,11 @@ class MissionData {
           var responseBody = await response.stream.bytesToString();
 
           // Vérifier la réponse
-          if (response.statusCode == 201 || response.statusCode == 200 ) {
+          if (response.statusCode == 201 || response.statusCode == 200) {
             print('Mission envoyée avec succès !');
           } else {
-            print('Erreur lors de l\'envoi de la mission: ${response.statusCode}');
+            print(
+                'Erreur lors de l\'envoi de la mission: ${response.statusCode}');
             print('Réponse du serveur: $responseBody');
           }
         } else {
@@ -61,9 +66,18 @@ class MissionData {
       } else {
         print('Aucune donnée de relevé de mission trouvée.');
       }
-    } catch (e) { 
+    } catch (e) {
       print('Erreur lors de l\'envoi de la mission: $e');
     }
+  }
+
+  static Future<File> resizeImage(File imageFile) async {
+    img.Image image = img.decodeImage(await imageFile.readAsBytes())!;
+    img.Image resizedImage =
+    img.copyResize(image, width: 800); // Réduire la largeur de l'image
+    return File(imageFile.path)
+      ..writeAsBytesSync(
+          img.encodeJpg(resizedImage)); // Enregistrer l'image redimensionnée
   }
 
   static Future<Map<String, dynamic>> getReleverMission(
@@ -77,10 +91,12 @@ class MissionData {
       ''', [numCompteur]);
 
       if (rows.isNotEmpty) {
-        final String? imageCompteurPath = rows[0]['image_compteur'] as String?;
+        final String? imageCompteurPath =
+        rows[0]['image_compteur'] as String?;
 
         if (imageCompteurPath != null && imageCompteurPath.isNotEmpty) {
-          final String imagePath = await _buildImagePath(imageCompteurPath);
+          final String imagePath =
+          await _buildImagePath(imageCompteurPath);
 
           final File imageFile = File(imagePath);
 

@@ -26,8 +26,9 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
   void _onloadPayement(LoadPayment event, Emitter<PaymentState> emit) async {
     try {
-      print("releveCompteurId ${event.relevecompteurId}");
       final getAllFacturessss = await factureLocalRepository.getFactureDataFromLocalDatabase();
+      print("releveCompteurId ${event.relevecompteurId}");
+      print("numCompteur ${event.numCompteur}");
 
       print("all Facture ${getAllFacturessss}");
       final factureData = await factureLocalRepository.getFactureById(event.relevecompteurId);
@@ -40,7 +41,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       final paymentData = statusPayment['payment'];
 
       final clientData = await clientRepository.fetcClientDataFacture(
-          event.numCompteur, event.accessToken);
+          event.relevecompteurId, event.accessToken);
       final client = clientData['client'];
 
       final releverData = await clientRepository.getReleverByDate(event.numCompteur, event.date);

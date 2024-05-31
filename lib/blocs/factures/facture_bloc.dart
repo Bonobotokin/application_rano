@@ -40,7 +40,8 @@ class FactureBloc extends Bloc<FactureEvent, FactureState> {
       ));
     } catch (e) {
       print(e.toString());
-      emit(FactureFailure(e.toString()));
+
+      emit(FactureFailure("Aucune Client"));
     }
   }
 
@@ -50,10 +51,10 @@ class FactureBloc extends Bloc<FactureEvent, FactureState> {
 
       print("compteurIddd ${event.numCompteur}");
       emit(LoadingPage());
-      print("eto ClientData ${event.numCompteur}");
-      final clientData = await clientRepository.fetchClientData(
+      print("eto ClientDataeeee ${event.numCompteur}");
+      final clientData = await clientRepository.fetcDataFacture(
           event.numCompteur, event.accessToken);
-      print("eto ClientData $clientData");
+      print("eto ClientDatass $clientData");
       final client = clientData['client'];
       final compteur = clientData['compteur'];
       final contrat = clientData['contrat'];
