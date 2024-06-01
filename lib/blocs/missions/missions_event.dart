@@ -67,3 +67,5 @@ class UpdateMission extends MissionsEvent {
   String toString() =>
       'UpdateMission { missionId: $missionId, adresseClient: $adresseClient, consoValue: $consoValue, date: $date, accessToken: $accessToken, image: $imageCompteur }';
 }
+
+class SyncMissionsEvent extends MissionsEvent {}

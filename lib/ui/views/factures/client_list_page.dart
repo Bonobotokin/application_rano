@@ -62,7 +62,26 @@ class _ClientListPageState extends State<ClientListPage> {
                   if(state is FactureLoaded) {
                     return _buildClientListWidget(state.clients, state.compteurs, state.nombreEtatImpaye, state.nombreEtatPaye, authState);
                   } else if (state is FactureFailure) {
-                    return Center(child: Text('Erreur: ${state.message}'));
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(
+                            Icons.error,
+                            size: 60,
+                            color: Colors.grey,
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            'Aucune donnée trouvée',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   } else {
                     return Container();
                   }

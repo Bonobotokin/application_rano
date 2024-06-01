@@ -84,3 +84,6 @@ class UpdateAnomalie extends AnomalieEvent {
   });
 }
 
+
+class SyncAnomaliesEvent extends AnomalieEvent {}
+

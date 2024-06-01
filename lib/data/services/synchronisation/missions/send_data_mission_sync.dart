@@ -40,6 +40,7 @@ class SendDataMissionSync {
         await Future.wait(syncTasks);
 
         print("Toutes les missions avec le statut 1 ont été envoyées avec succès !");
+
       } else {
         print("Aucune mission avec le statut 1 à synchroniser.");
       }
@@ -62,6 +63,8 @@ class SendDataMissionSync {
 
   Future<void> syncDataMissionToLocal(String accessToken) async {
     try {
+      final startTime = DateTime.now(); // Enregistrer l'heure de début de la synchronisation
+
       // Étape 1: Récupération des missions
       print("Début de la synchronisation des missions");
       final List<MissionModel> missionsData = await _syncMission.syncMissionTable(accessToken);
@@ -84,10 +87,15 @@ class SendDataMissionSync {
       });
 
       print("Toutes les missions ont été synchronisées avec succès vers la base de données locale !");
+
+      final endTime = DateTime.now(); // Enregistrer l'heure de fin de la synchronisation
+      final duration = endTime.difference(startTime); // Calculer la durée totale de la synchronisation
+      print("Durée totale de la synchronisation des missions: ${duration.inSeconds} secondes");
     } catch (error) {
       print("Erreur lors de la synchronisation des missions vers la base de données locale: $error");
     }
   }
+
   Future<Map<String, dynamic>> fetchDataClientDetails(
       int? numCompteur, String? accessToken) async {
     print("accessTokenaccessTokenx $accessToken");
@@ -195,6 +203,8 @@ class SendDataMissionSync {
 
   Future<void> syncDataFactureToLocal(String accessToken) async {
     try {
+      final startTime = DateTime.now(); // Enregistrer l'heure de début de la synchronisation
+
       // Récupérer tous les relevés de la base de données locale
       final List<Map<String, dynamic>> releves = await getAllReleves();
 
@@ -209,6 +219,10 @@ class SendDataMissionSync {
         await _syncFacture.syncFactureTable(accessToken, idReliever);
       });
       print("Synchronisation des factures terminée");
+
+      final endTime = DateTime.now(); // Enregistrer l'heure de fin de la synchronisation
+      final duration = endTime.difference(startTime); // Calculer la durée totale de la synchronisation
+      print("Durée totale de la synchronisation des factures: ${duration.inSeconds} secondes");
     } catch (error) {
       print("Erreur lors de la synchronisation des factures vers la base de données locale: $error");
     }

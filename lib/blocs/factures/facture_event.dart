@@ -31,3 +31,5 @@ class LoadClientInvoices extends FactureEvent {
 }
 
 class FactureBillEvent extends FactureEvent {}
+
+class SyncFacturesEvent extends FactureEvent {}

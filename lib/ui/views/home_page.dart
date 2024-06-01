@@ -6,7 +6,6 @@ import 'package:application_rano/data/services/synchronisation/missions/send_dat
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
-import 'dart:async';
 import 'package:application_rano/blocs/home/home_bloc.dart';
 import 'package:application_rano/blocs/home/home_state.dart';
 import 'package:application_rano/data/models/home_model.dart';
@@ -16,9 +15,6 @@ import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/blocs/missions/missions_bloc.dart';
 import 'package:application_rano/blocs/missions/missions_event.dart';
 import 'package:application_rano/ui/routing/routes.dart';
-import 'package:application_rano/blocs/send_data/send_data_bloc.dart';
-import 'package:application_rano/blocs/send_data/send_data_event.dart';
-import 'package:application_rano/blocs/send_data/send_data_state.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -28,15 +24,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  TextEditingController _controller = TextEditingController();
+  late TextEditingController _controller;
   double _progressValue = 0.0;
+  bool _isSyncing = false; // Variable pour suivre l'état de la synchronisation
 
-  late SendDataBloc _sendDataBloc; // Déclaration du sendDataBloc
 
   @override
   void initState() {
     super.initState();
-    _sendDataBloc = SendDataBloc(); // Initialisation du sendDataBloc
+    _controller = TextEditingController();
   }
 
   @override
@@ -113,6 +109,16 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 16),
                 _buildCard(
                   context,
+                  data.nombreTotalFacturePayer,
+                  data.nombreTotalFactureImpayer,
+                  "Factures",
+                  Icons.receipt,
+                  const Color(0xA6BE9BF3),
+                  authState,
+                ),
+                const SizedBox(height: 16),
+                _buildCard(
+                  context,
                   data.realise,
                   data.totaleAnomalie,
                   "Main courante",
@@ -122,16 +128,6 @@ class _HomePageState extends State<HomePage> {
                   enCours: data.enCours,
                   nonTraite: data.nonTraite,
                   realise: data.realise,
-                ),
-                const SizedBox(height: 16),
-                _buildCard(
-                  context,
-                  data.nombreTotalFacturePayer,
-                  data.nombreTotalFactureImpayer,
-                  "Factures",
-                  Icons.receipt,
-                  const Color(0xA6BE9BF3),
-                  authState,
                 ),
                 const SizedBox(height: 16),
               ],
@@ -149,17 +145,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCard(
-    BuildContext context,
-    int current,
-    int total,
-    String label,
-    IconData icon,
-    Color bgColor,
-    AuthState authState, {
-    int? enCours,
-    int? nonTraite,
-    int? realise,
-  }) {
+      BuildContext context,
+      int current,
+      int total,
+      String label,
+      IconData icon,
+      Color bgColor,
+      AuthState authState, {
+        int? enCours,
+        int? nonTraite,
+        int? realise,
+      }) {
     Color iconColor = Colors.black54;
     Color progressColor = getProgressColor(label);
 
@@ -172,13 +168,13 @@ class _HomePageState extends State<HomePage> {
 
     return GestureDetector(
       onTap: () {
-        if (authState is AuthSuccess) {
+        if (!_isSyncing && authState is AuthSuccess) {
           if (label == "Relevé de compteurs") {
             _handleReleveDeCompteurs(context, authState);
-          } else if (label == "Main courante") {
-            _handleAnomalie(context, authState);
           } else if (label == "Factures") {
             _handleFactures(context, authState);
+          } else if (label == "Main courante") {
+            _handleAnomalie(context, authState);
           }
         }
       },
@@ -224,8 +220,7 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text(
                     tasksText,
-                    style: const
-TextStyle(
+                    style: const TextStyle(
                       color: Colors.black54,
                       fontSize: 16,
                     ),
@@ -270,16 +265,17 @@ TextStyle(
                             tooltip: 'Envoyer les données',
                           ),
                           IconButton(
-                            icon: const Icon(Icons.sync),
+                            icon: Icon(Icons.sync),
+                            color: iconColor,
                             onPressed: () {
-                              if (label == "Relevé de compteurs") {
-                                _syncData(context, authState);
+                              if (!_isSyncing && current > 0) {
+                                _syncData(context, authState, label);
                               }
                             },
-                            tooltip: 'Synchroniser les données',
                           ),
                         ],
                       ),
+
                     ],
                   ),
                 ],
@@ -370,31 +366,94 @@ TextStyle(
       // Gérer le cas où authState n'est pas AuthSuccess
     }
   }
+  void _syncData(BuildContext context, AuthState authState, String label) async {
+    setState(() {
+      _isSyncing = true; // Commencer la synchronisation
+    });
 
-  void _syncData(BuildContext context, AuthState authState) async {
-    if (authState is AuthSuccess) {
-      final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
-      await sendDataMissionSync.syncDataMissionToLocal(authState.userInfo.lastToken ?? '');
-      await sendDataMissionSync.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
-
-      print("Synchronisation des factures terminée");
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Missions synchronisées avec succès',
-            style: TextStyle(color: Colors.white),
+    // Afficher la boîte de dialogue de synchronisation
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Synchronisation en cours...'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 20),
+              Text('Veuillez patienter...'),
+            ],
           ),
-          backgroundColor: Colors.green,
-        ),
-      );
+        );
+      },
+    );
+
+    if (authState is AuthSuccess) {
+      // Appeler la fonction de synchronisation des relevés
+      await _syncReleveData(context, authState); // Attendre la fin de la synchronisation
     }
+
+    // Terminer la synchronisation
+    setState(() {
+      _isSyncing = false;
+    });
+
+    // Afficher un message de succès
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$label synchronisé avec succès',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.green,
+      ),
+    );
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Future<void> _syncReleveData(BuildContext context, AuthSuccess authState) async {
+    // Synchroniser les relevés
+    final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
+    await sendDataMissionSync.syncDataMissionToLocal(authState.userInfo.lastToken ?? '');
+    await sendDataMissionSync.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
+
+    // Masquer la barre de progression
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+    // Fermer le popup de synchronisation
+    Navigator.of(context).pop();
+  }
+
+
+
+  void _syncFacturesData(BuildContext context, AuthSuccess authState) async {
+    // Synchroniser les factures
+    final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
+    await sendDataMissionSync.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
+
+    // Masquer la barre de progression
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+  }
+
+
+
+
+  void _handleReleveDeCompteurs(BuildContext context, AuthSuccess authState) {
+    BlocProvider.of<MissionsBloc>(context)
+        .add(LoadMissions(accessToken: authState.userInfo.lastToken ?? ''));
+    Get.toNamed(AppRoutes.missions);
+  }
+
+  void _handleAnomalie(BuildContext context, AuthSuccess authState) {
+    BlocProvider.of<AnomalieBLoc>(context)
+        .add(LoadAnomalie(accessToken: authState.userInfo.lastToken ?? ''));
+    Get.toNamed(AppRoutes.anomaliePage);
+  }
+
+  void _handleFactures(BuildContext context, AuthSuccess authState) {
+    BlocProvider.of<FactureBloc>(context).add(LoadClientFacture(accessToken: authState.userInfo.lastToken ?? ''));
+    Get.toNamed(AppRoutes.listeClient);
   }
 
   Color getProgressColor(String label) {
@@ -439,20 +498,9 @@ TextStyle(
     return taskText;
   }
 
-  void _handleReleveDeCompteurs(BuildContext context, AuthSuccess authState) {
-    BlocProvider.of<MissionsBloc>(context)
-        .add(LoadMissions(accessToken: authState.userInfo.lastToken ?? ''));
-    Get.toNamed(AppRoutes.missions);
-  }
-
-  void _handleAnomalie(BuildContext context, AuthSuccess authState) {
-    BlocProvider.of<AnomalieBLoc>(context)
-        .add(LoadAnomalie(accessToken: authState.userInfo.lastToken ?? ''));
-    Get.toNamed(AppRoutes.anomaliePage);
-  }
-
-  void _handleFactures(BuildContext context, AuthSuccess authState) {
-    BlocProvider.of<FactureBloc>(context).add(LoadClientFacture(accessToken: authState?.userInfo.lastToken ?? ''));
-    Get.toNamed(AppRoutes.listeClient);
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 }

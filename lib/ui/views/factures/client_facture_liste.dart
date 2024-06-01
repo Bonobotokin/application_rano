@@ -68,7 +68,26 @@ class _ClientFactureListState extends State<ClientFactureList> {
                   });
                   return _buildClientListWidget(context, sortedReleves, authState);
                 } else if (state is FactureFailure) {
-                  return Center(child: Text('Erreur: ${state.message}'));
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(
+                          Icons.error,
+                          size: 60,
+                          color: Colors.grey,
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Aucune donnée trouvée',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
                 } else {
                   return const Center(child: CircularProgressIndicator());
                 }
