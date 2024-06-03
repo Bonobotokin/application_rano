@@ -6,8 +6,8 @@ class ApiConfig {
   // Augmentation du délai d'expiration à 20 secondes
   static Future<String> determineBaseUrl() async {
     try {
-      var response = await http.get(Uri.parse('$ipAddress/api/serveurTest')).timeout(Duration(seconds: 20));
-      if (response.statusCode == 200) {
+      var response = await http.get(Uri.parse('$ipAddress/api/serveurTest')).timeout(Duration(seconds: 10));
+      if (response.statusCode == 201 || response.statusCode == 200) {
         print("ipAddress connected in $ipAddress");
         return '$ipAddress/api';
       } else {

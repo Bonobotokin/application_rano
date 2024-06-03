@@ -394,12 +394,11 @@ class SaveDataRepositoryLocale {
   Future<void> saveReleverDetailsRelever(List<RelevesModel> releverDataOnlines) async {
     final Database db = await NiADatabases().database;
 
-    print("11111111111111111 ");
     final List<Map<String, dynamic>> localRelever = await ReleverRepository().getAllReleves(db);
 
     print("localRelever ${localRelever}");
     // Vérifier si les données locales existent
-    if (localRelever == null || localRelever.isEmpty) {
+    // if (localRelever == null || localRelever.isEmpty) {
       // Les données locales sont vides, procédez à la synchronisation
       print("Les données locales de relevé sont vides. Effectuer la synchronisation...");
 
@@ -438,10 +437,10 @@ class SaveDataRepositoryLocale {
       });
 
       print("Synchronisation terminée.");
-    } else {
-      // Les données locales existent, aucune synchronisation nécessaire
-      print("Les données locales de relevé existent. Aucune synchronisation nécessaire.");
-    }
+    // } else {
+    //   // Les données locales existent, aucune synchronisation nécessaire
+    //   print("Les données locales de relevé existent. Aucune synchronisation nécessaire.");
+    // }
   }
 
   Future<void> _updateRelever(Transaction txn, RelevesModel relever, String modifiedImageCompteur) async {
@@ -452,18 +451,8 @@ class SaveDataRepositoryLocale {
           ...relever.toMap(),
           'image_compteur': modifiedImageCompteur,
         },
-        where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ? AND etatFacture = ? AND image_compteur = ?',
-        whereArgs: [
-          relever.idReleve,
-          relever.compteurId,
-          relever.contratId,
-          relever.clientId,
-          relever.dateReleve,
-          relever.volume,
-          relever.conso,
-          relever.etatFacture,
-          relever.imageCompteur,
-        ],
+        where: 'id = ?',
+        whereArgs: [relever.id],
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
       print('Relevé mis à jour : ${relever.toJson()}');
@@ -472,6 +461,7 @@ class SaveDataRepositoryLocale {
       rethrow;
     }
   }
+
 
   Future<void> _insertRelever(Transaction txn, RelevesModel relever, String modifiedImageCompteur) async {
     try {

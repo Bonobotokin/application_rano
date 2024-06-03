@@ -93,14 +93,22 @@ class _MissionsPageState extends State<MissionsPage> {
       },
     );
   }
+  DateTime parseDate(String dateString) {
+    List<String> parts = dateString.split('-');
+    int year = int.parse(parts[0]);
+    int month = int.parse(parts[1]);
+    int day = int.parse(parts[2]);
+    return DateTime(year, month, day);
+  }
+
+  bool isCurrentYearAndMonth(String dateString) {
+    DateTime date = parseDate(dateString);
+    DateTime now = DateTime.now();
+    return date.year == now.year && date.month == now.month;
+  }
 
   Widget _buildMissionListWidget(
       List<MissionModel> missions, AuthState authState) {
-    missions.sort((a, b) {
-      final aStatut = a.statut ?? 0;
-      final bStatut = b.statut ?? 0;
-      return aStatut.compareTo(bStatut);
-    });
 
     final filteredMissions = _searchText.isEmpty
         ? missions
@@ -194,20 +202,6 @@ class _MissionsPageState extends State<MissionsPage> {
       ),
     );
   }
-  DateTime parseDate(String dateString) {
-    List<String> parts = dateString.split('-');
-    int year = int.parse(parts[0]);
-    int month = int.parse(parts[1]);
-    int day = int.parse(parts[2]);
-    return DateTime(year, month, day);
-  }
-
-  bool isCurrentYearAndMonth(String dateString) {
-    DateTime date = parseDate(dateString);
-    DateTime now = DateTime.now();
-    return date.year == now.year && date.month == now.month;
-  }
-
 
   Widget _buildMissionTile(
       BuildContext context,

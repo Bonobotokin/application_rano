@@ -1,11 +1,12 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get/get.dart';
+import 'dart:async';
 import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/blocs/factures/facture_bloc.dart';
 import 'package:application_rano/blocs/factures/facture_event.dart';
 import 'package:application_rano/data/services/synchronisation/missions/send_data_mission_sync.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get.dart';
 import 'package:application_rano/blocs/home/home_bloc.dart';
 import 'package:application_rano/blocs/home/home_state.dart';
 import 'package:application_rano/data/models/home_model.dart';
@@ -15,6 +16,8 @@ import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/blocs/missions/missions_bloc.dart';
 import 'package:application_rano/blocs/missions/missions_event.dart';
 import 'package:application_rano/ui/routing/routes.dart';
+import 'package:application_rano/ui/shared/SyncDialog.dart';
+import 'package:application_rano/data/repositories/auth_repository.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -32,7 +35,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController();
+    _controller = TextEditingController(text: '50');
   }
 
   @override
@@ -165,6 +168,9 @@ class _HomePageState extends State<HomePage> {
       'Non traité': nonTraite ?? 0,
       'Réalisé': realise ?? 0,
     });
+    bool canSendData = label == "Relevé de compteurs" && current > 0;
+    bool canSyncMission = label == "Relevé de compteurs";
+    bool canSyncFacture = label == "Factures";
 
     return GestureDetector(
       onTap: () {
@@ -245,37 +251,48 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Row(
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.send),
-                            onPressed: () {
-                              if (label == "Relevé de compteurs" && current > 0) {
-                                _sendMissionData(context, authState);
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Aucune donnée à envoyer',
-                                      style: TextStyle(color: Colors.white),
+                          if (canSendData)
+                            FutureBuilder<int>(
+                              future: checkMissionsToSync(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return SizedBox(
+                                    width: 20.0, // Définir la largeur souhaitée
+                                    height: 20.0, // Définir la hauteur souhaitée
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.0, // Vous pouvez également ajuster la largeur du trait si nécessaire
                                     ),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              }
-                            },
-                            tooltip: 'Envoyer les données',
-                          ),
-                          IconButton(
-                            icon: Icon(Icons.sync),
-                            color: iconColor,
-                            onPressed: () {
-                              if (!_isSyncing && current > 0) {
-                                _syncData(context, authState, label);
-                              }
-                            },
-                          ),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Icon(Icons.error, color: Colors.red);
+                                } else if (snapshot.hasData && snapshot.data! > 0) {
+                                  return IconButton(
+                                    icon: const Icon(Icons.send),
+                                    onPressed: () {
+                                      _sendMissionData(context, authState);
+                                    },
+                                    tooltip: 'Envoyer les données',
+                                  );
+                                } else {
+                                  return Container(); // Conteneur vide s'il n'y a pas de missions à envoyer
+                                }
+                              },
+                            ),
+
+                          if (canSyncMission || canSyncFacture)
+                            IconButton(
+                              icon: Icon(Icons.sync),
+                              color: iconColor,
+                              onPressed: () {
+                                if (canSyncMission) {
+                                  _syncData(context, authState, label);
+                                } else {
+                                  _syncDataFacture(context, authState, label);
+                                }
+                              },
+                            ),
                         ],
                       ),
-
                     ],
                   ),
                 ],
@@ -285,6 +302,13 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  Future<int> checkMissionsToSync() async {
+    final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
+    int numberOfMissions = await sendDataMissionSync.getNumberOfMissionsToSync();
+
+    return numberOfMissions;
   }
 
   void _sendMissionData(BuildContext context, AuthState authState) async {
@@ -309,6 +333,7 @@ class _HomePageState extends State<HomePage> {
                     return null;
                   },
                 ),
+
                 SizedBox(height: 20),
                 // Utilisez la valeur de progression mise à jour ici
                 LinearProgressIndicator(value: _progressValue),
@@ -325,8 +350,8 @@ class _HomePageState extends State<HomePage> {
               ),
               ElevatedButton(
                 onPressed: () async {
-                  int numData = int.tryParse(_controller.text) ?? 0;
-                  if (numData >= 50) {
+                  int? numData = int.tryParse(_controller.text);
+                  if (numData != null && numData >= 1) {
                     // Envoyer les données des missions
                     final sendDataMissionSync = SendDataMissionSync();
                     // Mettez à jour la valeur de progression ici
@@ -334,17 +359,20 @@ class _HomePageState extends State<HomePage> {
                       _progressValue = 0.0; // Réinitialiser la progression
                     });
                     // Envoyer les données des missions en mettant à jour la progression
-                    await sendDataMissionSync.sendDataMissionInserver(authState.userInfo.lastToken ?? '', (progress) {
-                      // Mettre à jour la valeur de progression ici
-                      setState(() {
-                        _progressValue = progress;
-                      });
-                    });
+                    await sendDataMissionSync.sendDataMissionInserver(
+                      authState.userInfo.lastToken ?? '',
+                      numData,
+                          (value) {
+                        setState(() {
+                          _progressValue = value;
+                        });
+                      },
+                    );
 
                     // Fermer la boîte de dialogue après l'envoi des données
                     Navigator.of(context).pop();
-                  } else {
-
+                  }
+                  else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -366,74 +394,167 @@ class _HomePageState extends State<HomePage> {
       // Gérer le cas où authState n'est pas AuthSuccess
     }
   }
+
+
   void _syncData(BuildContext context, AuthState authState, String label) async {
     setState(() {
       _isSyncing = true; // Commencer la synchronisation
     });
 
-    // Afficher la boîte de dialogue de synchronisation
+    // Afficher la boîte de dialogue de synchronisation initiale
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Synchronisation en cours...'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 20),
-              Text('Veuillez patienter...'),
-            ],
-          ),
+        return SyncDialog(
+          duration: 0, // Initialisez la durée à 0 pour l'instant
         );
       },
     );
 
     if (authState is AuthSuccess) {
-      // Appeler la fonction de synchronisation des relevés
-      await _syncReleveData(context, authState); // Attendre la fin de la synchronisation
-    }
+      try {
+        // Appeler la fonction de synchronisation des relevés
+        final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
+        final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+        final durationMissionInSeconds = await sendDataMissionSync.syncDataMissionToLocal(authState.userInfo.lastToken ?? '');
+        await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
 
-    // Terminer la synchronisation
+        // Calculer la somme des durées
+        final totalDurationInSeconds = durationMissionInSeconds;
+
+        // Fermer la boîte de dialogue initiale après un certain temps
+        Timer(Duration(seconds: 2), () {
+          Navigator.of(context).pop();
+        });
+
+        // Afficher la nouvelle boîte de dialogue avec la durée totale
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return SyncDialog(
+              duration: totalDurationInSeconds, // Passer la durée totale
+            );
+          },
+        );
+
+        // Fermer la nouvelle boîte de dialogue après un certain temps
+        Timer(Duration(seconds: totalDurationInSeconds), () {
+          Navigator.of(context).pop();
+        });
+
+        // Terminer la synchronisation
+        setState(() {
+          _isSyncing = false;
+        });
+
+        // Afficher un message de succès après un certain temps
+        Timer(Duration(seconds: totalDurationInSeconds + 2), () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '$label synchronisé avec succès',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        });
+      } catch (error) {
+        print("Erreur lors de la synchronisation : $error");
+      }
+    }
+  }
+
+
+  void _syncDataFacture(BuildContext context, AuthState authState, String label) async {
     setState(() {
-      _isSyncing = false;
+      _isSyncing = true; // Commencer la synchronisation
     });
 
-    // Afficher un message de succès
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          '$label synchronisé avec succès',
-          style: TextStyle(color: Colors.white),
-        ),
-        backgroundColor: Colors.green,
-      ),
+    // Afficher la boîte de dialogue de synchronisation initiale
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return SyncDialog(
+          duration: 0, // Initialisez la durée à 0 pour l'instant
+        );
+      },
     );
-  }
 
-  Future<void> _syncReleveData(BuildContext context, AuthSuccess authState) async {
-    // Synchroniser les relevés
-    final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
-    await sendDataMissionSync.syncDataMissionToLocal(authState.userInfo.lastToken ?? '');
-    await sendDataMissionSync.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
+    if (authState is AuthSuccess) {
+      try {
+        // Appeler la fonction de synchronisation des relevés
+        final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
+        final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+        final durationFactureInSeconds = await sendDataMissionSync.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
+        await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
 
-    // Masquer la barre de progression
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        // Calculer la somme des durées
+        final totalDurationInSeconds = durationFactureInSeconds;
 
-    // Fermer le popup de synchronisation
-    Navigator.of(context).pop();
-  }
+        // Fermer la boîte de dialogue initiale après un certain temps
+        Timer(Duration(seconds: 2), () {
+          Navigator.of(context).pop();
+        });
 
+        // Afficher la nouvelle boîte de dialogue avec la durée totale
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return SyncDialog(
+              duration: totalDurationInSeconds, // Passer la durée totale
+            );
+          },
+        );
 
+        // Fermer la nouvelle boîte de dialogue après un certain temps
+        Timer(Duration(seconds: totalDurationInSeconds), () {
+          Navigator.of(context).pop();
+        });
 
-  void _syncFacturesData(BuildContext context, AuthSuccess authState) async {
-    // Synchroniser les factures
-    final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
-    await sendDataMissionSync.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
+        // Terminer la synchronisation
+        setState(() {
+          _isSyncing = false;
+        });
 
-    // Masquer la barre de progression
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        // Afficher un message de succès après un certain temps
+        Timer(Duration(seconds: totalDurationInSeconds + 2), () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '$label synchronisé avec succès',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        });
+      } catch (error) {
+        print("Erreur lors de la synchronisation : $error");
+
+        // Fermer les boîtes de dialogue en cas d'erreur
+        Navigator.of(context).pop();
+
+        setState(() {
+          _isSyncing = false;
+        });
+
+        // Afficher un message d'erreur
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur lors de la synchronisation',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
 

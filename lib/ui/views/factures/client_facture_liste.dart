@@ -156,7 +156,7 @@ class _ClientFactureListState extends State<ClientFactureList> {
                 if (authState is AuthSuccess) {
                   BlocProvider.of<PaymentBloc>(context).add(LoadPayment(
                       accessToken: authState.userInfo.lastToken ?? '',
-                      relevecompteurId: releve.idReleve ?? releve.id ?? 0,
+                      relevecompteurId: releve.id ?? 0,
                       numCompteur: releve.compteurId,
                       date: releve.dateReleve));
                   Navigator.pushNamed(context, AppRoutes.facturePayed);

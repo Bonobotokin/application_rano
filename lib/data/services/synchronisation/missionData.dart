@@ -14,7 +14,7 @@ class MissionData {
   static Future<void> sendLocalDataToServer(
       MissionModel mission, String? accessToken) async {
     try {
-      final baseUrl = await ApiConfig.determineBaseUrl();
+      String baseUrl = 'http://89.116.38.149:8000/api'; // Déclarez baseUrl comme une variable locale
       final url = '$baseUrl/missions';
       final headers = {
         'Authorization': 'Bearer $accessToken',

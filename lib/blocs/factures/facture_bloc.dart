@@ -26,6 +26,7 @@ class FactureBloc extends Bloc<FactureEvent, FactureState> {
 
       print("Clients: $clients");
       print("Compteurs: $compteurs");
+      print("nombreEtatImpaye ss : $nombreEtatImpaye");
       emit(FactureLoading(
         clients: clients,
         compteurs: compteurs,

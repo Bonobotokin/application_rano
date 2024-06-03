@@ -99,7 +99,7 @@ class FactureLocalRepository {
       print("numCompteur : $relevecompteurId");
       List<Map<String, dynamic>> rows = await db.rawQuery('''
         SELECT * FROM facture
-         WHERE relevecompteur_id = ? 
+         WHERE relevecompteur_id = ?  
       ''',[relevecompteurId]);
 
       print("factures data : $rows");

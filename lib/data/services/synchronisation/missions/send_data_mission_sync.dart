@@ -20,27 +20,46 @@ class SendDataMissionSync {
 
   final SaveDataRepositoryLocale saveDataRepositoryLocale = SaveDataRepositoryLocale();
 
+  Future<int> getNumberOfMissionsToSync() async {
+    try {
+      // Récupérez les données de mission depuis la base de données locale
+      final List<MissionModel> missionsDataLocal = await MissionsRepositoryLocale().getMissionsDataFromLocalDatabase();
 
-  Future<void> sendDataMissionInserver(String accessToken, void Function(double) onProgressUpdate) async {
+      // Filtrez les missions avec le statut 1
+      final List<MissionModel> missionsToSync = missionsDataLocal.where((mission) => mission.statut == 1).toList();
+
+      // Retournez le nombre de missions à synchroniser
+      return missionsToSync.length;
+    } catch (error) {
+      print("Erreur lors de la récupération des missions: $error");
+      return 0; // En cas d'erreur, retournez 0
+    }
+  }
+
+
+  Future<void> sendDataMissionInserver(String accessToken, int batchSize, void Function(double) onProgressUpdate) async {
     try {
       final List<MissionModel> missionsDataLocal = await MissionsRepositoryLocale().getMissionsDataFromLocalDatabase();
       final List<MissionModel> missionsToSync = missionsDataLocal.where((mission) => mission.statut == 1).toList();
 
       if (missionsToSync.isNotEmpty) {
-        final int batchSize = 50;
+        final int totalMissions = missionsToSync.length;
+        int completedMissions = 0;
+
         final List<Future<void>> syncTasks = await _processInBatches(missionsToSync, batchSize, (mission) async {
           print("Envoi de la mission ${mission.id} avec statut ${mission.statut}...");
           await MissionData.sendLocalDataToServer(mission, accessToken);
-          // Calculer la progression et appeler la fonction de rappel
-          double progress = (missionsToSync.indexOf(mission) + 1) / missionsToSync.length;
+          completedMissions++;
+
+          // Calculate the progress and call the callback function
+          double progress = completedMissions / totalMissions;
           onProgressUpdate(progress);
         });
 
-        // Attendre que toutes les tâches de synchronisation soient terminées
+        // Wait for all synchronization tasks to complete
         await Future.wait(syncTasks);
 
         print("Toutes les missions avec le statut 1 ont été envoyées avec succès !");
-
       } else {
         print("Aucune mission avec le statut 1 à synchroniser.");
       }
@@ -49,7 +68,8 @@ class SendDataMissionSync {
     }
   }
 
-  // Helper function to process items in batches
+
+// Helper function to process items in batches
   Future<List<Future<void>>> _processInBatches<T>(List<T> items, int batchSize, Future<void> Function(T item) process) async {
     List<Future<void>> futures = [];
 
@@ -61,7 +81,7 @@ class SendDataMissionSync {
     return futures;
   }
 
-  Future<void> syncDataMissionToLocal(String accessToken) async {
+  Future<int> syncDataMissionToLocal(String accessToken) async {
     try {
       final startTime = DateTime.now(); // Enregistrer l'heure de début de la synchronisation
 
@@ -91,10 +111,14 @@ class SendDataMissionSync {
       final endTime = DateTime.now(); // Enregistrer l'heure de fin de la synchronisation
       final duration = endTime.difference(startTime); // Calculer la durée totale de la synchronisation
       print("Durée totale de la synchronisation des missions: ${duration.inSeconds} secondes");
+
+      return duration.inSeconds; // Retourner la durée en secondes
     } catch (error) {
       print("Erreur lors de la synchronisation des missions vers la base de données locale: $error");
+      return 0; // En cas d'erreur, retourner 0 secondes
     }
   }
+
 
   Future<Map<String, dynamic>> fetchDataClientDetails(
       int? numCompteur, String? accessToken) async {
@@ -201,7 +225,7 @@ class SendDataMissionSync {
     }
   }
 
-  Future<void> syncDataFactureToLocal(String accessToken) async {
+  Future<int> syncDataFactureToLocal(String accessToken) async {
     try {
       final startTime = DateTime.now(); // Enregistrer l'heure de début de la synchronisation
 
@@ -223,11 +247,13 @@ class SendDataMissionSync {
       final endTime = DateTime.now(); // Enregistrer l'heure de fin de la synchronisation
       final duration = endTime.difference(startTime); // Calculer la durée totale de la synchronisation
       print("Durée totale de la synchronisation des factures: ${duration.inSeconds} secondes");
+
+      return duration.inSeconds; // Retourner la durée en secondes
     } catch (error) {
       print("Erreur lors de la synchronisation des factures vers la base de données locale: $error");
+      return -1; // Retourner une valeur négative pour signaler une erreur
     }
   }
-
 
   Future<List<Map<String, dynamic>>> getAllReleves() async {
     try {

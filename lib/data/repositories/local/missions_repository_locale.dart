@@ -10,7 +10,8 @@ class MissionsRepositoryLocale {
       final Database db = await _niaDatabases.database;
       final List<Map<String, dynamic>> maps = await db.query('missions');
 
-      return List.generate(maps.length, (i) {
+      // Récupération des données
+      List<MissionModel> missions = List.generate(maps.length, (i) {
         return MissionModel(
           id: maps[i]['id'],
           nomClient: maps[i]['nom_client'],
@@ -23,8 +24,27 @@ class MissionsRepositoryLocale {
           statut: maps[i]['statut'],
         );
       });
+
+      // Tri des missions en fonction du statut dans l'ordre décroissant 2, 1, 0
+      missions.sort((a, b) {
+        final aStatut = _mapStatutToValid(a.statut) ?? 0;
+        final bStatut = _mapStatutToValid(b.statut) ?? 0;
+        return bStatut.compareTo(aStatut);
+      });
+
+      return missions;
     } catch (e) {
       throw Exception("Failed to get missions data from local database: $e");
+    }
+  }
+
+  int? _mapStatutToValid(int? statut) {
+    switch (statut) {
+      case 1:
+      case 2:
+        return statut;
+      default:
+        return null; // Renvoie null si le statut est null ou différent de 1 ou 2
     }
   }
 }
