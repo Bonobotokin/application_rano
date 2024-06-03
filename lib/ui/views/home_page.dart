@@ -1,3 +1,4 @@
+import 'package:application_rano/data/services/synchronisation/sync_facture.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -6,7 +7,6 @@ import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/blocs/factures/facture_bloc.dart';
 import 'package:application_rano/blocs/factures/facture_event.dart';
-import 'package:application_rano/data/services/synchronisation/missions/send_data_mission_sync.dart';
 import 'package:application_rano/blocs/home/home_bloc.dart';
 import 'package:application_rano/blocs/home/home_state.dart';
 import 'package:application_rano/data/models/home_model.dart';
@@ -18,7 +18,8 @@ import 'package:application_rano/blocs/missions/missions_event.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 import 'package:application_rano/ui/shared/SyncDialog.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
-
+import 'package:application_rano/data/services/synchronisation/missions/SyncMissionService.dart';
+import 'package:application_rano/data/services/synchronisation/factures/SyncFactureService.dart';
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -170,6 +171,7 @@ class _HomePageState extends State<HomePage> {
     });
     bool canSendData = label == "Relevé de compteurs" && current > 0;
     bool canSyncMission = label == "Relevé de compteurs";
+    bool canSendDataFacture = label == "Factures" && current > 0;
     bool canSyncFacture = label == "Factures";
 
     return GestureDetector(
@@ -278,7 +280,33 @@ class _HomePageState extends State<HomePage> {
                                 }
                               },
                             ),
-
+                          if (canSendDataFacture)
+                            FutureBuilder<int>(
+                            future: checkFactureToSync(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return SizedBox(
+                                  width: 20.0, // Définir la largeur souhaitée
+                                  height: 20.0, // Définir la hauteur souhaitée
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.0, // Vous pouvez également ajuster la largeur du trait si nécessaire
+                                  ),
+                                );
+                              } else if (snapshot.hasError) {
+                                return Icon(Icons.error, color: Colors.red);
+                              } else if (snapshot.hasData && snapshot.data! > 0) {
+                                return IconButton(
+                                  icon: const Icon(Icons.send),
+                                  onPressed: () {
+                                    _sendFactureData(context, authState);
+                                  },
+                                  tooltip: 'Envoyer les données',
+                                );
+                              } else {
+                                return Container(); // Conteneur vide s'il n'y a pas de missions à envoyer
+                              }
+                            },
+                          ),
                           if (canSyncMission || canSyncFacture)
                             IconButton(
                               icon: Icon(Icons.sync),
@@ -305,10 +333,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<int> checkMissionsToSync() async {
-    final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
-    int numberOfMissions = await sendDataMissionSync.getNumberOfMissionsToSync();
+    final SyncMissionService syncMissionService = SyncMissionService();
+    int numberOfMissions = await syncMissionService.getNumberOfMissionsToSync();
 
     return numberOfMissions;
+  }
+
+  Future<int> checkFactureToSync() async {
+    final SyncFactureService syncFactureService = SyncFactureService();
+    int numberOfFacture = await syncFactureService.getNumberOfFactureToSync();
+
+    return numberOfFacture;
   }
 
   void _sendMissionData(BuildContext context, AuthState authState) async {
@@ -353,13 +388,13 @@ class _HomePageState extends State<HomePage> {
                   int? numData = int.tryParse(_controller.text);
                   if (numData != null && numData >= 1) {
                     // Envoyer les données des missions
-                    final sendDataMissionSync = SendDataMissionSync();
+                    final syncMissionService = SyncMissionService();
                     // Mettez à jour la valeur de progression ici
                     setState(() {
                       _progressValue = 0.0; // Réinitialiser la progression
                     });
                     // Envoyer les données des missions en mettant à jour la progression
-                    await sendDataMissionSync.sendDataMissionInserver(
+                    await syncMissionService.sendDataMissionInserver(
                       authState.userInfo.lastToken ?? '',
                       numData,
                           (value) {
@@ -415,9 +450,9 @@ class _HomePageState extends State<HomePage> {
     if (authState is AuthSuccess) {
       try {
         // Appeler la fonction de synchronisation des relevés
-        final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
+        final SyncMissionService syncMissionService = SyncMissionService();
         final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
-        final durationMissionInSeconds = await sendDataMissionSync.syncDataMissionToLocal(authState.userInfo.lastToken ?? '');
+        final durationMissionInSeconds = await syncMissionService.syncDataMissionToLocal(authState.userInfo.lastToken ?? '');
         await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
 
         // Calculer la somme des durées
@@ -467,6 +502,89 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _sendFactureData(BuildContext context, AuthState authState) async {
+    if (authState is AuthSuccess) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Envoyer les données'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _controller,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Veuillez entrer un nombre';
+                    }
+                    return null;
+                  },
+                ),
+
+                SizedBox(height: 20),
+                // Utilisez la valeur de progression mise à jour ici
+                LinearProgressIndicator(value: _progressValue),
+                SizedBox(height: 10),
+                Text('Veuillez patienter...'),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Annuler'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  int? numData = int.tryParse(_controller.text);
+                  if (numData != null && numData >= 1) {
+                    // Envoyer les données des missions
+                    final syncFactureService = SyncFactureService();
+                    // Mettez à jour la valeur de progression ici
+                    setState(() {
+                      _progressValue = 0.0; // Réinitialiser la progression
+                    });
+                    // Envoyer les données des missions en mettant à jour la progression
+                    await syncFactureService.sendDataFactureInserver(
+                      authState.userInfo.lastToken ?? '',
+                      numData,
+                          (value) {
+                        setState(() {
+                          _progressValue = value;
+                        });
+                      },
+                    );
+
+                    // Fermer la boîte de dialogue après l'envoi des données
+                    Navigator.of(context).pop();
+                  }
+                  else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Le nombre minimum de données à envoyer est de 50',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: Text('Valider'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Gérer le cas où authState n'est pas AuthSuccess
+    }
+  }
 
   void _syncDataFacture(BuildContext context, AuthState authState, String label) async {
     setState(() {
@@ -487,9 +605,9 @@ class _HomePageState extends State<HomePage> {
     if (authState is AuthSuccess) {
       try {
         // Appeler la fonction de synchronisation des relevés
-        final SendDataMissionSync sendDataMissionSync = SendDataMissionSync();
+        final SyncFactureService syncFactureService = SyncFactureService();
         final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
-        final durationFactureInSeconds = await sendDataMissionSync.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
+        final durationFactureInSeconds = await syncFactureService.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
         await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
 
         // Calculer la somme des durées

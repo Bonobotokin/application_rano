@@ -3,7 +3,6 @@ import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
 import 'package:application_rano/data/models/contrat_model.dart';
 import 'package:application_rano/data/models/releves_model.dart';
-import 'package:application_rano/data/services/databases/nia_databases.dart';
 import 'package:http/http.dart' as http; // Importez http pour effectuer des requêtes HTTP
 
 import 'package:application_rano/data/models/missions_model.dart';
@@ -12,9 +11,9 @@ import 'package:application_rano/data/services/saveData/save_data_service_locale
 import 'package:application_rano/data/services/synchronisation/missionData.dart';
 import 'package:application_rano/data/services/synchronisation/sync_facture.dart';
 import 'package:application_rano/data/services/synchronisation/sync_mission.dart';
-import 'package:sqflite/sqflite.dart';
 
-class SendDataMissionSync {
+
+class SyncMissionService {
   final SyncMission _syncMission = SyncMission();
   final SyncFacture _syncFacture = SyncFacture();
 
@@ -68,18 +67,6 @@ class SendDataMissionSync {
     }
   }
 
-
-// Helper function to process items in batches
-  Future<List<Future<void>>> _processInBatches<T>(List<T> items, int batchSize, Future<void> Function(T item) process) async {
-    List<Future<void>> futures = [];
-
-    for (int i = 0; i < items.length; i += batchSize) {
-      final List<T> batch = items.skip(i).take(batchSize).toList();
-      futures.addAll(batch.map(process));
-    }
-
-    return futures;
-  }
 
   Future<int> syncDataMissionToLocal(String accessToken) async {
     try {
@@ -225,47 +212,17 @@ class SendDataMissionSync {
     }
   }
 
-  Future<int> syncDataFactureToLocal(String accessToken) async {
-    try {
-      final startTime = DateTime.now(); // Enregistrer l'heure de début de la synchronisation
 
-      // Récupérer tous les relevés de la base de données locale
-      final List<Map<String, dynamic>> releves = await getAllReleves();
 
-      // Extraire les IDs des relevés
-      final List<int> idRelievers = releves.map<int>((releve) => releve['id'] as int).toList();
+// Helper function to process items in batches
+  Future<List<Future<void>>> _processInBatches<T>(List<T> items, int batchSize, Future<void> Function(T item) process) async {
+    List<Future<void>> futures = [];
 
-      // Étape 4: Synchronisation des factures après le traitement des missions
-      print("Début de la synchronisation des factures");
-      const int factureBatchSize = 50; // Taille des lots pour les factures
-      await _processInBatches(idRelievers, factureBatchSize, (idReliever) async {
-        print("ID du relevé : $idReliever");
-        await _syncFacture.syncFactureTable(accessToken, idReliever);
-      });
-      print("Synchronisation des factures terminée");
-
-      final endTime = DateTime.now(); // Enregistrer l'heure de fin de la synchronisation
-      final duration = endTime.difference(startTime); // Calculer la durée totale de la synchronisation
-      print("Durée totale de la synchronisation des factures: ${duration.inSeconds} secondes");
-
-      return duration.inSeconds; // Retourner la durée en secondes
-    } catch (error) {
-      print("Erreur lors de la synchronisation des factures vers la base de données locale: $error");
-      return -1; // Retourner une valeur négative pour signaler une erreur
+    for (int i = 0; i < items.length; i += batchSize) {
+      final List<T> batch = items.skip(i).take(batchSize).toList();
+      futures.addAll(batch.map(process));
     }
-  }
 
-  Future<List<Map<String, dynamic>>> getAllReleves() async {
-    try {
-      final Database db = await NiADatabases().database;
-      // Exécuter la requête SQL pour sélectionner toutes les lignes de la table releves
-      List<Map<String, dynamic>> rows = await db.rawQuery('''
-        SELECT * FROM releves
-      ''');
-      return rows; // Retourner les lignes de la table releves
-    } catch (e) {
-      throw Exception("Failed to get all releves: $e");
-    }
+    return futures;
   }
-
 }
