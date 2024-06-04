@@ -3,6 +3,7 @@ import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
 import 'package:application_rano/data/models/contrat_model.dart';
 import 'package:application_rano/data/models/releves_model.dart';
+import 'package:application_rano/data/services/databases/nia_databases.dart';
 import 'package:http/http.dart' as http; // Importez http pour effectuer des requêtes HTTP
 
 import 'package:application_rano/data/models/missions_model.dart';
@@ -11,11 +12,12 @@ import 'package:application_rano/data/services/saveData/save_data_service_locale
 import 'package:application_rano/data/services/synchronisation/missionData.dart';
 import 'package:application_rano/data/services/synchronisation/sync_facture.dart';
 import 'package:application_rano/data/services/synchronisation/sync_mission.dart';
+import 'package:sqflite/sqlite_api.dart';
 
 
 class SyncMissionService {
   final SyncMission _syncMission = SyncMission();
-  final SyncFacture _syncFacture = SyncFacture();
+  final NiADatabases _niaDatabases = NiADatabases();
 
   final SaveDataRepositoryLocale saveDataRepositoryLocale = SaveDataRepositoryLocale();
 
@@ -38,7 +40,7 @@ class SyncMissionService {
 
   Future<void> sendDataMissionInserver(String accessToken, int batchSize, void Function(double) onProgressUpdate) async {
     try {
-      final List<MissionModel> missionsDataLocal = await MissionsRepositoryLocale().getMissionsDataFromLocalDatabase();
+      final List<MissionModel> missionsDataLocal = await getMissionsDataFromLocalDatabase();
       final List<MissionModel> missionsToSync = missionsDataLocal.where((mission) => mission.statut == 1).toList();
 
       if (missionsToSync.isNotEmpty) {
@@ -46,7 +48,7 @@ class SyncMissionService {
         int completedMissions = 0;
 
         final List<Future<void>> syncTasks = await _processInBatches(missionsToSync, batchSize, (mission) async {
-          print("Envoi de la mission ${mission.id} avec statut ${mission.statut}...");
+          print("Envoi de la mission ${mission.numCompteur} avec statut ${mission.statut}...");
           await MissionData.sendLocalDataToServer(mission, accessToken);
           completedMissions++;
 
@@ -67,6 +69,52 @@ class SyncMissionService {
     }
   }
 
+  Future<List<MissionModel>> getMissionsDataFromLocalDatabase() async {
+    try {
+      final Database db = await _niaDatabases.database;
+      List<Map<String, dynamic>> maps = [];
+
+      // Commencez une transaction
+      await db.transaction((txn) async {
+        maps = await txn.query('missions');
+      });
+
+      // Récupération des données et tri
+      List<MissionModel> missions = List.generate(maps.length, (i) {
+        return MissionModel(
+          id: maps[i]['id'],
+          nomClient: maps[i]['nom_client'],
+          prenomClient: maps[i]['prenom_client'],
+          adresseClient: maps[i]['adresse_client'],
+          numCompteur: maps[i]['num_compteur'],
+          consoDernierReleve: maps[i]['conso_dernier_releve'],
+          volumeDernierReleve: maps[i]['volume_dernier_releve'],
+          dateReleve: maps[i]['date_releve'],
+          statut: maps[i]['statut'],
+        );
+      });
+
+      // Tri des missions en fonction du statut dans l'ordre décroissant 2, 1, 0
+      missions.sort((a, b) {
+        final aStatut = _mapStatutToValid(a.statut) ?? 0;
+        final bStatut = _mapStatutToValid(b.statut) ?? 0;
+        return bStatut.compareTo(aStatut);
+      });
+
+      return missions;
+    } catch (e) {
+      throw Exception("Failed to get missions data from local database: $e");
+    }
+  }
+  int? _mapStatutToValid(int? statut) {
+    switch (statut) {
+      case 1:
+      case 2:
+        return statut;
+      default:
+        return null; // Renvoie null si le statut est null ou différent de 1 ou 2
+    }
+  }
 
   Future<int> syncDataMissionToLocal(String accessToken) async {
     try {

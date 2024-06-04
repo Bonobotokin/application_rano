@@ -20,6 +20,7 @@ import 'package:application_rano/ui/shared/SyncDialog.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
 import 'package:application_rano/data/services/synchronisation/missions/SyncMissionService.dart';
 import 'package:application_rano/data/services/synchronisation/factures/SyncFactureService.dart';
+import 'package:application_rano/data/services/synchronisation/anomalie/SyncAnomalieService.dart';
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -173,6 +174,8 @@ class _HomePageState extends State<HomePage> {
     bool canSyncMission = label == "Relevé de compteurs";
     bool canSendDataFacture = label == "Factures" && current > 0;
     bool canSyncFacture = label == "Factures";
+    bool canSendDataAnomalie = label == "Main courante";
+    bool canSyncAnomalie = label == "Main courante";
 
     return GestureDetector(
       onTap: () {
@@ -253,6 +256,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Row(
                         children: [
+
                           if (canSendData)
                             FutureBuilder<int>(
                               future: checkMissionsToSync(),
@@ -307,15 +311,44 @@ class _HomePageState extends State<HomePage> {
                               }
                             },
                           ),
-                          if (canSyncMission || canSyncFacture)
+                          if (canSendDataAnomalie)
+                            FutureBuilder<int>(
+                              future: checkAnomalieToSync(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return SizedBox(
+                                    width: 20.0, // Définir la largeur souhaitée
+                                    height: 20.0, // Définir la hauteur souhaitée
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.0, // Vous pouvez également ajuster la largeur du trait si nécessaire
+                                    ),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Icon(Icons.error, color: Colors.red);
+                                } else if (snapshot.hasData && snapshot.data! > 0) {
+                                  return IconButton(
+                                    icon: const Icon(Icons.send),
+                                    onPressed: () {
+                                      _sendAnomalieData(context, authState);
+                                    },
+                                    tooltip: 'Envoyer les données',
+                                  );
+                                } else {
+                                  return Container(); // Conteneur vide s'il n'y a pas de missions à envoyer
+                                }
+                              },
+                            ),
+                          if (canSyncMission || canSyncFacture || canSyncAnomalie)
                             IconButton(
                               icon: Icon(Icons.sync),
                               color: iconColor,
                               onPressed: () {
                                 if (canSyncMission) {
                                   _syncData(context, authState, label);
-                                } else {
+                                } else if(canSyncFacture) {
                                   _syncDataFacture(context, authState, label);
+                                } else {
+                                  _syncDataAnomalie(context, authState, label);
                                 }
                               },
                             ),
@@ -344,6 +377,13 @@ class _HomePageState extends State<HomePage> {
     int numberOfFacture = await syncFactureService.getNumberOfFactureToSync();
 
     return numberOfFacture;
+  }
+
+  Future<int> checkAnomalieToSync() async {
+    final SyncAnomalieService syncAnomalieService = SyncAnomalieService();
+    int numberOfAnomalie = await syncAnomalieService.getNumberOfAnomaliesToSync();
+
+    return numberOfAnomalie;
   }
 
   void _sendMissionData(BuildContext context, AuthState authState) async {
@@ -429,7 +469,6 @@ class _HomePageState extends State<HomePage> {
       // Gérer le cas où authState n'est pas AuthSuccess
     }
   }
-
 
   void _syncData(BuildContext context, AuthState authState, String label) async {
     setState(() {
@@ -612,6 +651,181 @@ class _HomePageState extends State<HomePage> {
 
         // Calculer la somme des durées
         final totalDurationInSeconds = durationFactureInSeconds;
+
+        // Fermer la boîte de dialogue initiale après un certain temps
+        Timer(Duration(seconds: 2), () {
+          Navigator.of(context).pop();
+        });
+
+        // Afficher la nouvelle boîte de dialogue avec la durée totale
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return SyncDialog(
+              duration: totalDurationInSeconds, // Passer la durée totale
+            );
+          },
+        );
+
+        // Fermer la nouvelle boîte de dialogue après un certain temps
+        Timer(Duration(seconds: totalDurationInSeconds), () {
+          Navigator.of(context).pop();
+        });
+
+        // Terminer la synchronisation
+        setState(() {
+          _isSyncing = false;
+        });
+
+        // Afficher un message de succès après un certain temps
+        Timer(Duration(seconds: totalDurationInSeconds + 2), () {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                '$label synchronisé avec succès',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        });
+      } catch (error) {
+        print("Erreur lors de la synchronisation : $error");
+
+        // Fermer les boîtes de dialogue en cas d'erreur
+        Navigator.of(context).pop();
+
+        setState(() {
+          _isSyncing = false;
+        });
+
+        // Afficher un message d'erreur
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur lors de la synchronisation',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+
+
+  void _sendAnomalieData(BuildContext context, AuthState authState) async {
+    if (authState is AuthSuccess) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Envoyer les données'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _controller,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Veuillez entrer un nombre';
+                    }
+                    return null;
+                  },
+                ),
+
+                SizedBox(height: 20),
+                // Utilisez la valeur de progression mise à jour ici
+                LinearProgressIndicator(value: _progressValue),
+                SizedBox(height: 10),
+                Text('Veuillez patienter...'),
+              ],
+            ),
+            actions: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Annuler'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  int? numData = int.tryParse(_controller.text);
+                  if (numData != null && numData >= 1) {
+                    // Envoyer les données des missions
+                    final syncAnomalieService = SyncAnomalieService();
+                    // Mettez à jour la valeur de progression ici
+                    setState(() {
+                      _progressValue = 0.0; // Réinitialiser la progression
+                    });
+                    // Envoyer les données des missions en mettant à jour la progression
+                    await syncAnomalieService.sendAnomaliesToServer(
+                      authState.userInfo.lastToken ?? '',
+                      numData,
+                          (value) {
+                        setState(() {
+                          _progressValue = value;
+                        });
+                      },
+                    );
+
+                    // Fermer la boîte de dialogue après l'envoi des données
+                    Navigator.of(context).pop();
+                  }
+                  else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Le nombre minimum de données à envoyer est de 50',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: Text('Valider'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // Gérer le cas où authState n'est pas AuthSuccess
+    }
+  }
+
+  void _syncDataAnomalie(BuildContext context, AuthState authState, String label) async {
+    setState(() {
+      _isSyncing = true; // Commencer la synchronisation
+    });
+
+    // Afficher la boîte de dialogue de synchronisation initiale
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return SyncDialog(
+          duration: 0, // Initialisez la durée à 0 pour l'instant
+        );
+      },
+    );
+
+    if (authState is AuthSuccess) {
+      try {
+        // Appeler la fonction de synchronisation des relevés
+        final SyncAnomalieService syncAnomalieService = SyncAnomalieService();
+        final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+        final durationAnomalieInSeconds = await syncAnomalieService.syncDataAnomalieToLocal(authState.userInfo.lastToken ?? '');
+        await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
+
+        // Calculer la somme des durées
+        final totalDurationInSeconds = durationAnomalieInSeconds;
 
         // Fermer la boîte de dialogue initiale après un certain temps
         Timer(Duration(seconds: 2), () {

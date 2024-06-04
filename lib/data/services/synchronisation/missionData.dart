@@ -25,6 +25,8 @@ class MissionData {
       final releveMission =
       await getReleverMission(mission.numCompteur, NiADatabases());
 
+      print("NumCOmpteur envoie ${mission.numCompteur}");
+
       // Vérifier si des données ont été récupérées
       if (releveMission.isNotEmpty && releveMission.containsKey('imagePath')) {
         final imagePath = releveMission['imagePath'];
@@ -35,7 +37,7 @@ class MissionData {
         // Vérifier si le fichier existe avant de l'envoyer
         if (imageCompteurFile.existsSync()) {
           // Redimensionner l'image
-          File resizedImageFile = await resizeImage(imageCompteurFile);
+            File resizedImageFile = await resizeImage(imageCompteurFile);
 
           // Créer une requête multipart
           var request = http.MultipartRequest('POST', Uri.parse(url))
@@ -87,9 +89,10 @@ class MissionData {
       List<Map<String, dynamic>> rows = await db.rawQuery('''
         SELECT image_compteur
         FROM releves 
-        WHERE compteur_id = ? AND image_compteur != 'null' AND image_compteur != ''
+        WHERE compteur_id = ? AND image_compteur != 'null' AND image_compteur != '' AND image_compteur != '/media/%20'
       ''', [numCompteur]);
 
+      print("Verrifie image_compter ${rows}");
       if (rows.isNotEmpty) {
         final String? imageCompteurPath =
         rows[0]['image_compteur'] as String?;

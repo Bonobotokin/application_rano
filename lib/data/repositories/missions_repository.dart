@@ -214,7 +214,7 @@ class MissionsRepository {
             date,
             imageCompteur,
           );
-
+          await _updateNombreReleverEffectue(db);
           print(
               'Mission mise à jour avec succès dans la base de données locale');
 

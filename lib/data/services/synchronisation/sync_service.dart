@@ -64,7 +64,7 @@ class SyncService {
         syncTasks.add(_processInBatches(missionsToSync, 50, (mission) async {
           if (mission.statut != null && mission.statut != 0) {
             print("Envoi de la mission ${mission.id} avec statut ${mission.statut}...");
-            await MissionData.sendLocalDataToServer(mission, accessToken);
+            // await MissionData.sendLocalDataToServer(mission, accessToken);
           } else {
             print("Mission ${mission.id} ignorée car son statut est nul ou égal à 0.");
           }
@@ -88,7 +88,7 @@ class SyncService {
 
       // Étape 1: Synchronisation des anomalies
       print("Début de la synchronisation des anomalies");
-      await _syncAnomalie.syncAnomalieTable(accessToken);
+        await _syncAnomalie.syncAnomalieTable(accessToken);
       print("Synchronisation des anomalies terminée");
 
       // Étape 2: Récupération des missions
