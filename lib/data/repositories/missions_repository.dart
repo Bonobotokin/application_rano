@@ -53,7 +53,7 @@ class MissionsRepository {
                     (existingMission['volume_dernier_releve'] as int);
           print("num updatedConsoDernierReleve: $updatedConsoDernierReleve");
           // Mise à jour de la mission existante
-          print("num COmpteur: $missionId");
+          print("num Compteur: $missionId");
           await db.update(
             'missions',
             {

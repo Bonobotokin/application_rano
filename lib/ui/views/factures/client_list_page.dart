@@ -223,9 +223,10 @@ class _ClientListPageState extends State<ClientListPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 10),
-              Text('Adresse: ${compteur.id}'),
+              Text('Adresse: ${client.adresse}'),
               Text('Téléphone: ${client.telephone_1 == "" ? "pas de numero" : client.telephone_1}'),
               Text('Contrat: ${client.actif == 1 ? "Actif" : "Desactivé"}'),  // Ajout de la condition pour afficher l'état du contrat
+              Text('Numero compteur: ${compteur.id}'),
               const SizedBox(height: 10),
               Text('Totale facture: ${nombreEtatImpaye + nombreEtatPaye}'),
               const SizedBox(height: 10),
@@ -245,6 +246,7 @@ class _ClientListPageState extends State<ClientListPage> {
                       Text('$nombreEtatImpaye'),
                     ],
                   ),
+
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

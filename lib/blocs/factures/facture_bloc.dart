@@ -23,6 +23,7 @@ class FactureBloc extends Bloc<FactureEvent, FactureState> {
       final compteurs = clientData['compteurs'] as List<CompteurModel>;
       final nombreEtatImpaye = clientData['nombre'] as List<int>;
       final nombreEtatPaye = clientData['payer'] as List<int>; // Ajoutez cette ligne
+      final nombreEncoursPayement = clientData['en_cours'] as List<int>; // Ajoutez cette ligne
 
       print("Clients: $clients");
       print("Compteurs: $compteurs");

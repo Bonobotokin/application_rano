@@ -30,7 +30,8 @@ class ClientRepository {
         compteur.marque, 
         compteur.modele, 
         COUNT(CASE WHEN releves.etatFacture = 'Impayé' THEN 1 ELSE NULL END) AS nombre_etat_impaye,
-        COUNT(CASE WHEN releves.etatFacture = 'Payé' THEN 1 ELSE NULL END) AS nombre_etat_paye
+        COUNT(CASE WHEN releves.etatFacture = 'Payé' THEN 1 ELSE NULL END) AS nombre_etat_paye,
+        COUNT(CASE WHEN releves.etatFacture = 'En cours' THEN 1 ELSE NULL END) AS nombre_en_cours
       FROM releves
       JOIN compteur ON releves.compteur_id = compteur.id 
       JOIN contrat ON releves.contrat_id = contrat.id
@@ -46,6 +47,7 @@ class ClientRepository {
         List<CompteurModel> compteurs = [];
         List<int> nombreEtatImpaye = [];
         List<int> nombreEtatPaye = [];
+        List<int> nombreEncoursPayement = [];
 
         // Parcourez chaque ligne de résultat
         for (final row in rows) {
@@ -74,13 +76,15 @@ class ClientRepository {
           // Ajoutez le nombre d'états de facture impayés à la liste correspondante
           nombreEtatImpaye.add(row['nombre_etat_impaye'] ?? 0);
           nombreEtatPaye.add(row['nombre_etat_paye'] ?? 0);
+          nombreEncoursPayement.add(row['nombre_en_cours']);
         }
 
         return {
           'clients': clients,
           'compteurs': compteurs,
           'nombre': nombreEtatImpaye,
-          'payer': nombreEtatPaye, // Utilisation correcte de la clé 'payer'
+          'payer': nombreEtatPaye,
+          'en_cours': nombreEncoursPayement,
         };
       } else {
         // Si aucune donnée n'a été trouvée, lancez une exception

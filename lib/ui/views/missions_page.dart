@@ -500,16 +500,24 @@ class _MissionsPageState extends State<MissionsPage> {
     );
   }
 
+
   Future<String?> _getImage() async {
+  try {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      return pickedFile.path; // Retourner le chemin de l'image sélectionnée
+      return pickedFile.path;
     } else {
       print('Aucune image sélectionnée.');
       return null;
     }
+  } catch (e) {
+    print('Erreur lors de la prise de la photo: $e');
+    return null;
   }
+}
+
+
 
 }

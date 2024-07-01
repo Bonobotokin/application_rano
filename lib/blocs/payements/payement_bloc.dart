@@ -30,7 +30,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
       print("all Facture ${getAllFacturessss}");
       print("releveCompteurId ${event.relevecompteurId}");
-      print("numCompteur ${event.numCompteur}");
+      print("numCompteurss ${event.numCompteur}");
 
       final factureData = await factureLocalRepository.getFactureById(event.relevecompteurId);
       final factures = factureData['factures'];

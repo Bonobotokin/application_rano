@@ -310,87 +310,6 @@ class SaveDataRepositoryLocale {
     }
   }
 
-
-  // Future<void> saveReleverDetailsRelever(List<RelevesModel> relevesModels) async {
-  //   try {
-  //     final db = await NiADatabases().database;
-  //     for (final releve in relevesModels) {
-  //       print("fffffffffffffffffff $releve");
-  //
-  //       String modifiedImageCompteur = releve.imageCompteur;
-  //
-  //       if (releve.imageCompteur.isNotEmpty && releve.imageCompteur.startsWith("/media/compteurs/${releve.compteurId}/")) {
-  //         modifiedImageCompteur = releve.imageCompteur.replaceAll("/media/compteurs/${releve.compteurId}/", "/data/user/0/com.example.application_rano/app_flutter/assets/images/");
-  //       }
-  //
-  //       final List<Map<String, dynamic>> existingRows = await db.query(
-  //         'releves',
-  //         where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ? AND etatFacture = ? AND image_compteur = ? ',
-  //         whereArgs: [
-  //           releve.idReleve,
-  //           releve.compteurId,
-  //           releve.contratId,
-  //           releve.clientId,
-  //           releve.dateReleve,
-  //           releve.volume,
-  //           releve.conso,
-  //           releve.etatFacture,
-  //           releve.imageCompteur // Utilisez l'image originale ici, car c'est ce qui est stocké dans la base de données
-  //         ],
-  //       );
-  //
-  //       if (existingRows.isNotEmpty) {
-  //         print('Les données de relevé existent déjà dans la base de données locale.');
-  //         // Mise à jour des données
-  //         await db.update(
-  //           'releves',
-  //           releve.toMap()..['image_compteur'] = modifiedImageCompteur, // Mettre à jour l'image_compteur avec la valeur modifiée
-  //           where: 'id_releve = ? AND compteur_id = ? AND contrat_id = ? AND client_id = ? AND date_releve = ? AND volume = ? AND conso = ? AND etatFacture = ? AND image_compteur = ? ',
-  //           whereArgs: [
-  //             releve.idReleve,
-  //             releve.compteurId,
-  //             releve.contratId,
-  //             releve.clientId,
-  //             releve.dateReleve,
-  //             releve.volume,
-  //             releve.conso,
-  //             releve.etatFacture,
-  //             releve.imageCompteur // Utilisez l'image originale ici, car c'est ce qui est stocké dans la base de données
-  //           ],
-  //         );
-  //         print('Données de relevé mises à jour avec succès dans la base de données locale : $releve');
-  //         continue;
-  //       }
-  //
-  //       await db.insert(
-  //         'releves',
-  //         {
-  //           ...releve.toMap(), // Ajouter les valeurs existantes du modèle
-  //           'id': releve.id,
-  //           'id_releve': releve.idReleve,
-  //           'compteur_id': releve.compteurId,
-  //           'contrat_id': releve.contratId,
-  //           'client_id': releve.clientId,
-  //           'date_releve': releve.dateReleve,
-  //           'volume': releve.volume,
-  //           'conso': releve.conso,
-  //           'etatFacture':  releve.etatFacture,
-  //           'image_compteur': modifiedImageCompteur, // Ajouter la nouvelle valeur de l'image_compteur
-  //         },
-  //         conflictAlgorithm: ConflictAlgorithm.replace,
-  //       );
-  //       print('Données de relevé enregistrées avec succès dans la base de données locale : $releve');
-  //     }
-  //
-  //     final List<Map<String, dynamic>> savedRows = await db.query('releves');
-  //     print('Données enregistrées : $savedRows');
-  //   } catch (error) {
-  //     throw Exception("Failed to save releves data to local database: $error");
-  //   }
-  // }
-
-
-
   Future<void> saveReleverDetailsRelever(List<RelevesModel> releverDataOnlines) async {
     final Database db = await NiADatabases().database;
 
@@ -505,20 +424,24 @@ class SaveDataRepositoryLocale {
           // print('existingFacture["statut"]: ${existingFacture["statut"]}');
           // print('statut different: ${factureOnline.statut != existingFacture["statut"]}');
           // print('verrification data ${factureOnline.montantTotalTTC == existingFacture['montant_total_ttc'] || factureOnline.statut == existingFacture['statut']}');
+          if(factureOnline.statut == "Payé" && factureOnline.montantPayer >= 0.0) {
+            print("MandeaaaUpdate");
+            await _updateFacture(txn, factureOnline);
+            if (factureOnline.statut == "Payé") {
+              await txn.update(
+                'facture_paiment',
+                {'statut': 'Payé'},
+                where: 'facture_id = ?',
+                whereArgs: [existingFactureId],
+              );
+            }
 
-          await _updateFacture(txn, factureOnline);
-          print('gggggggggggg');
-          if (factureOnline.statut == "Payé") {
-            await txn.update(
-              'facture_paiment',
-              {'statut': 'Payé'},
-              where: 'facture_id = ?',
-              whereArgs: [existingFactureId],
-            );
+            print('hhhhhhhhhhhhhh');
           }
 
-          print('hhhhhhhhhhhhhh');
+
         } else {
+          print("Mandeaaa Insertion");
           final factureId = await _insertFacture(txn, factureOnline);
 
           final DateTime now = DateTime.now();

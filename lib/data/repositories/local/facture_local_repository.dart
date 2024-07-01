@@ -161,7 +161,7 @@ class FactureLocalRepository {
         await db.update(
           'facture',
           {
-            'statut': 'Payé',
+            'statut': 'En cours',
             // Ajoutez d'autres champs à mettre à jour si nécessaire
           },
           where: 'id = ?',
@@ -185,6 +185,15 @@ class FactureLocalRepository {
           whereArgs: [idFacture],
         );
         await _updateNombreReleverEffectue(db);
+        await db.update(
+          'releves',
+          {
+            'etatFacture': "En cours",
+          },
+          where: 'id = ?',
+          whereArgs: [relevecompteur],
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
         print('Facture mise à jour avec succès dans la base de données locale');
       } else {
         // La facture n'existe pas, traiter ce cas en conséquence
@@ -201,7 +210,7 @@ class FactureLocalRepository {
     try {
       // Récupérer le nombre total de missions avec le statut 1 ou 0
       final factureCount = Sqflite.firstIntValue(await db.rawQuery('''
-        SELECT COUNT(*) FROM facture WHERE statut IN ('Payé')
+        SELECT COUNT(*) FROM facture WHERE statut IN ('En cours')
       '''));
       print("FactureCount $factureCount");
       // Mettre à jour le nombre de relevés effectués dans la table "acceuil"
@@ -215,8 +224,15 @@ class FactureLocalRepository {
 
   Future<List<FacturePaymentModel>> getAllPayments() async {
     try {
-      final Database db = await _niaDatabases.database;
-      List<Map<String, dynamic>> rows = await db.query('facture_paiment');
+      final Database db = await NiADatabases().database;
+
+      // Requête SQL pour obtenir les paiements avec le statut "En cours"
+      List<Map<String, dynamic>> rows = await db.query(
+        'facture_paiment',
+        where: 'statut = ?',
+        whereArgs: ['En cours'],
+      );
+
       List<FacturePaymentModel> payments = [];
       for (var row in rows) {
         final payment = FacturePaymentModel(
@@ -229,6 +245,10 @@ class FactureLocalRepository {
         );
         payments.add(payment);
       }
+
+      // Imprimer les paiements récupérés pour vérification
+      print("Paiements récupérés : $payments");
+
       return payments;
     } catch (e) {
       throw Exception("Failed to get all payments from local database: $e");

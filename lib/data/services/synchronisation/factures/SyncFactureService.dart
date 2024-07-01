@@ -9,20 +9,22 @@ class SyncFactureService {
 
   Future<int> getNumberOfFactureToSync() async {
     try {
-      final List<Map<String, dynamic>> releves = await getAllReleves();
-      final List<int> idReleves = releves.map<int>((releve) => releve['id'] as int).toList();
+      final releves = await FactureLocalRepository().getAllPayments();
+      final idReleves = releves.where((payment) => payment.statut == 'En cours').toList();
+      print("Nombre de factures à envoyer: ${idReleves.length}");
 
-      // Compter le nombre de relevés qui doivent être synchronisés
-      final int numberOfFactures = idReleves.length;
-
-      return numberOfFactures;
+      return idReleves.length;
     } catch (error) {
       print("Erreur lors de la récupération du nombre de factures à synchroniser: $error");
       return -1; // Retourner -1 en cas d'erreur
     }
   }
 
-  Future<void> sendDataFactureInserver(String accessToken, int batchSize, void Function(double) onProgressUpdate) async {
+  Future<void> sendDataFactureInserver(
+      String accessToken,
+      int batchSize,
+      void Function(double) onProgressUpdate
+      ) async {
     try {
       // Synchronisation des paiements de facture
       final payementFacture = await FactureLocalRepository().getAllPayments();
@@ -33,7 +35,7 @@ class SyncFactureService {
         int completedFacture = 0;
 
         final List<Future<void>> syncTasks = await _processInBatches(paymentsToSync, batchSize, (payment) async {
-          print("Envoi de la mission ${payment.id} avec statut ${payment.statut}...");
+          print("Envoi de la Payement ${payment.id} avec statut ${payment.statut}...");
           await PayementFacture.sendPaymentToServer(payment, accessToken);
           completedFacture++;
 
@@ -54,7 +56,6 @@ class SyncFactureService {
     }
   }
 
-
   Future<int> syncDataFactureToLocal(String accessToken) async {
     try {
       final startTime = DateTime.now();
@@ -63,38 +64,77 @@ class SyncFactureService {
 
       print("Début de la synchronisation des factures");
       const int factureBatchSize = 50;
+      int totalDurationInSeconds = 0;
+
       await _processInBatches(idReleves, factureBatchSize, (idReleve) async {
         print("ID du relevé : $idReleve");
-        await _syncFacture.syncFactureTable(accessToken, idReleve);
+
+        // Initialisation du chronomètre pour chaque itération
+        Stopwatch stopwatch = Stopwatch();
+        stopwatch.start();
+
+        try {
+          final durationInSecond = await _syncFacture.syncFactureTable(accessToken, idReleve);
+          stopwatch.stop();
+          int durationInSeconds = stopwatch.elapsed.inSeconds;
+          totalDurationInSeconds += durationInSeconds;
+        } catch (error) {
+          print("Erreur lors de la synchronisation du relevé $idReleve : $error");
+        }
       });
+
       print("Synchronisation des factures terminée");
 
       final endTime = DateTime.now();
       final duration = endTime.difference(startTime);
-      print("Durée totale de la synchronisation des factures: ${duration.inSeconds} secondes");
-      return duration.inSeconds;
+      final totalDuration = duration.inSeconds + totalDurationInSeconds;
+
+      print("Durée totale de la synchronisation des factures: ${totalDuration} secondes");
+      return totalDuration;
     } catch (error) {
       print("Erreur lors de la synchronisation des factures vers la base de données locale: $error");
       return -1;
     }
   }
 
+
+
   Future<List<Map<String, dynamic>>> getAllReleves() async {
     try {
       final Database db = await NiADatabases().database;
-      final List<Map<String, dynamic>> rows = await db.rawQuery('SELECT * FROM releves');
+
+      // Obtenir la date actuelle
+      DateTime now = DateTime.now();
+      String currentYear = now.year.toString();
+      String currentMonth = now.month.toString().padLeft(2, '0'); // Pour formater le mois avec deux chiffres
+
+      // Requête SQL pour obtenir les relevés avec état "Impayé" et date_releve dans le mois et l'année en cours
+      final List<Map<String, dynamic>> rows = await db.rawQuery(
+        'SELECT * FROM releves WHERE strftime("%Y", date_releve) = ? AND strftime("%m", date_releve) = ?',
+        [currentYear, currentMonth],
+      );
+
+      // Imprimer les relevés récupérés
+      print("Relevés récupérés : ${rows.length}");
+
       return rows;
     } catch (e) {
       throw Exception("Failed to get all releves: $e");
     }
   }
 
-  Future<List<Future<void>>> _processInBatches<T>(List<T> items, int batchSize, Future<void> Function(T item) process) async {
-    List<Future<void>> futures = [];
+  Future<List<Future<void>>> _processInBatches<T>(
+      List<T> items,
+      int batchSize,
+      Future<void> Function(T) process
+      ) async {
+    List<Future<void>> tasks = [];
     for (int i = 0; i < items.length; i += batchSize) {
-      final List<T> batch = items.skip(i).take(batchSize).toList();
-      futures.addAll(batch.map(process));
+      final batch = items.skip(i).take(batchSize);
+      for (T item in batch) {
+        tasks.add(process(item));
+      }
     }
-    return futures;
+    return tasks;
   }
 }

@@ -76,7 +76,7 @@ class MissionData {
   static Future<File> resizeImage(File imageFile) async {
     img.Image image = img.decodeImage(await imageFile.readAsBytes())!;
     img.Image resizedImage =
-    img.copyResize(image, width: 800); // Réduire la largeur de l'image
+    img.copyResize(image, width: 500); // Réduire la largeur de l'image
     return File(imageFile.path)
       ..writeAsBytesSync(
           img.encodeJpg(resizedImage)); // Enregistrer l'image redimensionnée

@@ -1,4 +1,3 @@
-import 'package:application_rano/data/services/synchronisation/sync_facture.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
@@ -21,6 +20,7 @@ import 'package:application_rano/data/repositories/auth_repository.dart';
 import 'package:application_rano/data/services/synchronisation/missions/SyncMissionService.dart';
 import 'package:application_rano/data/services/synchronisation/factures/SyncFactureService.dart';
 import 'package:application_rano/data/services/synchronisation/anomalie/SyncAnomalieService.dart';
+import 'package:application_rano/blocs/home/home_event.dart';
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -29,7 +29,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  late TextEditingController _controller;
+  TextEditingController _controller = TextEditingController();
   double _progressValue = 0.0;
   bool _isSyncing = false; // Variable pour suivre l'état de la synchronisation
 
@@ -170,6 +170,13 @@ class _HomePageState extends State<HomePage> {
       'Non traité': nonTraite ?? 0,
       'Réalisé': realise ?? 0,
     });
+
+
+    int resteSync = total - current;
+    int totalSync = resteSync + current;
+    int resteSyncFinal = totalSync - total;
+    String stateNum = "$current / $total";
+
     bool canSendData = label == "Relevé de compteurs" && current > 0;
     bool canSyncMission = label == "Relevé de compteurs";
     bool canSendDataFacture = label == "Factures" && current > 0;
@@ -247,7 +254,7 @@ class _HomePageState extends State<HomePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '$current / $total',
+                        stateNum,
                         style: const TextStyle(
                           color: Colors.black87,
                           fontSize: 20,
@@ -256,17 +263,16 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Row(
                         children: [
-
                           if (canSendData)
                             FutureBuilder<int>(
                               future: checkMissionsToSync(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                   return SizedBox(
-                                    width: 20.0, // Définir la largeur souhaitée
-                                    height: 20.0, // Définir la hauteur souhaitée
+                                    width: 20.0,
+                                    height: 20.0,
                                     child: CircularProgressIndicator(
-                                      strokeWidth: 2.0, // Vous pouvez également ajuster la largeur du trait si nécessaire
+                                      strokeWidth: 2.0,
                                     ),
                                   );
                                 } else if (snapshot.hasError) {
@@ -280,47 +286,47 @@ class _HomePageState extends State<HomePage> {
                                     tooltip: 'Envoyer les données',
                                   );
                                 } else {
-                                  return Container(); // Conteneur vide s'il n'y a pas de missions à envoyer
+                                  return Container();
                                 }
                               },
                             ),
                           if (canSendDataFacture)
                             FutureBuilder<int>(
-                            future: checkFactureToSync(),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return SizedBox(
-                                  width: 20.0, // Définir la largeur souhaitée
-                                  height: 20.0, // Définir la hauteur souhaitée
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.0, // Vous pouvez également ajuster la largeur du trait si nécessaire
-                                  ),
-                                );
-                              } else if (snapshot.hasError) {
-                                return Icon(Icons.error, color: Colors.red);
-                              } else if (snapshot.hasData && snapshot.data! > 0) {
-                                return IconButton(
-                                  icon: const Icon(Icons.send),
-                                  onPressed: () {
-                                    _sendFactureData(context, authState);
-                                  },
-                                  tooltip: 'Envoyer les données',
-                                );
-                              } else {
-                                return Container(); // Conteneur vide s'il n'y a pas de missions à envoyer
-                              }
-                            },
-                          ),
+                              future: checkFactureToSync(),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return SizedBox(
+                                    width: 20.0,
+                                    height: 20.0,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.0,
+                                    ),
+                                  );
+                                } else if (snapshot.hasError) {
+                                  return Icon(Icons.error, color: Colors.red);
+                                } else if (snapshot.hasData && snapshot.data! > 0) {
+                                  return IconButton(
+                                    icon: const Icon(Icons.send),
+                                    onPressed: () {
+                                      _sendFactureData(context, authState);
+                                    },
+                                    tooltip: 'Envoyer les données',
+                                  );
+                                } else {
+                                  return Container();
+                                }
+                              },
+                            ),
                           if (canSendDataAnomalie)
                             FutureBuilder<int>(
                               future: checkAnomalieToSync(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                   return SizedBox(
-                                    width: 20.0, // Définir la largeur souhaitée
-                                    height: 20.0, // Définir la hauteur souhaitée
+                                    width: 20.0,
+                                    height: 20.0,
                                     child: CircularProgressIndicator(
-                                      strokeWidth: 2.0, // Vous pouvez également ajuster la largeur du trait si nécessaire
+                                      strokeWidth: 2.0,
                                     ),
                                   );
                                 } else if (snapshot.hasError) {
@@ -334,7 +340,7 @@ class _HomePageState extends State<HomePage> {
                                     tooltip: 'Envoyer les données',
                                   );
                                 } else {
-                                  return Container(); // Conteneur vide s'il n'y a pas de missions à envoyer
+                                  return Container();
                                 }
                               },
                             ),
@@ -345,7 +351,7 @@ class _HomePageState extends State<HomePage> {
                               onPressed: () {
                                 if (canSyncMission) {
                                   _syncData(context, authState, label);
-                                } else if(canSyncFacture) {
+                                } else if (canSyncFacture) {
                                   _syncDataFacture(context, authState, label);
                                 } else {
                                   _syncDataAnomalie(context, authState, label);
@@ -364,6 +370,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
 
   Future<int> checkMissionsToSync() async {
     final SyncMissionService syncMissionService = SyncMissionService();
@@ -388,33 +395,38 @@ class _HomePageState extends State<HomePage> {
 
   void _sendMissionData(BuildContext context, AuthState authState) async {
     if (authState is AuthSuccess) {
+      int numDataToSend = await checkMissionsToSync(); // Récupérer le nombre de missions à envoyer
+      _controller.text = numDataToSend.toString(); // Initialiser le contrôleur de texte avec ce nombre
+
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Envoyer les données'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _controller,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un nombre';
-                    }
-                    return null;
-                  },
-                ),
-
-                SizedBox(height: 20),
-                // Utilisez la valeur de progression mise à jour ici
-                LinearProgressIndicator(value: _progressValue),
-                SizedBox(height: 10),
-                Text('Veuillez patienter...'),
-              ],
+            content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: _controller,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Veuillez entrer un nombre';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 20),
+                    LinearProgressIndicator(value: _progressValue),
+                    SizedBox(height: 10),
+                    Text('Veuillez patienter...'),
+                  ],
+                );
+              },
             ),
             actions: [
               ElevatedButton(
@@ -427,16 +439,13 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () async {
                   int? numData = int.tryParse(_controller.text);
                   if (numData != null && numData >= 1) {
-                    // Envoyer les données des missions
                     final syncMissionService = SyncMissionService();
-                    // Mettez à jour la valeur de progression ici
                     setState(() {
                       _progressValue = 0.0; // Réinitialiser la progression
                     });
-                    // Envoyer les données des missions en mettant à jour la progression
                     await syncMissionService.sendDataMissionInserver(
                       authState.userInfo.lastToken ?? '',
-                      numData,
+                      numData, // Passer le nombre de données à envoyer
                           (value) {
                         setState(() {
                           _progressValue = value;
@@ -444,10 +453,10 @@ class _HomePageState extends State<HomePage> {
                       },
                     );
 
-                    // Fermer la boîte de dialogue après l'envoi des données
+                    final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+                    await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
                     Navigator.of(context).pop();
-                  }
-                  else {
+                  } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -490,9 +499,7 @@ class _HomePageState extends State<HomePage> {
       try {
         // Appeler la fonction de synchronisation des relevés
         final SyncMissionService syncMissionService = SyncMissionService();
-        final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
         final durationMissionInSeconds = await syncMissionService.syncDataMissionToLocal(authState.userInfo.lastToken ?? '');
-        await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
 
         // Calculer la somme des durées
         final totalDurationInSeconds = durationMissionInSeconds;
@@ -535,6 +542,9 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         });
+        BlocProvider.of<HomeBloc>(context).add(RefreshHomePageData(
+            accessToken: authState.userInfo.lastToken ?? ''));
+        Get.offNamed(AppRoutes.home);
       } catch (error) {
         print("Erreur lors de la synchronisation : $error");
       }
@@ -598,8 +608,10 @@ class _HomePageState extends State<HomePage> {
                         });
                       },
                     );
-
                     // Fermer la boîte de dialogue après l'envoi des données
+
+                    final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+                    await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
                     Navigator.of(context).pop();
                   }
                   else {
@@ -713,8 +725,6 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
-
-
 
   void _sendAnomalieData(BuildContext context, AuthState authState) async {
     if (authState is AuthSuccess) {
@@ -888,8 +898,6 @@ class _HomePageState extends State<HomePage> {
       }
     }
   }
-
-
 
 
   void _handleReleveDeCompteurs(BuildContext context, AuthSuccess authState) {

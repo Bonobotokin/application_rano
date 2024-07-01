@@ -29,8 +29,35 @@ class MissionsRepositoryLocale {
       missions.sort((a, b) {
         final aStatut = _mapStatutToValid(a.statut) ?? 0;
         final bStatut = _mapStatutToValid(b.statut) ?? 0;
+
+        // Si les deux missions ont le même statut, on les trie par ordre alphabétique du nom du client
+        if (aStatut == bStatut) {
+          final aNomClient = a.nomClient ?? '';
+          final bNomClient = b.nomClient ?? '';
+          return aNomClient.compareTo(bNomClient);
+        }
+
+        // Si l'une des missions a le statut 0, elle est placée avant l'autre
+        if (aStatut == 0) {
+          return -1;
+        }
+        if (bStatut == 0) {
+          return 1;
+        }
+
+        // Si l'une des missions a le statut 1, elle est placée avant l'autre
+        if (aStatut == 1) {
+          return -1;
+        }
+        if (bStatut == 1) {
+          return 1;
+        }
+
+        // Sinon, on trie par ordre décroissant de statut (2, 1, 0)
         return bStatut.compareTo(aStatut);
       });
+
+
 
       return missions;
     } catch (e) {
@@ -40,6 +67,7 @@ class MissionsRepositoryLocale {
 
   int? _mapStatutToValid(int? statut) {
     switch (statut) {
+      case 0:
       case 1:
       case 2:
         return statut;
