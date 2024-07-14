@@ -176,6 +176,5 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
     }
   }
 
-
 }
 

@@ -95,23 +95,6 @@ class ClientRepository {
     }
   }
 
-  // Future<List<Map<String, dynamic>>>getClientByNumCompteur(int numCompteur) async {
-  //   try{
-  //     final Database db = await _niaDatabases.database;
-  //     List<Map<String, dynamic>> rows = await db.rawQuery('''
-  //       SELECT * FROM releves
-  //       JOIN compteur ON releves.compteur_id = compteur.id
-  //       JOIN contrat ON releves.contrat_id = contrat.id
-  //       JOIN client ON releves.client_id = client.id
-  //       WHERE compteur.id = ?
-  //     ''', [numCompteur]);
-  //     return rows;
-  //
-  //   } catch (error) {
-  //     throw Exception('Failed to fetch client data: $error');
-  //   }
-  // }
-
   Future<List<Map<String, dynamic>>>getFactureFactureByClient(int numCompteur) async {
     try{
       final Database db = await _niaDatabases.database;
@@ -530,6 +513,60 @@ class ClientRepository {
     }
   }
 
+  Future<Map<String, dynamic>> getAllClients() async {
+    try {
+      final Database db = await _niaDatabases.database;
+      List<Map<String, dynamic>> rows = await db.rawQuery('''
+        SELECT DISTINCT 
+          client.id, 
+          client.nom, 
+          client.prenom, 
+          client.adresse, 
+          client.commune, 
+          client.region, 
+          client.telephone_1, 
+          client.telephone_2, 
+          client.actif
+        FROM releves
+        JOIN client ON releves.client_id = client.id
+        GROUP BY client.id;
+      ''');
 
+      print(rows);
+
+      // Vérifiez si des données ont été récupérées
+      if (rows.isNotEmpty) {
+        // Créez une liste pour stocker les clients
+        List<ClientModel> clients = [];
+
+        // Parcourez chaque ligne de résultat
+        for (final row in rows) {
+          // Créez un objet ClientModel pour chaque ligne
+          final client = ClientModel(
+            id: row['id'] ?? 0,
+            nom: row['nom'] ?? '',
+            prenom: row['prenom'] ?? '',
+            adresse: row['adresse'] ?? '',
+            commune: row['commune'] ?? '',
+            region: row['region'] ?? '',
+            telephone_1: row['telephone_1'] ?? '',
+            telephone_2: row['telephone_2'],
+            actif: row['actif'] ?? 0,
+          );
+          // Ajoutez le client à la liste des clients
+          clients.add(client);
+        }
+
+        return {
+          'clients': clients,
+        };
+      } else {
+        // Si aucune donnée n'a été trouvée, lancez une exception
+        throw Exception('Aucune donnée trouvée.');
+      }
+    } catch (error) {
+      throw Exception('Failed to fetch client data: $error');
+    }
+  }
 
 }

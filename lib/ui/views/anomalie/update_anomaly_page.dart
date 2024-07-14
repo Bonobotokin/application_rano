@@ -192,21 +192,21 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                         ),
                       ),
                       SizedBox(width: 20),
-                      Expanded(
-                        child: _buildTextField(
-                          label: 'CP Commune',
-                          initialValue: anomalieItem.cpCommune ?? '',
-                          onChanged: (value) => anomalieItem.cpCommune = value,
-                        ),
-                      ),
+                      // Expanded(
+                      //   child: _buildTextField(
+                      //     label: 'CP Commune',
+                      //     initialValue: anomalieItem.cpCommune ?? '',
+                      //     onChanged: (value) => anomalieItem.cpCommune = value,
+                      //   ),
+                      // ),
                     ],
                   ),
                   SizedBox(height: 12),
-                  _buildTextField(
-                    label: 'Commune',
-                    initialValue: anomalieItem.commune ?? '',
-                    onChanged: (value) => anomalieItem.commune = value,
-                  ),
+                  // _buildTextField(
+                  //   label: 'Commune',
+                  //   initialValue: anomalieItem.commune ?? '',
+                  //   onChanged: (value) => anomalieItem.commune = value,
+                  // ),
                   SizedBox(height: 12),
                   _buildPhotoListView(anomalieItem),
                   SizedBox(height: 12),

@@ -8,9 +8,12 @@ import 'package:intl/intl.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
+import 'package:application_rano/data/models/client_model.dart'; // Importez le modèle de client
 import 'package:application_rano/ui/views/anomalie/anomaliePage.dart';
+import 'package:application_rano/data/repositories/anomalie/anomalie_repository.dart';
 import '../../shared/DateFormatter.dart';
 import '../../shared/MaskedTextField.dart';
+
 class NewAnomalyPage extends StatefulWidget {
   const NewAnomalyPage({Key? key}) : super(key: key);
 
@@ -34,13 +37,32 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
   late DateFormat _dateFormat;
   late TextEditingController _textEditingController;
 
+  List<ClientModel> _clients = []; // Liste des clients
+  ClientModel? _selectedClient; // Client sélectionné
+
   @override
   void initState() {
     super.initState();
     initializeDateFormatting('fr_FR');
     _dateFormat = DateFormat('dd-MM-yyyy');
     _textEditingController = _dateController;
+    _fetchClients(); // Récupérez les clients lors de l'initialisation
   }
+
+  Future<void> _fetchClients() async {
+  try {
+    final List<ClientModel> clients = await AnomalieRepository(baseUrl: "http://89.116.38.149:8000/api").getAllClients();
+    if (mounted) {
+      setState(() {
+        _clients = clients;
+          print("Clients fetched: $_clients");
+      });
+    }
+  } catch (error) {
+      print('Error fetching clients: $error');
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +77,6 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
           children: [
             _buildImagePicker(),
             _buildFormFields(),
-            SizedBox(height: 20),
             SizedBox(height: 20),
             _buildSaveButton(),
           ],
@@ -116,15 +137,16 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
         SizedBox(height: 10),
         _buildDescriptionField('Description', _descriptionController),
         SizedBox(height: 10),
-        _buildTextField('Client', _clientController),
+        _buildClientDropdown(), // Remplacez le champ de saisie de texte par la liste déroulante
         SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(child: _buildTextField('Code Postal Commune', _cpCommuneController)),
-            SizedBox(width: 10),
-            Expanded(child: _buildTextField('Commune', _communeController)),
-          ],
-        ),
+        // Row(
+        //   children: [
+        //     // Expanded(child: _buildTextField('Code Postal Commune', _cpCommuneController)),
+        //     // _buildCodePostaleDropdown(),
+        //     SizedBox(width: 10),
+        //     Expanded(child: _buildTextField('Commune', _communeController)),
+        //   ],
+        // ),
       ],
     );
   }
@@ -160,7 +182,6 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       },
     );
   }
-
 
   Widget _buildTextField(String label, TextEditingController controller) {
     return TextFormField(
@@ -201,6 +222,38 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
     );
   }
 
+  Widget _buildClientDropdown() {
+    print("Building client dropdown with clients: $_clients"); // Ajout de la ligne pour vérifier la liste
+
+    return DropdownButtonFormField<ClientModel>(
+      value: _selectedClient,
+      items: _clients.map((ClientModel client) {
+        return DropdownMenuItem<ClientModel>(
+          value: client,
+          child: Text('${client.nom}'),
+        );
+      }).toList(),
+      onChanged: (ClientModel? newValue) {
+        setState(() {
+          _selectedClient = newValue;
+          _clientController.text = '${newValue?.nom}';
+        });
+      },
+      decoration: InputDecoration(
+        labelText: 'Client',
+        hintText: 'Sélectionnez un client',
+        contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        filled: true,
+        fillColor: Colors.grey[200],
+        hintStyle: TextStyle(color: Colors.grey),
+        labelStyle: TextStyle(color: Color(0xFF012225)),
+        floatingLabelBehavior: FloatingLabelBehavior.never,
+      ),
+    );
+  }
 
 
   Widget _buildSaveButton() {
@@ -216,118 +269,10 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       child: Text(
         'Enregistrer',
         style: TextStyle(
-          fontSize: 16.0,
+          fontSize: 18.0,
           color: Colors.white,
         ),
       ),
-    );
-  }
-
-  void _takePicture() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      setState(() {
-        _images.add(File(pickedFile.path));
-      });
-    }
-  }
-
-  void _changePicture(int index) async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-    if (pickedFile != null) {
-      setState(() {
-        _images[index] = File(pickedFile.path);
-      });
-    }
-  }
-
-  void _showOptionsDialog(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Options'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.remove_circle),
-                title: Text('Supprimer'),
-                onTap: () {
-                  setState(() {
-                    _images.removeAt(index);
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.fullscreen),
-                title: Text('Agrandir'),
-                onTap: () {
-                  _showImageDialog(index);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showLongPressOptions(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Options'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.remove_circle),
-                title: Text('Supprimer'),
-                onTap: () {
-                  setState(() {
-                    _images.removeAt(index);
-                  });
-                  Navigator.of(context).pop();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.fullscreen),
-                title: Text('Agrandir'),
-                onTap: () {
-                  _showImageDialog(index);
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showImageDialog(int index) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          backgroundColor: Colors.black,
-          child: GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: Container(
-              width: double.infinity,
-              height: double.infinity,
-              child: Image.file(
-                _images[index],
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -337,7 +282,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
     String longitude = _longitudeController.text;
     String latitude = _latitudeController.text;
     String description = _descriptionController.text;
-    String client = _clientController.text;
+    String client = _selectedClient?.nom ?? ''; // Utiliser le nom du client sélectionné
     String cpCommune = _cpCommuneController.text;
     String commune = _communeController.text;
 
@@ -364,10 +309,9 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       commune: commune,
       status: '2',
       imagePaths: _images.map((image) => image.path).toList(),
-
     ));
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("L'enregistrement est terminer")),
+      const SnackBar(content: Text("L'enregistrement est terminé")),
     );
 
     Navigator.of(context).pushReplacement(MaterialPageRoute(
@@ -375,16 +319,90 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
     ));
   }
 
-  @override
-  void dispose() {
-    _typeController.dispose();
-    _dateController.dispose();
-    _longitudeController.dispose();
-    _latitudeController.dispose();
-    _descriptionController.dispose();
-    _clientController.dispose();
-    _cpCommuneController.dispose();
-    _communeController.dispose();
-    super.dispose();
+  Future<void> _takePicture() async {
+    if (_images.length < 5) {
+      final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+      if (pickedFile != null) {
+        setState(() {
+          _images.add(File(pickedFile.path));
+        });
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Vous ne pouvez pas ajouter plus de 5 images."),
+        ),
+      );
+    }
+  }
+
+  void _showOptionsDialog(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Options'),
+          content: Text('Voulez-vous supprimer ou remplacer cette image?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _replaceImage(index);
+              },
+              child: Text('Remplacer'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _images.removeAt(index);
+                });
+              },
+              child: Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showLongPressOptions(int index) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.delete),
+              title: Text('Supprimer'),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _images.removeAt(index);
+                });
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library),
+              title: Text('Remplacer'),
+              onTap: () {
+                Navigator.pop(context);
+                _replaceImage(index);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _replaceImage(int index) async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.camera);
+    if (pickedFile != null) {
+      setState(() {
+        _images[index] = File(pickedFile.path);
+      });
+    }
   }
 }

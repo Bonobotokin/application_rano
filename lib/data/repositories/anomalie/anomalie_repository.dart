@@ -1,5 +1,6 @@
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/data/models/photo_anomalie_model.dart';
+import 'package:application_rano/data/models/client_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
 
@@ -12,11 +13,7 @@ class AnomalieRepository {
   Future<List<AnomalieModel>> fetchAnomaleData(String accessToken) async {
     try {
       final anomalie =  getAnomalieData();
-
-
-
       return anomalie;
-
     } catch (e) {
       // En cas d'erreur lors de la requête HTTP, lancez une exception avec le message d'erreur
       throw Exception('Failed to fetch home page data: $e');
@@ -276,5 +273,27 @@ class AnomalieRepository {
       throw Exception("Failed to get anomalie by idMc data: $e");
     }
   }
+
+  Future<List<ClientModel>> getAllClients() async {
+    try {
+      final Database db = await _niaDatabases.database;
+      List<Map<String, dynamic>> rows = await db.rawQuery('''
+      SELECT *
+      FROM client
+    ''');
+
+      // Vérifiez si des données ont été récupérées
+      if (rows.isNotEmpty) {
+        List<ClientModel> clients = rows.map((row) => ClientModel.fromMap(row)).toList();
+        return clients;
+      } else {
+        throw Exception('Aucune donnée trouvée.');
+      }
+    } catch (error) {
+      throw Exception('Failed to fetch client data: $error');
+    }
+  }
+
+
 
 }
