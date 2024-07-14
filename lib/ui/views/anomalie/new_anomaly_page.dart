@@ -314,9 +314,9 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       const SnackBar(content: Text("L'enregistrement est terminé")),
     );
 
-    Navigator.of(context).pushReplacement(MaterialPageRoute(
-      builder: (BuildContext context) => AnomaliePage(),
-    ));
+    // Navigator.of(context).pushReplacement(MaterialPageRoute(
+    //   builder: (BuildContext context) => AnomaliePage(),
+    // ));
   }
 
   Future<void> _takePicture() async {

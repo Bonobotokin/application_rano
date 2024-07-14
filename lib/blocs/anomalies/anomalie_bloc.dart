@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_state.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/data/repositories/anomalie/anomalie_repository.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 
 class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
@@ -123,6 +126,35 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
   }
 
 
+  // Future<String?> _copyImageToAssetsDirectory(String? imagePath) async {
+  //   try {
+  //     // Obtenir le répertoire d'assets/images
+  //     final Directory appDirectory = await getApplicationDocumentsDirectory();
+  //     final String assetsDirectory = '${appDirectory.path}/assets/images';
+  //
+  //     // Vérifier si le répertoire d'assets/images/anomalie existe, sinon le créer
+  //     final bool assetsExists = await Directory(assetsDirectory).exists();
+  //     if (!assetsExists) {
+  //       await Directory(assetsDirectory).create(recursive: true);
+  //     }
+  //
+  //     // Générer un nom de fichier abrégé en utilisant la date actuelle
+  //     final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+  //
+  //     // Copier l'image dans le répertoire d'assets/images
+  //     String destinationPath = path.join(assetsDirectory, fileName);
+  //     await File(imagePath!).copy(destinationPath);
+  //
+  //     print('Image copiée dans le répertoire d\'assets/images avec succès.');
+  //
+  //     return destinationPath; // Retourner le chemin de l'image copiée
+  //   } catch (e) {
+  //     print('Erreur lors de la copie de l\'image dans le répertoire d\'assets/images: $e');
+  //     return null; // Retourner null en cas d'erreur
+  //   }
+  // }
+
+
   Future<String?> _copyImageToAssetsDirectory(String? imagePath) async {
     try {
       // Obtenir le répertoire d'assets/images
@@ -135,18 +167,45 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
         await Directory(assetsDirectory).create(recursive: true);
       }
 
-      // Générer un nom de fichier abrégé en utilisant la date actuelle
-      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      // Lire le fichier image à compresser
+      File imageFile = File(imagePath!);
+      Uint8List bytes = await imageFile.readAsBytes();
 
-      // Copier l'image dans le répertoire d'assets/images
-      String destinationPath = path.join(assetsDirectory, fileName);
-      await File(imagePath!).copy(destinationPath);
+      // Définir la qualité et les dimensions cibles de l'image compressée
+      int quality = 80; // Qualité de compression (0 - 100)
+      int maxWidth = 1080; // Largeur maximale après compression
+      int maxHeight = 1920; // Hauteur maximale après compression
 
-      print('Image copiée dans le répertoire d\'assets/images avec succès.');
+      // Décoder l'image à l'aide de la bibliothèque image
+      img.Image? image = img.decodeImage(bytes);
 
-      return destinationPath; // Retourner le chemin de l'image copiée
+      if (image != null) {
+        // Redimensionner l'image si nécessaire
+        if (image.width > maxWidth || image.height > maxHeight) {
+          image = img.copyResize(image, width: maxWidth, height: maxHeight);
+        }
+
+        // Encoder l'image avec la qualité spécifiée
+        Uint8List compressedBytes = img.encodeJpg(image, quality: quality);
+
+        // Générer un nom de fichier abrégé en utilisant la date actuelle
+        final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+        // Chemin de destination pour l'image compressée
+        String destinationPath = path.join(assetsDirectory, fileName);
+
+        // Écrire l'image compressée dans le répertoire d'assets/images
+        File(destinationPath).writeAsBytesSync(compressedBytes);
+
+        print('Image compressée et copiée dans le répertoire d\'assets/images avec succès.');
+
+        return destinationPath; // Retourner le chemin de l'image compressée
+      } else {
+        print('Erreur: Impossible de décoder l\'image.');
+        return null; // Retourner null en cas d'erreur de décodage de l'image
+      }
     } catch (e) {
-      print('Erreur lors de la copie de l\'image dans le répertoire d\'assets/images: $e');
+      print('Erreur lors de la compression et copie de l\'image: $e');
       return null; // Retourner null en cas d'erreur
     }
   }

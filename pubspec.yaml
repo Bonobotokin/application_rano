@@ -40,6 +40,8 @@ dependencies:
   path_provider: ^2.1.2
   bloc: any
   syncfusion_flutter_datepicker: ^25.2.4
+  flutter_image_compress: any
+  image: any
 
 dev_dependencies:
   flutter_test:
