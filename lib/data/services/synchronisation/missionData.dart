@@ -1,9 +1,9 @@
-import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'package:image/image.dart' as img;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:image/image.dart' as img;
 import '../../models/missions_model.dart';
 import '../config/api_configue.dart';
 import '../databases/nia_databases.dart';
@@ -36,9 +36,8 @@ class MissionData {
 
         // Vérifier si le fichier existe avant de l'envoyer
         if (imageCompteurFile.existsSync()) {
-          // Redimensionner l'image
-            File resizedImageFile = await resizeImage(imageCompteurFile);
 
+          print("date sent ${mission.dateReleve.toString()}");
           // Créer une requête multipart
           var request = http.MultipartRequest('POST', Uri.parse(url))
             ..headers.addAll(headers)
@@ -46,7 +45,7 @@ class MissionData {
             ..fields['date_releve'] = mission.dateReleve.toString()
             ..fields['volume'] = mission.volumeDernierReleve.toString()
             ..files.add(await http.MultipartFile.fromPath(
-                'image_compteur', resizedImageFile.path));
+                'image_compteur', imageCompteurFile.path));
 
           // Envoyer la requête
           var response = await request.send();
@@ -71,15 +70,6 @@ class MissionData {
     } catch (e) {
       print('Erreur lors de l\'envoi de la mission: $e');
     }
-  }
-
-  static Future<File> resizeImage(File imageFile) async {
-    img.Image image = img.decodeImage(await imageFile.readAsBytes())!;
-    img.Image resizedImage =
-    img.copyResize(image, width: 500); // Réduire la largeur de l'image
-    return File(imageFile.path)
-      ..writeAsBytesSync(
-          img.encodeJpg(resizedImage)); // Enregistrer l'image redimensionnée
   }
 
   static Future<Map<String, dynamic>> getReleverMission(

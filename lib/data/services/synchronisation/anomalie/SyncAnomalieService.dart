@@ -1,4 +1,8 @@
 import 'dart:convert';
+import 'package:application_rano/data/repositories/commentaire/CommentaireRepositoryLocale.dart';
+import 'package:application_rano/data/services/synchronisation/commentaireData.dart';
+import 'package:application_rano/data/services/synchronisation/sync_commentaire.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:application_rano/data/services/synchronisation/sync_anomalie.dart';
 import 'package:application_rano/data/services/synchronisation/anomalieData.dart';
@@ -7,14 +11,20 @@ import 'package:application_rano/data/models/anomalie_model.dart';
 
 class SyncAnomalieService {
   final SyncAnomalie _syncAnomalie = SyncAnomalie();
+  final SyncCommentaire _syncCommentaire = SyncCommentaire();
 
   Future<int> getNumberOfAnomaliesToSync() async {
     try {
       final anomalieLocale = await AnomalieRepositoryLoale().getAnomalieDataFromLocalDatabase();
       final anomaliesToSync = anomalieLocale.where((anomalie) => anomalie.status == 4).toList();
 
+      final commentaireLocale = await CommentaireRepositoryLocale().getCommentaireDataForCurrentMonth();
+      final commentaireTosync = commentaireLocale.where((commentaire) => commentaire.statut == 1).toList();
+
+      print("Commentaire need to send : ${commentaireTosync.length}");
+
       // Compter le nombre d'anomalies qui doivent être synchronisées
-      final int numberOfAnomalies = anomaliesToSync.length;
+      final int numberOfAnomalies = anomaliesToSync.length + commentaireTosync.length;
 
       return numberOfAnomalies;
     } catch (error) {
@@ -23,41 +33,73 @@ class SyncAnomalieService {
     }
   }
 
-  Future<void> sendAnomaliesToServer(String accessToken, int batchSize, void Function(double) onProgressUpdate) async {
+  Future<void> sendAnomaliesToServer(
+      String accessToken,
+      int batchSize,
+      void Function(double) onProgressUpdate,
+      ) async {
     try {
       final anomalieLocale = await AnomalieRepositoryLoale().getAnomalieDataFromLocalDatabase();
       final anomaliesToSync = anomalieLocale.where((anomalie) => anomalie.status == 4).toList();
 
-      if (anomaliesToSync.isNotEmpty) {
-        final int totalAnomalies = anomaliesToSync.length;
-        int completedAnomalies = 0;
+      final commentaireLocale = await CommentaireRepositoryLocale().getCommentaireDataForCurrentMonth();
+      final commentaireTosync = commentaireLocale.where((commentaire) => commentaire.statut == 1).toList();
 
-        // Wait for the list of sync tasks to be ready
-        final List<Future<void>> syncTasks = await _processInBatches(anomaliesToSync, batchSize, (anomalie) async {
-          if (anomalie.status != null && anomalie.status != 0) {
+      print("Commentaire en cours : $commentaireTosync");
+
+      final int totalAnomalies = anomaliesToSync.length;
+      final int totalCommentaires = commentaireTosync.length;
+      final int totalTasks = totalAnomalies + totalCommentaires;
+
+      int completedTasks = 0;
+
+      if (commentaireTosync.isNotEmpty) {
+        final List<Future<void>> syncTasksCommentaires = await _processInBatches(commentaireTosync, batchSize, (commentaire) async {
+          print("Envoi du commentaire ${commentaire.id}...");
+          if (commentaire.statut != null && commentaire.statut == 1) {
+
+            await CommentaireData.sendCommentaireToServer(commentaire, accessToken);
+
+            completedTasks++;
+            double progress = completedTasks / totalTasks;
+            onProgressUpdate(progress);
+          }
+        });
+
+        await Future.wait(syncTasksCommentaires);
+        print("Tous les commentaires ont été envoyés avec succès !");
+      } else {
+        print("Aucun commentaire à synchroniser.");
+      }
+
+      // Anomalies
+      if (anomaliesToSync.isNotEmpty ) {
+        final List<Future<void>> syncTasksAnomalies = await _processInBatches(anomaliesToSync, batchSize, (anomalie) async {
+          if (anomalie.status != null && anomalie.status == 4) {
             print("Envoi de l'anomalie ${anomalie.id} avec statut ${anomalie.status}...");
-            await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
-            completedAnomalies++;
-
-            // Calculate the progress and call the callback function
-            double progress = completedAnomalies / totalAnomalies;
+            // await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
+            completedTasks++;
+            double progress = completedTasks / totalTasks;
             onProgressUpdate(progress);
           } else {
             print("Anomalie ${anomalie.id} ignorée car son statut est nul ou égal à 0.");
           }
         });
 
-        // Wait for all synchronization tasks to complete
-        await Future.wait(syncTasks);
-
+        await Future.wait(syncTasksAnomalies);
         print("Toutes les anomalies avec le statut 4 ont été envoyées avec succès !");
       } else {
         print("Aucune anomalie avec le statut 4 à synchroniser.");
       }
+
+      // Optionally, call onProgressUpdate(1.0) to indicate completion
+      onProgressUpdate(1.0);
+
     } catch (error) {
-      print("Erreur lors de l'envoi des anomalies: $error");
+      print("Erreur lors de l'envoi des anomalies et des commentaires: $error");
     }
   }
+
 
   Future<int> syncDataAnomalieToLocal(String accessToken) async {
     try {
@@ -72,6 +114,9 @@ class SyncAnomalieService {
       await _processInBatches(anomalies, anomalieBatchSize, (anomalie) async {
         print("Anomalie : ${anomalie.id}");
         await _syncAnomalie.syncAnomalieTable(accessToken);
+
+        print("Commentaire Demare");
+        await _syncCommentaire.syncCommentaireTable(accessToken);
       });
 
       print("Synchronisation des anomalies terminée");

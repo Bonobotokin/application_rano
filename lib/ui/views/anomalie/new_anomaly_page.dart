@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -8,11 +7,10 @@ import 'package:intl/intl.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
-import 'package:application_rano/data/models/client_model.dart'; // Importez le modèle de client
-import 'package:application_rano/ui/views/anomalie/anomaliePage.dart';
+import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/repositories/anomalie/anomalie_repository.dart';
-import '../../shared/DateFormatter.dart';
-import '../../shared/MaskedTextField.dart';
+import 'package:image/image.dart' as img;
+import 'package:path_provider/path_provider.dart';
 
 class NewAnomalyPage extends StatefulWidget {
   const NewAnomalyPage({Key? key}) : super(key: key);
@@ -35,34 +33,32 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
   List<File> _images = [];
   final ImagePicker _picker = ImagePicker();
   late DateFormat _dateFormat;
-  late TextEditingController _textEditingController;
 
-  List<ClientModel> _clients = []; // Liste des clients
-  ClientModel? _selectedClient; // Client sélectionné
+  List<ClientModel> _clients = [];
+  ClientModel? _selectedClient;
+  bool _compressingImage = false;
 
   @override
   void initState() {
     super.initState();
     initializeDateFormatting('fr_FR');
     _dateFormat = DateFormat('dd-MM-yyyy');
-    _textEditingController = _dateController;
-    _fetchClients(); // Récupérez les clients lors de l'initialisation
+    _fetchClients();
   }
 
   Future<void> _fetchClients() async {
-  try {
-    final List<ClientModel> clients = await AnomalieRepository(baseUrl: "http://89.116.38.149:8000/api").getAllClients();
-    if (mounted) {
-      setState(() {
-        _clients = clients;
+    try {
+      final List<ClientModel> clients = await AnomalieRepository(baseUrl: "http://89.116.38.149:8000/api").getAllClients();
+      if (mounted) {
+        setState(() {
+          _clients = clients;
           print("Clients fetched: $_clients");
-      });
-    }
-  } catch (error) {
+        });
+      }
+    } catch (error) {
       print('Error fetching clients: $error');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +91,15 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
             itemCount: _images.length < 5 ? _images.length + 1 : _images.length,
             itemBuilder: (BuildContext context, int index) {
               if (index == _images.length && _images.length < 5) {
-                return IconButton(
+                return _compressingImage
+                    ? Container(
+                  width: 100,
+                  height: 100,
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+                    : IconButton(
                   icon: Icon(Icons.camera_alt),
                   onPressed: _takePicture,
                 );
@@ -105,11 +109,24 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
                 onLongPress: () => _showLongPressOptions(index),
                 child: Padding(
                   padding: EdgeInsets.only(right: 8.0),
-                  child: Image.file(
-                    _images[index],
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
+                  child: Stack(
+                    children: [
+                      Image.file(
+                        _images[index],
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                      if (_compressingImage && index == _images.length - 1)
+                        Positioned.fill(
+                          child: Container(
+                            color: Colors.black.withOpacity(0.5),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               );
@@ -123,6 +140,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
   Widget _buildFormFields() {
     return Column(
       children: [
+        SizedBox(height: 10),
         _buildTextField('Type Anomalie', _typeController),
         SizedBox(height: 10),
         _buildDateField('Date', _dateController),
@@ -137,26 +155,17 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
         SizedBox(height: 10),
         _buildDescriptionField('Description', _descriptionController),
         SizedBox(height: 10),
-        _buildClientDropdown(), // Remplacez le champ de saisie de texte par la liste déroulante
-        SizedBox(height: 10),
-        // Row(
-        //   children: [
-        //     // Expanded(child: _buildTextField('Code Postal Commune', _cpCommuneController)),
-        //     // _buildCodePostaleDropdown(),
-        //     SizedBox(width: 10),
-        //     Expanded(child: _buildTextField('Commune', _communeController)),
-        //   ],
-        // ),
+        _buildClientDropdown(),
       ],
     );
   }
 
-  Widget _buildDateField(String label, TextEditingController _textEditingController) {
+  Widget _buildDateField(String label, TextEditingController controller) {
     return TextFormField(
-      controller: _textEditingController,
+      controller: controller,
       keyboardType: TextInputType.datetime,
       decoration: InputDecoration(
-        labelText: 'Date',
+        labelText: label,
         hintText: 'Saisissez la date (DD-MM-YYYY)',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
@@ -177,7 +186,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
         );
 
         if (selectedDate != null) {
-          _textEditingController.text = _dateFormat.format(selectedDate);
+          controller.text = _dateFormat.format(selectedDate);
         }
       },
     );
@@ -204,8 +213,8 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
 
   Widget _buildDescriptionField(String label, TextEditingController controller) {
     return TextFormField(
-      controller: _descriptionController,
-      maxLines: 3, // Définit le nombre maximum de lignes
+      controller: controller,
+      maxLines: 3,
       decoration: InputDecoration(
         labelText: 'Description',
         hintText: 'Entrez la description de l\'anomalie',
@@ -223,8 +232,6 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
   }
 
   Widget _buildClientDropdown() {
-    print("Building client dropdown with clients: $_clients"); // Ajout de la ligne pour vérifier la liste
-
     return DropdownButtonFormField<ClientModel>(
       value: _selectedClient,
       items: _clients.map((ClientModel client) {
@@ -236,7 +243,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       onChanged: (ClientModel? newValue) {
         setState(() {
           _selectedClient = newValue;
-          _clientController.text = '${newValue?.nom}';
+          _clientController.text = '${newValue?.id}';
         });
       },
       decoration: InputDecoration(
@@ -255,10 +262,9 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
     );
   }
 
-
   Widget _buildSaveButton() {
     return ElevatedButton(
-      onPressed: _saveAnomaly,
+      onPressed: _compressingImage ? null : _saveAnomaly,
       style: ElevatedButton.styleFrom(
         padding: EdgeInsets.symmetric(vertical: 16.0),
         shape: RoundedRectangleBorder(
@@ -282,12 +288,18 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
     String longitude = _longitudeController.text;
     String latitude = _latitudeController.text;
     String description = _descriptionController.text;
-    String client = _selectedClient?.nom ?? ''; // Utiliser le nom du client sélectionné
+    String client = _selectedClient?.nom ?? '';
     String cpCommune = _cpCommuneController.text;
     String commune = _communeController.text;
 
-    AnomalieModel anomalie = AnomalieModel(
-      idMc: 0,
+    if (type.isEmpty || date.isEmpty || description.isEmpty  ) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Veuillez remplir tous les champs.')),
+      );
+      return;
+    }
+
+    AnomalieModel newAnomaly = AnomalieModel(
       typeMc: type,
       dateDeclaration: date,
       longitudeMc: longitude,
@@ -310,30 +322,12 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       status: '2',
       imagePaths: _images.map((image) => image.path).toList(),
     ));
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("L'enregistrement est terminé")),
     );
 
-    // Navigator.of(context).pushReplacement(MaterialPageRoute(
-    //   builder: (BuildContext context) => AnomaliePage(),
-    // ));
-  }
-
-  Future<void> _takePicture() async {
-    if (_images.length < 5) {
-      final pickedFile = await _picker.pickImage(source: ImageSource.camera);
-      if (pickedFile != null) {
-        setState(() {
-          _images.add(File(pickedFile.path));
-        });
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Vous ne pouvez pas ajouter plus de 5 images."),
-        ),
-      );
-    }
+    Navigator.of(context).pop();
   }
 
   void _showOptionsDialog(int index) {
@@ -397,12 +391,106 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
     );
   }
 
-  Future<void> _replaceImage(int index) async {
+  Future<void> _takePicture() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
+
+    if (pickedFile != null) {
+      String imagePath = pickedFile.path;
+      print('Chemin de l\'image avant compression : $imagePath');
+
+      File imageFile = File(imagePath);
+      int originalSize = await imageFile.length();
+      print('Taille de l\'image avant compression : ${originalSize ~/ 1024} KB');
+
+      setState(() {
+        _compressingImage = true;
+      });
+
+      String? compressedImagePath = await _resizeAndCompressImage(imagePath);
+
+      setState(() {
+        _compressingImage = false;
+      });
+
+      if (compressedImagePath != null) {
+        File compressedImage = File(compressedImagePath);
+        int compressedSize = await compressedImage.length();
+        print('Chemin de l\'image après compression : $compressedImagePath');
+        print('Taille de l\'image après compression : ${compressedSize ~/ 1024} KB');
+
+        setState(() {
+          _images.add(compressedImage);
+        });
+      } else {
+        print('Erreur lors de la compression de l\'image.');
+      }
+    } else {
+      print('Aucune image sélectionnée.');
+    }
+  }
+
+  Future<String?> _resizeAndCompressImage(String imagePath) async {
+    try {
+      File imageFile = File(imagePath);
+      img.Image? originalImage = img.decodeImage(await imageFile.readAsBytes());
+
+      if (originalImage != null) {
+        int newWidth = (originalImage.width * 0.8).toInt();
+        int newHeight = (originalImage.height * 0.8).toInt();
+
+        img.Image resizedImage = img.copyResize(originalImage, width: newWidth, height: newHeight);
+
+        List<int> compressedImageBytes = img.encodeJpg(resizedImage, quality: 80);
+
+        File compressedImage = File('${imageFile.parent.path}/compressed_image.jpg');
+        await compressedImage.writeAsBytes(compressedImageBytes);
+
+        return compressedImage.path;
+      } else {
+        print('Erreur lors du décodage de l\'image.');
+        return null;
+      }
+    } catch (e) {
+      print('Erreur lors de la manipulation de l\'image : $e');
+      return null;
+    }
+  }
+
+  void _replaceImage(int index) async {
     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
+      String imagePath = pickedFile.path;
+      print('Chemin de l\'image avant compression : $imagePath');
+
+      File imageFile = File(imagePath);
+      int originalSize = await imageFile.length();
+      print('Taille de l\'image avant compression : ${originalSize ~/ 1024} KB');
+
       setState(() {
-        _images[index] = File(pickedFile.path);
+        _compressingImage = true;
       });
+
+      String? compressedImagePath = await _resizeAndCompressImage(imagePath);
+
+      setState(() {
+        _compressingImage = false;
+      });
+
+      if (compressedImagePath != null) {
+        File compressedImage = File(compressedImagePath);
+        int compressedSize = await compressedImage.length();
+        print('Chemin de l\'image après compression : $compressedImagePath');
+        print('Taille de l\'image après compression : ${compressedSize ~/ 1024} KB');
+
+        setState(() {
+          _images[index] = compressedImage;
+        });
+      } else {
+        print('Erreur lors de la compression de l\'image.');
+      }
+    } else {
+      print('Aucune image sélectionnée.');
     }
   }
 }

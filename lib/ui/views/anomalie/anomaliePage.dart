@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'dart:io';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
+import 'package:application_rano/blocs/commentaire/commentaire_bloc.dart';
+import 'package:application_rano/blocs/commentaire/commentaire_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
@@ -16,7 +18,7 @@ import '../../shared/MaskedTextField.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
+import 'commentaire_page.dart';
 
 class AnomaliePage extends StatefulWidget {
   const AnomaliePage({super.key});
@@ -75,16 +77,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
               BlocBuilder<AnomalieBLoc, AnomalieState>(
                 builder: (context, state) {
                   if (state is AnomalieLoading) {
-                    return FutureBuilder(
-                      future: Future.delayed(Duration(seconds: 2)), // Ajoute un délai de 2 secondes
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(child: CircularProgressIndicator());
-                        } else {
-                          return _buildAnomalieListWidget(state.anomalie, authState);
-                        }
-                      },
-                    );
+                    return _buildLoadingState(context);
                   } else if (state is AnomalieLoaded) {
                     return _buildAnomalieListWidget(state.anomalie, authState);
                   } else if (state is AnomalieError) {
@@ -103,7 +96,14 @@ class _AnomaliePageState extends State<AnomaliePage> {
       },
     );
   }
-
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
+      child: CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Couleur bleue pour la bordure
+        backgroundColor: Colors.white, // Fond blanc
+      ),
+    );
+  }
   Widget _buildAnomalieListWidget(
       List<AnomalieModel> anomalie, AuthState authState) {
     anomalie.sort((a, b) {
@@ -232,121 +232,128 @@ class _AnomaliePageState extends State<AnomaliePage> {
         statusColor = Colors.indigo;
     }
 
-    return Card(
-      elevation: 5,
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0), // Ajustement de la marge interne
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-              title: Row(
-                children: [
-                  Icon(Icons.error_outline_outlined,
-                      color: anomalie.status == 1 ? Colors.grey : Colors.red),
-                  const SizedBox(width: 8),
-                  Flexible( // Utilisation de Flexible pour ajuster la taille du texte
-                    child: Text(
-                      '${anomalie.typeMc} ',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 10),
-                  Text('Statut: ${status}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: statusColor,
-                    ),
-                  ),
-                  Text('Longitude: ${anomalie.longitudeMc}'),
-                  Text('Altitude: ${anomalie.latitudeMc}'),
-                  Text('Desscription : ${anomalie.descriptionMc}'),
-                  Text('Client : ${anomalie.clientDeclare}'),
-                  Text('Commune : ${anomalie.commune} '),
-                  Text('Cp Commune : ${anomalie.cpCommune}'),
-                  // Text('COmmentaire : ${anomalie.}'),
-                  Text(
-                    'Date: ${
-                        (anomalie.dateDeclaration != null || anomalie.dateDeclaration != '' || DateFormatter.isValidFrenchDate(anomalie.dateDeclaration!))
-                            ? DateFormatter.formatFrenchDate(anomalie.dateDeclaration!)
-                            : 'Erreur de date'
-                    }',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                      color: statusColor,
-                    ),
-                  ),
+    return GestureDetector(
+      onTap: () {
+        BlocProvider.of<CommentaireBLoc>(context)
+            .add(LoadCommentaire(anomalie.idMc!));
 
-                ],
-              ),
-              trailing: showButton ? ElevatedButton(
-                onPressed: () {
-                  if (authState is AuthSuccess) {
-                    BlocProvider.of<AnomalieBLoc>(context).add(GetUpdateAnomalie(idMc: anomalie.idMc!));
-                    Get.toNamed(AppRoutes.anomalieUpdate,
-                        arguments: anomalie.idMc);
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor : Colors.lightBlueAccent,
-                ),
-                child: Text(
-                  'Modification',
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-              ) : null,
-            ),
-            SizedBox(height: 8), // Espacement entre le contenu et les images
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: [
-                for (int i = 1; i <= 5; i++)
-                  if (anomalie.getPhotoAnomalie(i) != null &&
-                      anomalie.getPhotoAnomalie(i)!.isNotEmpty &&
-                      File(anomalie.getPhotoAnomalie(i)!).existsSync())
-                    GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return Dialog(
-                              child: Image.file(
-                                File(anomalie.getPhotoAnomalie(i)!),
-                                fit: BoxFit.contain,
-                              ),
-                            );
-                          },
-                        );
-                      },
-                      child: Image.file(
-                        File(anomalie.getPhotoAnomalie(i)!),
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
+        Get.toNamed(AppRoutes.commentaire, arguments: anomalie.idMc);
+      },
+      child: Card(
+        elevation: 5,
+        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0), // Ajustement de la marge interne
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                title: Row(
+                  children: [
+                    Icon(Icons.error_outline_outlined,
+                        color: anomalie.status == 1 ? Colors.grey : Colors.red),
+                    const SizedBox(width: 8),
+                    Flexible( // Utilisation de Flexible pour ajuster la taille du texte
+                      child: Text(
+                        '${anomalie.typeMc} ',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-              ],
-            ),
-          ],
+                  ],
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    Text('Statut: ${status}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: statusColor,
+                      ),
+                    ),
+                    Text('Longitude: ${anomalie.longitudeMc}'),
+                    Text('Altitude: ${anomalie.latitudeMc}'),
+                    Text('Description : ${anomalie.descriptionMc}'),
+                    Text('Client : ${anomalie.clientDeclare}'),
+                    Text('Commune : ${anomalie.commune} '),
+                    Text('Cp Commune : ${anomalie.cpCommune}'),
+                    Text(
+                      'Date: ${
+                          (anomalie.dateDeclaration != null || anomalie.dateDeclaration != '' || DateFormatter.isValidFrenchDate(anomalie.dateDeclaration!))
+                              ? DateFormatter.formatFrenchDate(anomalie.dateDeclaration!)
+                              : 'Erreur de date'
+                      }',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: statusColor,
+                      ),
+                    ),
+                  ],
+                ),
+                trailing: showButton ? ElevatedButton(
+                  onPressed: () {
+                    if (authState is AuthSuccess) {
+                      BlocProvider.of<AnomalieBLoc>(context).add(GetUpdateAnomalie(idMc: anomalie.idMc!));
+                      Get.toNamed(AppRoutes.anomalieUpdate,
+                          arguments: anomalie.idMc);
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlueAccent,
+                  ),
+                  child: Text(
+                    'Modification',
+                    style: TextStyle(
+                      color: Colors.white,
+                    ),
+                  ),
+                ) : null,
+              ),
+              SizedBox(height: 8), // Espacement entre le contenu et les images
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: [
+                  for (int i = 1; i <= 5; i++)
+                    if (anomalie.getPhotoAnomalie(i) != null &&
+                        anomalie.getPhotoAnomalie(i)!.isNotEmpty &&
+                        File(anomalie.getPhotoAnomalie(i)!).existsSync())
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return Dialog(
+                                child: Image.file(
+                                  File(anomalie.getPhotoAnomalie(i)!),
+                                  fit: BoxFit.contain,
+                                ),
+                              );
+                            },
+                          );
+                        },
+                        child: Image.file(
+                          File(anomalie.getPhotoAnomalie(i)!),
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+
 }

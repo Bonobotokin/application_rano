@@ -8,8 +8,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/data/repositories/anomalie/anomalie_repository.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-
 
 class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
   final AnomalieRepository anomalieRepository;
@@ -26,10 +24,10 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
   void _onLoadAnomalie(LoadAnomalie event, Emitter<AnomalieState> emit) async {
     try {
 
+      emit(AnomalieLoading()); // Émettre l'état de chargement
       final anomalie = await anomalieRepository.fetchAnomaleData(event.accessToken);
       print("eto anomalie Page $anomalie");
 
-      emit(AnomalieLoading(anomalie)); // Émettre l'état de chargement
       emit(AnomalieLoaded(anomalie));
     } catch (error) {
       print('Failed to load Anomalie: $error');

@@ -57,7 +57,7 @@ class AppLayout extends StatelessWidget {
           unselectedItemColor: const Color(0xEA020D1C).withOpacity(0.5678),
           selectedItemColor: const Color(0xFFFF5722),
           elevation: 0,
-          backgroundColor: const Color(0xB3EFEEEE),
+          backgroundColor: const Color(0xFFFFFFFF),
           type: BottomNavigationBarType.fixed,
           currentIndex: currentIndex,
           onTap: (value) {

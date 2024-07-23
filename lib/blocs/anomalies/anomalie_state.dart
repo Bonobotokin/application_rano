@@ -11,13 +11,16 @@ abstract class AnomalieState extends Equatable {
 
 class AnomalieInitial extends AnomalieState {}
 
-class AnomalieLoading extends AnomalieState {
+class UpdateAnomalieLoading extends AnomalieState {
   final List<AnomalieModel> anomalie;
 
-  const AnomalieLoading(this.anomalie);
+  const UpdateAnomalieLoading(this.anomalie);
 
   @override
   List<Object> get props => [anomalie];
+}
+
+class AnomalieLoading extends AnomalieState {
 }
 
 class AnomalieLoaded extends AnomalieState {

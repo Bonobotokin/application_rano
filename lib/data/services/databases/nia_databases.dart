@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:application_rano/data/services/databases/commentaireDb.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -6,6 +7,7 @@ import 'package:application_rano/data/services/databases/acceuilDb.dart';
 import 'package:application_rano/data/services/databases/missionsDb.dart';
 import 'package:application_rano/data/services/databases/usersDb.dart';
 import 'package:application_rano/data/services/databases/compteursDb.dart';
+import 'package:application_rano/data/services/databases/commentaireDb.dart';
 import 'package:application_rano/data/services/databases/contratDb.dart';
 import 'package:application_rano/data/services/databases/clientDb.dart';
 import 'package:application_rano/data/services/databases/relevesDb.dart';
@@ -73,6 +75,7 @@ class NiADatabases {
         await facture_payment_db().createTable(db);
         await anomalie_db().createTable(db);
         await photo_anomalie_db().createTable(db);
+        await commentaire_db().createTable(db);
       });
     } catch (e) {
       throw Exception("Failed to create tables: $e");

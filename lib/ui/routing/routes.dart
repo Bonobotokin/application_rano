@@ -1,3 +1,4 @@
+import 'package:application_rano/ui/views/anomalie/commentaire_page.dart';
 import 'package:application_rano/ui/views/anomalie/update_anomaly_page.dart';
 import 'package:application_rano/ui/views/factures/client_facture_liste.dart';
 import 'package:application_rano/ui/views/factures/client_list_page.dart';
@@ -23,6 +24,7 @@ class AppRoutes {
   static const String anomalieUpdate = '/updateAnomalie';
   static const String listeClient = '/listeClient';
   static const String listeFactureClient = '/listeFactureCLient';
+  static const String commentaire = '/commentaire';
 }
 
 List<GetPage> getAppRoutes() {
@@ -91,6 +93,13 @@ List<GetPage> getAppRoutes() {
     GetPage(
       name: AppRoutes.anomalieUpdate,
       page: () => UpdateAnomalyPage(),
+      transition: Transition.noTransition,
+      transitionDuration: const Duration(seconds: 0),
+    ),
+
+    GetPage(
+      name: AppRoutes.commentaire,
+      page: () => CommentairePage(),
       transition: Transition.noTransition,
       transitionDuration: const Duration(seconds: 0),
     ),

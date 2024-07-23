@@ -69,7 +69,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                 const SizedBox(height: 20),
                 BlocBuilder<AnomalieBLoc, AnomalieState>(
                   builder: (context, state) {
-                    if (state is AnomalieLoading) {
+                    if (state is UpdateAnomalieLoading) {
                       return FutureBuilder(
                         future: Future.delayed(Duration(seconds: 2)),
                         builder: (context, snapshot) {

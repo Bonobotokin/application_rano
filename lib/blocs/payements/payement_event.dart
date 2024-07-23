@@ -46,7 +46,22 @@ class UpdateFacture extends PaymentEvent {
   String toString() => 'UpdateFacture { idFacture: $idFacture, montant: $montant }';
 }
 
+class ReloadPayment extends PaymentEvent {
+  final int relevecompteurId;
+  final int numCompteur;
+  final String date;
+  final String accessToken;
 
+  const ReloadPayment({
+    required this.relevecompteurId,
+    required this.numCompteur,
+    required this.date,
+    required this.accessToken,
+  });
+
+  @override
+  List<Object> get props => [relevecompteurId, numCompteur, date, accessToken];
+}
 // class MakePayment extends PaymentEvent {}
 //
 // @override

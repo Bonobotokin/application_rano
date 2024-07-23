@@ -1,6 +1,7 @@
 
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/data/models/client_model.dart';
+import 'package:application_rano/data/models/commentaire_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
 import 'package:application_rano/data/models/contrat_model.dart';
 import 'package:application_rano/data/models/facture_model.dart';
@@ -619,6 +620,54 @@ class SaveDataRepositoryLocale {
     }
     return imagePath;
   }
+
+  Future<void> saveCommentaireData(List<CommentaireModel> commentaires) async {
+    final db = await NiADatabases().database;
+
+    for (final commentaire in commentaires) {
+      try {
+        // Convertir la date en chaîne ISO 8601 pour la comparaison
+        final dateSuivieIso = commentaire.dateSuivie.toIso8601String();
+
+        // Rechercher un enregistrement existant
+        final existingRows = await db.query(
+          'commentaire',
+          where: 'id = ?',
+          whereArgs: [commentaire.id],
+        );
+
+        if (existingRows.isNotEmpty) {
+          // Si l'enregistrement existe, mettez-le à jour
+          final updateCount = await db.update(
+            'commentaire',
+            commentaire.toMap(),
+            where: 'id = ?',
+            whereArgs: [commentaire.id],
+          );
+
+          if (updateCount > 0) {
+            print('Enregistrement mis à jour avec succès : $commentaire');
+          } else {
+            print('Aucune mise à jour effectuée pour : $commentaire');
+          }
+        } else {
+          // Sinon, insérez un nouvel enregistrement
+          final insertId = await db.insert(
+            'commentaire',
+            commentaire.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace, // Remplace en cas de conflit
+          );
+
+          print('Données de commentaire enregistrées avec succès dans la base de données locale : $commentaire');
+          print('ID de l\'enregistrement inséré : $insertId');
+        }
+      } catch (e) {
+        print('Erreur lors de l\'enregistrement du commentaire : $commentaire');
+        print('Détails de l\'erreur : $e');
+      }
+    }
+  }
+
 
 
 }

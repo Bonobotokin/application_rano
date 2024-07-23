@@ -1,4 +1,4 @@
-
+import 'package:application_rano/ui/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -28,20 +28,14 @@ class PaymentFacture extends StatelessWidget {
             authState: authState,
             body: BlocBuilder<PaymentBloc, PaymentState>(
               builder: (context, state) {
-                final paymentBloc = BlocProvider.of<PaymentBloc>(context);
-                if (state is PayementLoading || state is PayementLoaded) {
-                  return ListView(
-                    children: [
-                      _buildHeader(context, state),
-                      _buildOrderDetails(context, state),
-                      buildDetails(context, state),
-                      buildTotal(context, state),
-                      buildPayButton(context, state, authState),
-                      SizedBox(height: MediaQuery.of(context).viewInsets.bottom), // Pour s'assurer que le bouton reste visible lorsque le clavier est ouvert
-                    ],
-                  );
+                if (state is PayementLoading) {
+                  return _buildLoadingState(context);
+                } else if (state is PayementLoaded) {
+                  return _buildLoadedState(context, state, authState);
                 } else if (state is PaymentFailure) {
                   return Center(child: Text(state.message));
+                } else if (state is PaymentSuccess) {
+                  return _buildSuccessState(context);
                 } else {
                   return const SizedBox.shrink();
                 }
@@ -52,7 +46,55 @@ class PaymentFacture extends StatelessWidget {
       },
     );
   }
-  Widget _buildHeader(BuildContext context, state) {
+
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
+      child: CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+        backgroundColor: Colors.white,
+      ),
+    );
+  }
+  Widget _buildSuccessState(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.check_circle, color: Colors.green, size: 64),
+          SizedBox(height: 16),
+          Text(
+            'Paiement effectué avec succès!',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 16),
+          // TextButton(
+          //   onPressed: () {
+          //
+          //   },
+          //   // child: Text('Retour'),
+          // ),
+        ],
+      ),
+    );
+  }
+
+
+
+
+  Widget _buildLoadedState(BuildContext context, PayementLoaded state, AuthState authState) {
+    return ListView(
+      children: [
+        _buildHeader(context, state),
+        _buildOrderDetails(context, state),
+        buildDetails(context, state),
+        buildTotal(context, state),
+        buildPayButton(context, state, authState),
+        SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+      ],
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, PayementLoaded state) {
     final client = state.client;
     final facture = state.factures;
     final clientName = client.nom;
@@ -69,7 +111,7 @@ class PaymentFacture extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderDetails(BuildContext context, state) {
+  Widget _buildOrderDetails(BuildContext context, PayementLoaded state) {
     final specificDateReleves = state.specificDateReleves;
     final previousDateReleves = state.previousDateReleves;
 
@@ -87,21 +129,19 @@ class PaymentFacture extends StatelessWidget {
                   style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
                 ),
               ),
-              const SizedBox(width: 20), // Espacement entre les deux textes
+              const SizedBox(width: 20),
               Expanded(
                 child: Text(
                   state.factures.statut,
                   style: const TextStyle(
                     fontSize: 18.0,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green, // Couleur verte
+                    color: Colors.green,
                   ),
                 ),
               ),
-
             ],
           ),
-
           const SizedBox(height: 20.0),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,13 +158,12 @@ class PaymentFacture extends StatelessWidget {
                 buildOrderItem(context, releve.dateReleve, releve.volume.toString(), releve.conso.toString()),
             ],
           ),
-
         ],
       ),
     );
   }
 
-  Widget buildOrderItem(BuildContext context, String item, String sku,  String subtotal) {
+  Widget buildOrderItem(BuildContext context, String item, String sku, String subtotal) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -147,7 +186,6 @@ class PaymentFacture extends StatelessWidget {
             ),
           ],
         ),
-
         const SizedBox(height: 5.0),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -168,16 +206,14 @@ class PaymentFacture extends StatelessWidget {
             ),
           ],
         ),
-
         const Divider(),
       ],
     );
   }
 
-  Widget buildDetails(BuildContext context, state) {
+  Widget buildDetails(BuildContext context, PayementLoaded state) {
     final payment = state.payment;
     return ExpansionTile(
-
       title: const Text('Détails du paiement'),
       children: [
         Row(
@@ -189,26 +225,24 @@ class PaymentFacture extends StatelessWidget {
                 style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.bold),
               ),
             ),
-            const SizedBox(width: 10), // Espacement entre les deux textes
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 'Paiement: ${payment.paiement} Ar',
                 style: const TextStyle(
                   fontSize: 14.0,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange, // Couleur verte
+                  color: Colors.orange,
                 ),
               ),
             ),
-
           ],
         ),
       ],
     );
   }
 
-
-  Widget buildTotal(BuildContext context, state) {
+  Widget buildTotal(BuildContext context, PayementLoaded state) {
     final factures = state.factures;
     final payment = state.payment;
     final payed = factures.montantTotalTTC - payment.paiement;
@@ -223,7 +257,7 @@ class PaymentFacture extends StatelessWidget {
             color: Colors.black.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 5,
-            offset: Offset(0, 2), // changes position of shadow
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -234,7 +268,7 @@ class PaymentFacture extends StatelessWidget {
           buildTotalRow('Total général (Incl. Taxe)', '${factures.montantTotalTTC} Ar'),
           SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.green,
               borderRadius: BorderRadius.circular(10.0),
@@ -243,7 +277,7 @@ class PaymentFacture extends StatelessWidget {
           ),
           SizedBox(height: 10),
           Container(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.red,
               borderRadius: BorderRadius.circular(10.0),
@@ -254,7 +288,6 @@ class PaymentFacture extends StatelessWidget {
       ),
     );
   }
-
 
   Widget buildTotalRow(String title, String amount) {
     return Padding(
@@ -272,11 +305,10 @@ class PaymentFacture extends StatelessWidget {
     );
   }
 
-  Widget buildPayButton(BuildContext context, state, authState) {
+  Widget buildPayButton(BuildContext context, PayementLoaded state, AuthState authState) {
     final bool isFactureAbsent = state.factures.statut == 'Pas trouvé.';
     final bool isMontantNul = state.factures.montantTotalTTC == 0.0;
 
-    // Vérifiez si la facture est payée en utilisant la propriété etatFacture
     final bool isFacturePayee = state.specificDateReleves.any((releve) => releve.etatFacture == 'Payé');
 
     return Padding(
@@ -284,11 +316,17 @@ class PaymentFacture extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: isFactureAbsent || isMontantNul || isFacturePayee ? null : () {
+          onPressed: isFactureAbsent || isMontantNul || isFacturePayee
+              ? null
+              : () {
             _showFormDialog(context, state, authState);
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: isFactureAbsent || isMontantNul ? Colors.grey : isFacturePayee ? Colors.orange : Colors.blue,
+            backgroundColor: isFactureAbsent || isMontantNul
+                ? Colors.grey
+                : isFacturePayee
+                ? Colors.orange
+                : Colors.blue,
             elevation: 5,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -311,8 +349,7 @@ class PaymentFacture extends StatelessWidget {
     );
   }
 
-
-  void _showFormDialog(BuildContext context, state, authState) async {
+  void _showFormDialog(BuildContext context, PayementLoaded state, AuthState authState) async {
     TextEditingController amountController = TextEditingController();
     GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -335,7 +372,7 @@ class PaymentFacture extends StatelessWidget {
                     hintText: 'Entrez le montant',
                   ),
                   inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // Autoriser uniquement les chiffres
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
                   ],
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -370,15 +407,8 @@ class PaymentFacture extends StatelessWidget {
                   }
                   Navigator.of(context).pop(); // Fermer la boîte de dialogue
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Facture enregistrée avec succès')),
+                    const SnackBar(content: Text('Paiement effectué avec succès')),
                   );
-                   // Rechargez la page actuelle après la soumission du formulaire
-                  // Vous pouvez soit rediriger vers la page précédente, soit reconstruire la page actuelle
-                  // Par exemple:
-
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                    builder: (BuildContext context) => PaymentFacture(),
-                  ));
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -391,5 +421,5 @@ class PaymentFacture extends StatelessWidget {
       },
     );
   }
-
 }
+

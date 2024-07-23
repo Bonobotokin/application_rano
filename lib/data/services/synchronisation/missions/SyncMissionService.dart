@@ -1,12 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
+import 'package:http/http.dart' as http;
 import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
 import 'package:application_rano/data/models/contrat_model.dart';
 import 'package:application_rano/data/models/releves_model.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
-import 'package:http/http.dart' as http; // Importez http pour effectuer des requêtes HTTP
-
 import 'package:application_rano/data/models/missions_model.dart';
 import 'package:application_rano/data/repositories/local/missions_repository_locale.dart';
 import 'package:application_rano/data/services/saveData/save_data_service_locale.dart';
@@ -17,32 +17,25 @@ import 'package:sqflite/sqlite_api.dart';
 
 import '../../../repositories/auth_repository.dart';
 
-
 class SyncMissionService {
   final SyncMission _syncMission = SyncMission();
   final NiADatabases _niaDatabases = NiADatabases();
-
   final SaveDataRepositoryLocale saveDataRepositoryLocale = SaveDataRepositoryLocale();
 
   Future<int> getNumberOfMissionsToSync() async {
     try {
-      // Récupérez les données de mission depuis la base de données locale
       final List<MissionModel> missionsDataLocal = await MissionsRepositoryLocale().getMissionsDataFromLocalDatabase();
-
-      // Filtrez les missions avec le statut 1
       final List<MissionModel> missionsToSync = missionsDataLocal.where((mission) => mission.statut == 1).toList();
-      print("nombre des mission a envoier ${missionsToSync.length}");
-
-      // Retournez le nombre de missions à synchroniser
+      print("Number of missions to sync: ${missionsToSync.length}");
       return missionsToSync.length;
     } catch (error) {
-      print("Erreur lors de la récupération des missions: $error");
-      return 0; // En cas d'erreur, retournez 0
+      print("Error fetching missions: $error");
+      return 0;
     }
   }
 
-
   Future<void> sendDataMissionInserver(String accessToken, int batchSize, void Function(double) onProgressUpdate) async {
+
     try {
       final List<MissionModel> missionsDataLocal = await getMissionsDataFromLocalDatabase();
       final List<MissionModel> missionsToSync = missionsDataLocal.where((mission) => mission.statut == 1).toList();
@@ -50,48 +43,40 @@ class SyncMissionService {
       if (missionsToSync.isNotEmpty) {
         final int totalMissions = missionsToSync.length;
         int completedMissions = 0;
-
-        // Calculer le nombre total de tâches d'envoi
         final int totalTasks = (totalMissions / batchSize).ceil();
 
         for (int i = 0; i < totalTasks; i++) {
-          // Processus par lots
           final List<MissionModel> missionsBatch = missionsToSync.sublist(i * batchSize, min((i + 1) * batchSize, totalMissions));
-          final List<Future<void>> syncTasks = await _processInBatches(missionsBatch, batchSize, (mission) async {
-            print("Envoi de la mission ${mission.numCompteur} avec statut ${mission.statut}...");
+
+          await Future.wait(missionsBatch.map((mission) async {
+            print("Sending mission ${mission.numCompteur} with status ${mission.statut}...");
             await MissionData.sendLocalDataToServer(mission, accessToken);
 
             completedMissions++;
-            // Calculer la progression en pourcentage
             double progress = completedMissions / totalMissions;
             onProgressUpdate(progress);
-          });
-
-          // Attendre la fin de toutes les tâches d'envoi du lot actuel
-          await Future.wait(syncTasks);
+          }));
         }
 
-        print("Toutes les missions avec le statut 1 ont été envoyées avec succès !");
+        print("All missions with status 1 successfully sent!");
       } else {
-        print("Aucune mission avec le statut 1 à synchroniser.");
+        print("No missions with status 1 to sync.");
       }
     } catch (error) {
-      print("Erreur lors de l'envoi des missions: $error");
+      print("Error sending missions: $error");
+      rethrow;
     }
   }
-
 
   Future<List<MissionModel>> getMissionsDataFromLocalDatabase() async {
     try {
       final Database db = await _niaDatabases.database;
       List<Map<String, dynamic>> maps = [];
 
-      // Commencez une transaction
       await db.transaction((txn) async {
         maps = await txn.query('missions');
       });
 
-      // Récupération des données et tri
       List<MissionModel> missions = List.generate(maps.length, (i) {
         return MissionModel(
           id: maps[i]['id'],
@@ -106,7 +91,6 @@ class SyncMissionService {
         );
       });
 
-      // Tri des missions en fonction du statut dans l'ordre décroissant 2, 1, 0
       missions.sort((a, b) {
         final aStatut = _mapStatutToValid(a.statut) ?? 0;
         final bStatut = _mapStatutToValid(b.statut) ?? 0;
@@ -118,31 +102,30 @@ class SyncMissionService {
       throw Exception("Failed to get missions data from local database: $e");
     }
   }
+
   int? _mapStatutToValid(int? statut) {
     switch (statut) {
       case 1:
       case 2:
         return statut;
       default:
-        return null; // Renvoie null si le statut est null ou différent de 1 ou 2
+        return null;
     }
   }
 
   Future<int> syncDataMissionToLocal(String accessToken) async {
     try {
       final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
-      final startTime = DateTime.now(); // Enregistrer l'heure de début de la synchronisation
+      final startTime = DateTime.now();
 
-      // Étape 1: Récupération des missions
-      print("Début de la synchronisation des missions");
+      print("Start syncing missions");
       final List<MissionModel> missionsData = await _syncMission.syncMissionTable(accessToken);
-      print("Récupération des missions terminée");
+      print("Mission retrieval complete");
 
-      // Étape 2: Traitement des missions par lots
-      const int missionBatchSize = 200; // Taille des lots pour les missions
+      const int missionBatchSize = 200;
       await _processInBatches(missionsData, missionBatchSize, (mission) async {
         final int numCompteur = int.parse(mission.numCompteur.toString());
-        print("Traitement du compteur $numCompteur");
+        print("Processing counter $numCompteur");
 
         final Map<String, dynamic> clientDetails = await fetchDataClientDetails(numCompteur, accessToken);
 
@@ -154,23 +137,20 @@ class SyncMissionService {
         ]);
       });
 
-      print("Toutes les missions ont été synchronisées avec succès vers la base de données locale !");
+      print("All missions successfully synced to local database!");
 
-      final endTime = DateTime.now(); // Enregistrer l'heure de fin de la synchronisation
-      final duration = endTime.difference(startTime); // Calculer la durée totale de la synchronisation
-      print("Durée totale de la synchronisation des missions: ${duration.inSeconds} secondes");
+      final endTime = DateTime.now();
+      final duration = endTime.difference(startTime);
+      print("Total duration of mission synchronization: ${duration.inSeconds} seconds");
 
-      // await authRepository.fetchHomeDataFromEndpoint(accessToken);
-      return duration.inSeconds; // Retourner la durée en secondes
+      return duration.inSeconds;
     } catch (error) {
-      print("Erreur lors de la synchronisation des missions vers la base de données locale: $error");
-      return 0; // En cas d'erreur, retourner 0 secondes
+      print("Error syncing missions to local database: $error");
+      return 0;
     }
   }
 
-
   Future<Map<String, dynamic>> fetchDataClientDetails(int? numCompteur, String? accessToken) async {
-    print("accessTokenaccessTokenx $accessToken");
     String baseUrl = 'http://89.116.38.149:8000/api';
 
     try {
@@ -191,34 +171,6 @@ class SyncMissionService {
         final clientData = data['client'];
         final relevesData = data['releves'];
 
-        print("compteurData: $compteurData");
-        print("contratData: $contratData");
-        print("clientData: $clientData");
-        print("relevesData: $relevesData");
-
-        // Ajouter des impressions pour chaque champ pour déboguer
-        print("compteurData['id']: ${compteurData['id']}");
-        print("compteurData['marque']: ${compteurData['marque']}");
-        print("compteurData['modele']: ${compteurData['modele']}");
-
-        print("contratData['id']: ${contratData['id']}");
-        print("contratData['numero_contrat']: ${contratData['numero_contrat']}");
-        print("contratData['client_id']: ${contratData['client_id']}");
-        print("contratData['date_debut']: ${contratData['date_debut']}");
-        print("contratData['date_fin']: ${contratData['date_fin']}");
-        print("contratData['adresse_contrat']: ${contratData['adresse_contrat']}");
-        print("contratData['pays_contrat']: ${contratData['pays_contrat']}");
-
-        print("clientData['id']: ${clientData['id']}");
-        print("clientData['nom']: ${clientData['nom']}");
-        print("clientData['prenom']: ${clientData['prenom']}");
-        print("clientData['adresse']: ${clientData['adresse']}");
-        print("clientData['commune']: ${clientData['commune']}");
-        print("clientData['region']: ${clientData['region']}");
-        print("clientData['tephone1']: ${clientData['tephone1']}");
-        print("clientData['tephone2']: ${clientData['tephone2']}");
-        print("clientData['actif']: ${clientData['actif']}");
-
         final compteur = CompteurModel(
           id: compteurData['id'] is String
               ? int.tryParse(compteurData['id']) ?? 0
@@ -236,7 +188,7 @@ class SyncMissionService {
           numeroContrat: contratData['numero_contrat'] ?? '',
           clientId: contratData['client_id'] != null
               ? int.parse(contratData['client_id'].toString())
-              : 0, // Convertir en int
+              : 0,
           dateDebut: contratData['date_debut'] ?? '',
           dateFin: contratData['date_fin'] ?? '',
           adresseContrat: contratData['adresse_contrat'] ?? '',
@@ -256,7 +208,6 @@ class SyncMissionService {
         );
 
         final releves = (relevesData as List).map((releve) {
-          print("releve: $releve");
           return RelevesModel(
             id: releve['id'] ?? 0,
             idReleve: releve['id_releve'] ?? 0,
@@ -270,13 +221,6 @@ class SyncMissionService {
             imageCompteur: releve['image_compteur'] ?? '',
           );
         }).toList();
-
-        print('Client Details { :');
-        print('Compteur Data: $compteurData');
-        print('Contra Data: $contratData');
-        print('client Data: $clientData');
-        print('Releves Data: $relevesData');
-        print('Client Details } ');
 
         return {
           'compteur': compteur,
@@ -292,17 +236,10 @@ class SyncMissionService {
     }
   }
 
-
-
-// Helper function to process items in batches
-  Future<List<Future<void>>> _processInBatches<T>(List<T> items, int batchSize, Future<void> Function(T item) process) async {
-    List<Future<void>> futures = [];
-
+  Future<void> _processInBatches<T>(List<T> items, int batchSize, Future<void> Function(T item) process) async {
     for (int i = 0; i < items.length; i += batchSize) {
       final List<T> batch = items.skip(i).take(batchSize).toList();
-      futures.addAll(batch.map(process));
+      await Future.wait(batch.map(process));
     }
-
-    return futures;
   }
 }

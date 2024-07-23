@@ -189,13 +189,13 @@ class AuthRepository {
               imageCompteur: releve['image_compteur'] is String ?  ? releve['image_compteur'] : '',
             );
           }).toList();
-
-          print('Client Details { :');
-          print('Compteur Data: $compteurData');
-          print('Contra Data: $contratData');
-          print('client Data: $clientData');
-          print('Releves Data: $relevesData');
-          print('Client Details } ');
+          //
+          // print('Client Details { :');
+          // print('Compteur Data: $compteurData');
+          // print('Contra Data: $contratData');
+          // print('client Data: $clientData');
+          // print('Releves Data: $relevesData');
+          // print('Client Details } ');
 
           return {
             'compteur': compteur,
