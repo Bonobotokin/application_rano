@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:application_rano/blocs/factures/facture_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,17 +9,16 @@ import 'package:application_rano/blocs/factures/facture_state.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 import 'package:get/get.dart';
 import '../../../data/models/compteur_model.dart';
-import '../../../data/models/releves_model.dart';
 import '../../routing/routes.dart';
 
 class ClientListPage extends StatefulWidget {
-  const ClientListPage({Key? key}) : super(key: key);
+  const ClientListPage({super.key});
 
   @override
-  _ClientListPageState createState() => _ClientListPageState();
+  ClientListPageState createState() => ClientListPageState();
 }
 
-class _ClientListPageState extends State<ClientListPage> {
+class ClientListPageState extends State<ClientListPage> {
   String _searchText = '';
 
   @override
@@ -62,10 +60,10 @@ class _ClientListPageState extends State<ClientListPage> {
                   if(state is FactureLoaded) {
                     return _buildClientListWidget(state.clients, state.compteurs, state.nombreEtatImpaye, state.nombreEtatPaye, authState);
                   } else if (state is FactureFailure) {
-                    return Center(
+                    return const Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Icon(
                             Icons.error,
                             size: 60,
@@ -99,9 +97,9 @@ class _ClientListPageState extends State<ClientListPage> {
     final filteredData = clients.asMap().entries.where((entry) {
       final client = entry.value;
       return _searchText.isEmpty ||
-          (client.nom?.toLowerCase() ?? '').contains(_searchText.toLowerCase()) ||
-          (client.prenom?.toLowerCase() ?? '').contains(_searchText.toLowerCase()) ||
-          (client.adresse?.toLowerCase() ?? '').contains(_searchText.toLowerCase());
+          (client.nom.toLowerCase()).contains(_searchText.toLowerCase()) ||
+          (client.prenom.toLowerCase()).contains(_searchText.toLowerCase()) ||
+          (client.adresse.toLowerCase()).contains(_searchText.toLowerCase());
     }).map((entry) {
       final index = entry.key;
       return {
@@ -209,7 +207,7 @@ class _ClientListPageState extends State<ClientListPage> {
           contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
           title: Row(
             children: [
-              Icon(Icons.account_circle, color: Colors.blue),
+              const Icon(Icons.account_circle, color: Colors.blue),
               const SizedBox(width: 8),
               Text(
                 '${client.nom} ${client.prenom}',
@@ -236,7 +234,7 @@ class _ClientListPageState extends State<ClientListPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Facture impayées:',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -250,7 +248,7 @@ class _ClientListPageState extends State<ClientListPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         'Facture payées:',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,

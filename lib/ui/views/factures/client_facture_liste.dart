@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/blocs/factures/facture_bloc.dart';
@@ -10,20 +9,19 @@ import 'package:application_rano/blocs/factures/facture_state.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 import '../../../blocs/payements/payement_bloc.dart';
 import '../../../blocs/payements/payement_event.dart';
-import '../../../data/models/facture_model.dart';
 import '../../../data/models/releves_model.dart';
 import '../../routing/routes.dart';
 import '../../shared/DateFormatter.dart';
 import 'client_list_page.dart';
 
 class ClientFactureList extends StatefulWidget {
+  const ClientFactureList({super.key});
+
   @override
-  _ClientFactureListState createState() => _ClientFactureListState();
+  ClientFactureListState createState() => ClientFactureListState();
 }
 
-class _ClientFactureListState extends State<ClientFactureList> {
-  String _searchText = '';
-  ClientModel? _firstClient;
+class ClientFactureListState extends State<ClientFactureList> {
 
   @override
   Widget build(BuildContext context) {
@@ -35,14 +33,14 @@ class _ClientFactureListState extends State<ClientFactureList> {
             elevation: 0,
             title: _buildAppBarTitle(context),
             leading: IconButton(
-              icon: Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back),
               onPressed: () {
                 BlocProvider.of<FactureBloc>(context)
-                    .add(LoadClientFacture(accessToken: ''));
+                    .add(const LoadClientFacture(accessToken: ''));
                 Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => ClientListPage()));
+                        builder: (context) => const ClientListPage()));
               },
             ),
           ),
@@ -68,10 +66,10 @@ class _ClientFactureListState extends State<ClientFactureList> {
                   });
                   return _buildClientListWidget(context, sortedReleves, authState);
                 } else if (state is FactureFailure) {
-                  return Center(
+                  return const Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(
                           Icons.error,
                           size: 60,
@@ -131,7 +129,7 @@ class _ClientFactureListState extends State<ClientFactureList> {
 
   Widget _buildClientListWidget(
       BuildContext context, List<RelevesModel> releves, AuthState authState) {
-    if (releves == null || releves.isEmpty) {
+    if (releves.isEmpty) {
       return const Center(child: Text('Aucun relevé disponible'));
     }
 
