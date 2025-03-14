@@ -29,7 +29,7 @@
 
     <!-- Votre code d'application et d'autres déclarations -->
     <application
-        android:label="application_rano"
+        android:label="Ranoo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
