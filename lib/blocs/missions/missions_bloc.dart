@@ -1,14 +1,12 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
-import 'package:path/path.dart' as path;
 import 'package:path/path.dart' as path;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/missions/missions_event.dart';
 import 'package:application_rano/blocs/missions/missions_state.dart';
 import 'package:application_rano/data/repositories/missions_repository.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:image/image.dart' as img;
 
 class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
   final MissionsRepository missionsRepository;
@@ -25,11 +23,11 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
       emit(MissionsLoading());
 
       final missions = await missionsRepository.fetchMissions();
-      print("Nombre total de missions: ${missions.length}");
-      print("Détails des missions: $missions");
+      debugPrint("Nombre total de missions: ${missions.length}");
+      debugPrint("Détails des missions: $missions");
       emit(MissionsLoaded(missions));
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
       emit(MissionsLoadFailure(e.toString()));
     }
   }
@@ -37,7 +35,7 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
   void _onAddMission(AddMission event, Emitter<MissionsState> emit) async {
     try {
       String? newImagePath = await _copyImageToAssetsDirectory(event.imageCompteur);
-      print('mission Image : $newImagePath');
+      debugPrint('mission Image : $newImagePath');
       if (newImagePath != null) {
         await missionsRepository.createMission(
             event.missionId,
@@ -48,7 +46,7 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
         );
         emit(MissionAdded());
       } else {
-        emit(MissionsLoadFailure("Échec de la copie de l'image"));
+        emit(const MissionsLoadFailure("Échec de la copie de l'image"));
       }
     } catch (e) {
       emit(MissionsLoadFailure(e.toString()));
@@ -57,11 +55,11 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
 
   void _onUpdateMission(UpdateMission event, Emitter<MissionsState> emit) async {
     try {
-      print('mission Image : ${event.imageCompteur}');
+      debugPrint('mission Image : ${event.imageCompteur}');
       String? newImagePath = await _copyImageToAssetsDirectory(event.imageCompteur);
-      print("reverrifiaction Image  $newImagePath");
+      debugPrint("reverrifiaction Image  $newImagePath");
       if (newImagePath != null) {
-        await missionsRepository.UpdateMission(
+        await missionsRepository.updateMission(
             event.missionId,
             event.adresseClient,
             event.consoValue,
@@ -70,7 +68,7 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
         );
         emit(MissionUpdated());
       } else {
-        emit(MissionsLoadFailure("Échec de la copie de l'image"));
+        emit(const MissionsLoadFailure("Échec de la copie de l'image"));
       }
     } catch (e) {
       emit(MissionsLoadFailure(e.toString()));
@@ -99,14 +97,14 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
         File compressedFile = File(destinationPath);
         await compressedFile.writeAsBytes(img.encodeJpg(compressedImage, quality: 85)); // Adjust quality as needed
 
-        print('Image compressée et copiée dans le répertoire d\'assets/images avec succès.');
+        debugPrint('Image compressée et copiée dans le répertoire d\'assets/images avec succès.');
         return destinationPath;
       } else {
-        print('Failed to decode image.');
+        debugPrint('Failed to decode image.');
         return null;
       }
     } catch (e) {
-      print('Erreur lors de la copie de l\'image dans le répertoire d\'assets/images: $e');
+      debugPrint('Erreur lors de la copie de l\'image dans le répertoire d\'assets/images: $e');
       return null;
     }
   }
@@ -115,8 +113,8 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
     try {
       emit(MissionsLoading());
       final missions = await missionsRepository.fetchMissions();
-      print("Nombre total de missions: ${missions.length}");
-      print("Détails des missions: $missions");
+      debugPrint("Nombre total de missions: ${missions.length}");
+      debugPrint("Détails des missions: $missions");
       emit(MissionsLoaded(missions));
     } catch (e) {
       emit(MissionsLoadFailure(e.toString()));

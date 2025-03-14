@@ -5,7 +5,6 @@ import 'package:application_rano/blocs/splash/splash_state.dart';
 class SplashBloc extends Bloc<SplashEvent, SplashState> {
   SplashBloc() : super(SplashInitialState());
 
-  @override
   Stream<SplashState> mapEventToState(SplashEvent event) async* {
     if (event is SetSplash) {
       yield SplashLoadingState();

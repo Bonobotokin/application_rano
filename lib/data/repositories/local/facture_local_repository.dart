@@ -1,4 +1,5 @@
 import 'package:application_rano/data/models/facture_payment_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/models/facture_model.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
@@ -53,15 +54,15 @@ class FactureLocalRepository {
 
   Future<Map<String, dynamic>> getStatuPaymentFacture(int idFacture) async {
     try{
-      print("iddddddd $idFacture");
+      debugPrint("iddddddd $idFacture");
       final Database db = await _niaDatabases.database;
-      print("numCompteur : $idFacture");
+      debugPrint("numCompteur : $idFacture");
       List<Map<String, dynamic>> rows = await db.rawQuery('''
         SELECT * FROM facture_paiment
         WHERE facture_id = ? 
       ''',[idFacture]);
 
-      print("getStatuPaymentFacture datas : $rows");
+      debugPrint("getStatuPaymentFacture datas : $rows");
       if (rows.isNotEmpty) {
         final row = rows[0];
         final payment =  FacturePaymentModel(
@@ -94,15 +95,15 @@ class FactureLocalRepository {
 
   Future<Map<String, dynamic>>  getFactureById(int relevecompteurId) async {
     try {
-      print("ID releveCOmpteur $relevecompteurId");
+      debugPrint("ID releveCOmpteur $relevecompteurId");
       final Database db = await _niaDatabases.database;
-      print("numCompteur : $relevecompteurId");
+      debugPrint("numCompteur : $relevecompteurId");
       List<Map<String, dynamic>> rows = await db.rawQuery('''
         SELECT * FROM facture
          WHERE relevecompteur_id = ?  
       ''',[relevecompteurId]);
 
-      print("factures data : $rows");
+      debugPrint("factures data : $rows");
       if (rows.isNotEmpty) {
         final row = rows[0];
         final factures =  FactureModel(
@@ -168,7 +169,6 @@ class FactureLocalRepository {
           whereArgs: [idFacture],
         );
         final DateTime now = DateTime.now();
-        int relevecompteurId = existingFacture.first['id'] as int;
         int relevecompteur = existingFacture.first['relevecompteur_id'] as int;
 
         await db.update(
@@ -194,14 +194,14 @@ class FactureLocalRepository {
           whereArgs: [relevecompteur],
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        print('Facture mise à jour avec succès dans la base de données locale');
+        debugPrint('Facture mise à jour avec succès dans la base de données locale');
       } else {
         // La facture n'existe pas, traiter ce cas en conséquence
-        print('Aucune facture trouvée dans la table avec l\'ID: $idFacture');
+        debugPrint('Aucune facture trouvée dans la table avec l\'ID: $idFacture');
       }
-      print('Insertion du paiement de la facture réussie.');
+      debugPrint('Insertion du paiement de la facture réussie.');
     } catch (e) {
-      print('Erreur lors de l\'enregistrement de la facture dans la base de données locale: $e');
+      debugPrint('Erreur lors de l\'enregistrement de la facture dans la base de données locale: $e');
       throw Exception('Erreur lors de l\'enregistrement de la facture dans la base de données locale: $e');
     }
   }
@@ -212,7 +212,7 @@ class FactureLocalRepository {
       final factureCount = Sqflite.firstIntValue(await db.rawQuery('''
         SELECT COUNT(*) FROM facture WHERE statut IN ('En cours')
       '''));
-      print("FactureCount $factureCount");
+      debugPrint("FactureCount $factureCount");
       // Mettre à jour le nombre de relevés effectués dans la table "acceuil"
       await db.rawUpdate('''
       UPDATE acceuil SET nombre_total_facture_payer = ?
@@ -247,7 +247,7 @@ class FactureLocalRepository {
       }
 
       // Imprimer les paiements récupérés pour vérification
-      print("Paiements récupérés : $payments");
+      debugPrint("Paiements récupérés : $payments");
 
       return payments;
     } catch (e) {

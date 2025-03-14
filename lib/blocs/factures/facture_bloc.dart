@@ -1,7 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/client_model.dart';
 import '../../data/models/compteur_model.dart';
-import '../../data/models/facture_model.dart';
 import 'facture_event.dart';
 import 'facture_state.dart';
 import 'package:application_rano/data/repositories/client_repository.dart';
@@ -23,11 +23,10 @@ class FactureBloc extends Bloc<FactureEvent, FactureState> {
       final compteurs = clientData['compteurs'] as List<CompteurModel>;
       final nombreEtatImpaye = clientData['nombre'] as List<int>;
       final nombreEtatPaye = clientData['payer'] as List<int>; // Ajoutez cette ligne
-      final nombreEncoursPayement = clientData['en_cours'] as List<int>; // Ajoutez cette ligne
 
-      print("Clients: $clients");
-      print("Compteurs: $compteurs");
-      print("nombreEtatImpaye ss : $nombreEtatImpaye");
+      debugPrint("Clients: $clients");
+      debugPrint("Compteurs: $compteurs");
+      debugPrint("nombreEtatImpaye ss : $nombreEtatImpaye");
       emit(FactureLoading(
         clients: clients,
         compteurs: compteurs,
@@ -41,9 +40,9 @@ class FactureBloc extends Bloc<FactureEvent, FactureState> {
         nombreEtatPaye: nombreEtatPaye, // Ajoutez cette ligne
       ));
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
 
-      emit(FactureFailure("Aucune Client"));
+      emit(const FactureFailure("Aucune Client"));
     }
   }
 
@@ -51,12 +50,12 @@ class FactureBloc extends Bloc<FactureEvent, FactureState> {
       LoadClientInvoices event, Emitter<FactureState> emit) async {
     try {
 
-      print("compteurIddd ${event.numCompteur}");
+      debugPrint("compteurIddd ${event.numCompteur}");
       emit(LoadingPage());
-      print("eto ClientDataeeee ${event.numCompteur}");
+      debugPrint("eto ClientDataeeee ${event.numCompteur}");
       final clientData = await clientRepository.fetcDataFacture(
           event.numCompteur, event.accessToken);
-      print("eto ClientDatass $clientData");
+      debugPrint("eto ClientDatass $clientData");
       final client = clientData['client'];
       final compteur = clientData['compteur'];
       final contrat = clientData['contrat'];
@@ -71,7 +70,7 @@ class FactureBloc extends Bloc<FactureEvent, FactureState> {
         contrat: contrat,
         releves: releves,)); // Ajouter le client dans une liste
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
       emit(FactureFailure(e.toString()));
     }
   }

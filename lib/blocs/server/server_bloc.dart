@@ -1,9 +1,9 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:application_rano/data/services/config/api_configue.dart';
 import 'package:application_rano/blocs/server/server_event.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
-import 'package:application_rano/data/services/synchronisation/sync_service.dart';
 
 enum ServerStatus {
   connected,
@@ -48,17 +48,17 @@ class ServerBloc extends Bloc<ServerEvent, ServerStatus> {
           return ServerStatus.connected;
         } else {
           // Gérer d'autres codes d'erreur si nécessaire
-          print('Erreur de connexion au serveur: ${response.statusCode}');
+          debugPrint('Erreur de connexion au serveur: ${response.statusCode}');
           return ServerStatus.disconnected;
         }
       } else {
         // Si l'URL de base est vide, la connexion a échoué
-        print('URL de base vide. Connexion au serveur échouée.');
+        debugPrint('URL de base vide. Connexion au serveur échouée.');
         return ServerStatus.disconnected;
       }
     } catch (error) {
       // Gérer les erreurs de connexion
-      print('Erreur de connexion au serveur: $error');
+      debugPrint('Erreur de connexion au serveur: $error');
       return ServerStatus.disconnected;
     }
   }
@@ -80,7 +80,7 @@ class ServerBloc extends Bloc<ServerEvent, ServerStatus> {
   //     }
   //
   //   } catch (error) {
-  //     print('Erreur lors de la synchronisation: $error');
+  //     debugPrint('Erreur lors de la synchronisation: $error');
   //     emit(ServerStatus.synchronizationError);
   //   }
   // }

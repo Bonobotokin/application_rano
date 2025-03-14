@@ -51,11 +51,4 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onLoadingSynchronisation(String? accessToken) async {
-    try {
-      await syncService.syncDataWithServer(accessToken);
-    } catch (error) {
-      print('Erreur lors de la synchronisation: $error');
-    }
-  }
 }

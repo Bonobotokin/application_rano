@@ -1,4 +1,3 @@
-import 'package:application_rano/ui/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,7 +9,7 @@ import 'package:application_rano/blocs/payements/payement_state.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 
 class PaymentFacture extends StatelessWidget {
-  const PaymentFacture({Key? key});
+  const PaymentFacture({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +47,7 @@ class PaymentFacture extends StatelessWidget {
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
         backgroundColor: Colors.white,
@@ -56,7 +55,7 @@ class PaymentFacture extends StatelessWidget {
     );
   }
   Widget _buildSuccessState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -266,7 +265,7 @@ class PaymentFacture extends StatelessWidget {
         children: [
           buildTotalRow('Prix par m3', '${factures.tarifM3} Ar'),
           buildTotalRow('Total général (Incl. Taxe)', '${factures.montantTotalTTC} Ar'),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -275,14 +274,14 @@ class PaymentFacture extends StatelessWidget {
             ),
             child: buildTotalRow('Total', '${factures.montantTotalTTC} Ar'),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               color: Colors.red,
               borderRadius: BorderRadius.circular(10.0),
             ),
-            child: buildTotalRow('Reste à payer', '${payed} Ar'),
+            child: buildTotalRow('Reste à payer', '$payed Ar'),
           ),
         ],
       ),
@@ -336,11 +335,11 @@ class PaymentFacture extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.payment, color: Colors.white),
-              SizedBox(width: 10.0),
+              const Icon(Icons.payment, color: Colors.white),
+              const SizedBox(width: 10.0),
               Text(
                 isFacturePayee ? 'Modification' : 'Payer',
-                style: TextStyle(fontSize: 18.0, color: Colors.white),
+                style: const TextStyle(fontSize: 18.0, color: Colors.white),
               ),
             ],
           ),
@@ -401,7 +400,7 @@ class PaymentFacture extends StatelessWidget {
                   if (authState is AuthSuccess) {
                     final paymentBloc = context.read<PaymentBloc>();
                     paymentBloc.add(UpdateFacture(
-                      idFacture: state.factures.id!,
+                      idFacture: state.factures.id,
                       montant: amount,
                     ));
                   }

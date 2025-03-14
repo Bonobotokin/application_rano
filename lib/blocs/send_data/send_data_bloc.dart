@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
-import 'package:meta/meta.dart';
 import 'send_data_event.dart';
 import 'send_data_state.dart';
 // /send_data/send_data_bloc
 class SendDataBloc extends Bloc<SendDataEvent, SendDataState> {
-  late SendDataBloc _sendDataBloc;
 
   SendDataBloc() : super(SendDataInitial());
 
-  @override
   Stream<SendDataState> mapEventToState(SendDataEvent event) async* {
     if (event is StartSendingData) {
       yield* _mapStartSendingDataToState(event);
@@ -26,7 +23,7 @@ class SendDataBloc extends Bloc<SendDataEvent, SendDataState> {
 
     while (sentData < totalDataToSend) {
       // Simuler l'envoi de données
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       sentData += 50; // Simuler l'envoi de 50 données à la fois
 

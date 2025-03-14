@@ -3,18 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/server/server_bloc.dart';
 import 'package:application_rano/ui/routing/routes.dart';
-import 'package:application_rano/ui/views/Logo.dart';
-import '../widgets/CustomLinearProgressIndicator.dart';
+import 'package:application_rano/ui/views/logo.dart';
+import '../widgets/custom_linear_progress_indicator.dart';
 import 'package:get/get.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  SplashScreenState createState() => SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class SplashScreenState extends State<SplashScreen> {
   late ServerBloc _serverBloc;
 
   @override

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
 import 'package:application_rano/data/models/releves_model.dart';
@@ -11,9 +12,9 @@ class ReleverRepository {
       List<Map<String, dynamic>> rows = await db.rawQuery('''
         SELECT * FROM releves
       ''');
-      print("Relever Data getByDate: $rows");
+      debugPrint("Relever Data getByDate: $rows");
       if (rows.isNotEmpty) {
-        final releves = rows.map((row) => RelevesModel(
+        rows.map((row) => RelevesModel(
           id: row['id'],
           idReleve: row['id_releve'],
           compteurId: int.parse(row['compteur_id'].toString()),
@@ -30,7 +31,7 @@ class ReleverRepository {
         throw Exception('Aucune donnée trouvée.');
       }
     } catch (e) {
-      print('Error fetching releves: $e');
+      debugPrint('Error fetching releves: $e');
       throw Exception('Failed to get releves data by date from local database: $e');
     }
   }

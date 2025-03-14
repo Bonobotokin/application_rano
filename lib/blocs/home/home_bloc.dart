@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/home/home_event.dart';
 import 'package:application_rano/blocs/home/home_state.dart';
@@ -14,13 +15,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         emit(HomeLoaded(
             data)); // Émettre l'état HomeLoaded avec les nouvelles données
       } catch (e) {
-        print(HomeError('Failed to load data: $e'));
+        debugPrint(HomeError('Failed to load data: $e').toString());
         emit(HomeError('Failed to load data: $e'));
       }
     });
 
     on<RefreshHomePageData>((event, emit) async {
-      print("eto");
+      debugPrint("eto");
       if (state is HomeLoaded) {
         // Récupérer les données actuelles
         final currentData = (state as HomeLoaded).data;
@@ -34,7 +35,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           emit(HomeLoaded(
               refreshedData)); // Émettre l'état HomeLoaded avec les nouvelles données rafraîchies
         } catch (e) {
-          print(HomeError('Failed to refresh data: $e'));
+          debugPrint(HomeError('Failed to refresh data: $e').toString());
           emit(HomeError('Failed to refresh data: $e'));
           // Éventuellement, vous pouvez émettre un état d'erreur en cas d'échec du rafraîchissement
         }

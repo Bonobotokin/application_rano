@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/clients/client_event.dart';
 import 'package:application_rano/blocs/clients/client_state.dart';
@@ -14,10 +15,10 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
     try {
       emit(ClientLoading());
 
-      print("eto ClientData numCompteur ${event.numCompteur}");
+      debugPrint("eto ClientData numCompteur ${event.numCompteur}");
       final clientData = await clientRepository.fetchClientData(
           event.numCompteur, event.accessToken);
-      print("eto ClientData $clientData");
+      debugPrint("eto ClientData $clientData");
       final client = clientData['client'];
       final compteur = clientData['compteur'];
       final contrat = clientData['contrat'];
@@ -30,7 +31,7 @@ class ClientBloc extends Bloc<ClientEvent, ClientState> {
         releves: releves,
       ));
     } catch (e) {
-      print(ClientError(message: 'Failed to load client data $e'));
+      debugPrint(ClientError(message: 'Failed to load client data $e').toString());
       emit(const ClientError(message: 'Failed to load client data'));
     }
   }

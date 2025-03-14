@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:application_rano/ui/routing/routes.dart';
@@ -23,12 +22,12 @@ class AppLayout extends StatelessWidget {
   final AuthState authState;
 
   const AppLayout({
-    Key? key,
+    super.key,
     required this.body,
     required this.backgroundColor,
     required this.currentIndex,
     required this.authState,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

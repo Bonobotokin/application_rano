@@ -62,7 +62,7 @@ class PaymentSuccess extends PaymentState {
   // Par exemple :
   final bool success;
 
-  PaymentSuccess(this.success);
+  const PaymentSuccess(this.success);
 
   @override
   List<Object> get props => [success];

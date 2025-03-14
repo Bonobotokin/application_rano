@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:application_rano/data/repositories/commentaire/CommentaireRepositoryLocale.dart';
+import 'package:application_rano/data/repositories/commentaire/commentaire_repository_locale.dart';
 import 'package:application_rano/data/services/synchronisation/commentaire_data.dart';
 import 'package:application_rano/data/services/synchronisation/sync_commentaire.dart';
 import 'package:flutter/foundation.dart';

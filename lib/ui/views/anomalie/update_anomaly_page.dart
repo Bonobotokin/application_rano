@@ -1,6 +1,4 @@
 import 'dart:io';
-import 'dart:ui';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,25 +9,19 @@ import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_state.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
-import '../../shared/DateFormatter.dart';
-import '../../shared/MaskedTextField.dart';
 import 'package:intl/intl.dart';
 
 class UpdateAnomalyPage extends StatefulWidget {
-  const UpdateAnomalyPage({Key? key});
+  const UpdateAnomalyPage({super.key});
 
   @override
-  _UpdateAnomalyPageState createState() => _UpdateAnomalyPageState();
+  UpdateAnomalyPageState createState() => UpdateAnomalyPageState();
 }
 
-class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
+class UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
   final _formKey = GlobalKey<FormState>();
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  TextEditingController _typeMcController = TextEditingController();
-  TextEditingController _longitudeMcController = TextEditingController();
-  TextEditingController _latitudeMcController = TextEditingController();
-  TextEditingController _dateDeclarationController = TextEditingController();
+  final TextEditingController _dateDeclarationController = TextEditingController();
 
   late DateFormat _dateFormat;
   late TextEditingController _textEditingController;
@@ -55,8 +47,8 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: <Widget>[
                 const SizedBox(height: 20),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
                     "Mises à jour Anomalie",
                     style: TextStyle(
@@ -71,10 +63,10 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                   builder: (context, state) {
                     if (state is UpdateAnomalieLoading) {
                       return FutureBuilder(
-                        future: Future.delayed(Duration(seconds: 2)),
+                        future: Future.delayed(const Duration(seconds: 2)),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
+                            return const Center(child: CircularProgressIndicator());
                           } else {
                             return _buildAnomalieListWidget(state.anomalie, authState);
                           }
@@ -104,7 +96,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
         itemBuilder: (context, index) {
           final anomalieItem = anomalie[index];
           return Card(
-            margin: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -119,7 +111,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                           onChanged: (value) => anomalieItem.typeMc = value,
                         ),
                       ),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       Expanded(
                         child: TextFormField(
                           controller: _textEditingController,
@@ -153,7 +145,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
@@ -163,7 +155,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                           onChanged: (value) => anomalieItem.longitudeMc = value,
                         ),
                       ),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       Expanded(
                         child: _buildTextField(
                           label: 'Latitude',
@@ -173,14 +165,14 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   _buildTextField(
                     label: 'Description',
                     initialValue: anomalieItem.descriptionMc ?? '',
                     maxLines: 3,
                     onChanged: (value) => anomalieItem.descriptionMc = value,
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
 
@@ -191,7 +183,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                           onChanged: (value) => anomalieItem.clientDeclare = value,
                         ),
                       ),
-                      SizedBox(width: 20),
+                      const SizedBox(width: 20),
                       // Expanded(
                       //   child: _buildTextField(
                       //     label: 'CP Commune',
@@ -201,16 +193,16 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                       // ),
                     ],
                   ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   // _buildTextField(
                   //   label: 'Commune',
                   //   initialValue: anomalieItem.commune ?? '',
                   //   onChanged: (value) => anomalieItem.commune = value,
                   // ),
-                  SizedBox(height: 12),
+                  const SizedBox(height: 12),
                   _buildPhotoListView(anomalieItem),
-                  SizedBox(height: 12),
-                  Container(
+                  const SizedBox(height: 12),
+                  SizedBox(
                     width: double.infinity, // Définit la largeur du Container à 100% de la largeur disponible
                     child: ElevatedButton(
                       onPressed: () {
@@ -218,10 +210,10 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
                         _updateAnomalyAndShowSnackBar(anomalieItem);
                       },
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 40.0), // Longueur du bouton
+                        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 40.0), // Longueur du bouton
                         backgroundColor: Colors.blueAccent, // Couleur de fond du bouton
                       ),
-                      child: Text(
+                      child: const Text(
                         'Modification',
                         textAlign: TextAlign.center, // Centrer le texte
                         style: TextStyle(color: Colors.white), // Couleur du texte
@@ -251,14 +243,14 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
       decoration: InputDecoration(
         labelText: label,
         hintText: label,
-        contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         filled: true,
         fillColor: Colors.grey[200],
-        hintStyle: TextStyle(color: Colors.grey),
-        labelStyle: TextStyle(color: Color(0xFF012225)),
+        hintStyle: const TextStyle(color: Colors.grey),
+        labelStyle: const TextStyle(color: Color(0xFF012225)),
         floatingLabelBehavior: FloatingLabelBehavior.never,
       ),
       onChanged: onChanged,
@@ -267,7 +259,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
 
   // Méthode pour créer une liste horizontale de photos d'anomalie
   Widget _buildPhotoListView(AnomalieModel anomalieItem) {
-    return Container(
+    return SizedBox(
       height: 150,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -285,13 +277,13 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
             },
             child: Container(
               width: 100,
-              margin: EdgeInsets.only(right: 8),
+              margin: const EdgeInsets.only(right: 8),
               child: photoAnomalie != null && photoAnomalie.isNotEmpty && File(photoAnomalie).existsSync()
                   ? Image.file(
                 File(photoAnomalie),
                 fit: BoxFit.cover,
               )
-                  : Center(
+                  : const Center(
                 child: Icon(
                   Icons.camera_alt,
                   size: 40,
@@ -318,11 +310,11 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
       // Afficher un message d'erreur et mettre en surbrillance le champ de date
       setState(() {
         // Définir une couleur rouge sur le champ de date
-        _textEditingController.selection = TextSelection.collapsed(offset: 0);
+        _textEditingController.selection = const TextSelection.collapsed(offset: 0);
       });
       // Afficher un SnackBar avec un message d'erreur
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Veuillez saisir une date'),
           backgroundColor: Colors.red,
         ),
@@ -333,7 +325,7 @@ class _UpdateAnomalyPageState extends State<UpdateAnomalyPage> {
 
 
   void _showSuccessSnackBar() {
-    final snackBar = SnackBar(
+    const snackBar = SnackBar(
       content: Text('Modification réussie'),
       backgroundColor: Colors.green,
     );

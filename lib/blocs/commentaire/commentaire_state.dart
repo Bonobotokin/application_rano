@@ -18,7 +18,7 @@ class CommentaireLoaded extends CommentaireState {
   final int idMc;
   final int idSuivie;
 
-  CommentaireLoaded(this.commentaires, this.idMc, this.idSuivie);
+  const CommentaireLoaded(this.commentaires, this.idMc, this.idSuivie);
 }
 
 

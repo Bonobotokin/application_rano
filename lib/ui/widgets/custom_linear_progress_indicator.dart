@@ -4,10 +4,10 @@ class CustomLinearProgressIndicator extends StatefulWidget {
   const CustomLinearProgressIndicator({super.key});
 
   @override
-  _CustomLinearProgressIndicatorState createState() => _CustomLinearProgressIndicatorState();
+  CustomLinearProgressIndicatorState createState() => CustomLinearProgressIndicatorState();
 }
 
-class _CustomLinearProgressIndicatorState extends State<CustomLinearProgressIndicator> with SingleTickerProviderStateMixin {
+class CustomLinearProgressIndicatorState extends State<CustomLinearProgressIndicator> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
 
   @override

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/releves_model.dart';
 import 'payement_state.dart';
@@ -29,17 +30,17 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       emit(PayementLoading()); // Passer les données de paiement de la facture ici
       final getAllFacturessss = await factureLocalRepository.getFactureDataFromLocalDatabase();
 
-      print("all Facture ${getAllFacturessss}");
-      print("releveCompteurId ${event.relevecompteurId}");
-      print("numCompteurss ${event.numCompteur}");
+      debugPrint("all Facture $getAllFacturessss");
+      debugPrint("releveCompteurId ${event.relevecompteurId}");
+      debugPrint("numCompteurss ${event.numCompteur}");
 
       final factureData = await factureLocalRepository.getFactureById(event.relevecompteurId);
       final factures = factureData['factures'];
 
-      print("facturesByid ${factures}");
+      debugPrint("facturesByid $factures");
       final statusPayment = await factureLocalRepository.getStatuPaymentFacture(factures.id);
 
-      print("Status Facture ${statusPayment['payment']}");
+      debugPrint("Status Facture ${statusPayment['payment']}");
       final paymentData = statusPayment['payment'];
 
       final clientData = await clientRepository.fetcClientDataFacture(
@@ -47,7 +48,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       final client = clientData['client'];
 
       final releverData = await clientRepository.getReleverByDate(event.numCompteur, event.date);
-      print("Zandry $releverData");
+      debugPrint("Zandry $releverData");
 
       // Attendre que le futur soit résolu pour accéder aux données
       final specificDateReleves = releverData['specificDateReleves'] ?? <RelevesModel>[];
@@ -56,7 +57,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
       emit(PayementLoaded(client, specificDateReleves, previousDateReleves, factures, paymentData)); // Passer les données de paiement de la facture ici
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
       emit(PaymentFailure(e.toString()));
     }
   }

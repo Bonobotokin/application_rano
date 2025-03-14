@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 class SyncDialog extends StatelessWidget {
   final int duration; // Durée de la synchronisation en secondes
 
-  const SyncDialog({Key? key, required this.duration}) : super(key: key);
+  const SyncDialog({super.key, required this.duration});
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Synchronisation en cours...'),
+      title: const Text('Synchronisation en cours...'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 20),
-          Text('Veuillez patienter...'),
-          SizedBox(height: 8),
+          const CircularProgressIndicator(),
+          const SizedBox(height: 20),
+          const Text('Veuillez patienter...'),
+          const SizedBox(height: 8),
           Text('Durée estimée: $duration secondes'), // Afficher la durée estimée
         ],
       ),

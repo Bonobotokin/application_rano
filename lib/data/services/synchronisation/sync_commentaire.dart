@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:application_rano/data/models/commentaire_model.dart';
-import 'package:application_rano/data/repositories/commentaire/CommentaireRepositoryLocale.dart';
+import 'package:application_rano/data/repositories/commentaire/commentaire_repository_locale.dart';
 import 'package:application_rano/data/services/config/api_configue.dart';
 import 'package:application_rano/data/services/saveData/save_data_service_locale.dart';
 import 'package:http/http.dart' as http;

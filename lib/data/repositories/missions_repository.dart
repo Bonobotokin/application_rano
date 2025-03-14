@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/models/missions_model.dart';
 import 'local/missions_repository_locale.dart';
@@ -51,9 +52,9 @@ class MissionsRepository {
           final updatedConsoDernierReleve =
                   int.parse(volumeValue) -
                     (existingMission['volume_dernier_releve'] as int);
-          print("num updatedConsoDernierReleve: $updatedConsoDernierReleve");
+          debugPrint("num updatedConsoDernierReleve: $updatedConsoDernierReleve");
           // Mise à jour de la mission existante
-          print("num Compteur: $missionId");
+          debugPrint("num Compteur: $missionId");
           await db.update(
             'missions',
             {
@@ -76,19 +77,19 @@ class MissionsRepository {
             imageCompteur,
           );
           await _updateNombreReleverEffectue(db);
-          print(
+          debugPrint(
               'Mission Inseret avec succès dans la base de données locale');
 
           List<MissionModel> updatedMissions = await fetchMissions();
-          print('Missions après insertion: $updatedMissions');
+          debugPrint('Missions après insertion: $updatedMissions');
         } else {
           // Le champ 'volume_dernier_releve' est null, ne pas effectuer la mise à jour
-          print(
+          debugPrint(
               'Le champ volume_dernier_releve est null. Impossible de mettre à jour la mission.');
         }
       }
     } catch (e) {
-      print('Failed to save mission to local database: $e');
+      debugPrint('Failed to save mission to local database: $e');
       throw Exception('Failed to save mission to local database: $e');
     }
   }
@@ -114,7 +115,7 @@ class MissionsRepository {
 
         // Incrémenter l'ID du nouveau relevé en ajoutant 1 à l'ID du dernier relevé
         int newReleveId = latestReleve['id'] + 1;
-        print("Relever trouver $consoValue");
+        debugPrint("Relever trouver $consoValue");
 
         // Insérer les données de relevé dans la table "releves"
         await db.insert(
@@ -134,10 +135,10 @@ class MissionsRepository {
         );
       } else {
         // Le dernier relevé n'existe pas, traiter ce cas en conséquence
-        print('Aucun relevé trouvé pour le compteur avec l\'ID: $compteurId');
+        debugPrint('Aucun relevé trouvé pour le compteur avec l\'ID: $compteurId');
       }
 
-      print('Insertion de nouveau relevé à partir du dernier relevé réussie.');
+      debugPrint('Insertion de nouveau relevé à partir du dernier relevé réussie.');
     } catch (e) {
       throw Exception('Failed to insert new releve from existing data: $e');
     }
@@ -150,7 +151,7 @@ class MissionsRepository {
       final missionsCount = Sqflite.firstIntValue(await db.rawQuery('''
       SELECT COUNT(*) FROM missions WHERE statut IN (1)
     '''));
-      // print("MissionCOunt $missionsCount");
+      // debugPrint("MissionCOunt $missionsCount");
       // Mettre à jour le nombre de relevés effectués dans la table "acceuil"
       await db.rawUpdate('''
       UPDATE acceuil SET nombre_relever_effectuer = ?
@@ -163,7 +164,7 @@ class MissionsRepository {
   * Update Mission and Relver
   * */
 
-  Future<void> UpdateMission(
+  Future<void> updateMission(
       String missionId,
       String adresseClient,
       String volumeValue,
@@ -215,19 +216,19 @@ class MissionsRepository {
             imageCompteur,
           );
           await _updateNombreReleverEffectue(db);
-          print(
+          debugPrint(
               'Mission mise à jour avec succès dans la base de données locale');
 
           List<MissionModel> updatedMissions = await fetchMissions();
-          print('Missions après insertion: $updatedMissions');
+          debugPrint('Missions après insertion: $updatedMissions');
         } else {
           // Le champ 'volume_dernier_releve' est null, ne pas effectuer la mise à jour
-          print(
+          debugPrint(
               'Le champ volume_dernier_releve est null. Impossible de mettre à jour la mission.');
         }
       }
     } catch (e) {
-      print('Failed to save mission to local database: $e');
+      debugPrint('Failed to save mission to local database: $e');
       throw Exception('Failed to save mission to local database: $e');
     }
   }
@@ -241,7 +242,7 @@ class MissionsRepository {
       String imageCompteur,
       ) async {
     try {
-      print("image $imageCompteur");
+      debugPrint("image $imageCompteur");
 
       if (imageCompteur.isNotEmpty) {
         // Récupérer les relevés du mois en cours
@@ -255,7 +256,7 @@ class MissionsRepository {
         DateTime currentDate = DateTime.now();
 
         // Formatter la date actuelle au format 'yyyy-MM'
-        String formattedCurrentDate = DateFormat('yyyy-MM').format(currentDate);
+        DateFormat('yyyy-MM').format(currentDate);
 
         // Initialisation du mois précédent
         DateTime previousMonthDate = DateTime(currentDate.year, currentDate.month - 1, currentDate.day);
@@ -287,8 +288,7 @@ class MissionsRepository {
           int consoValue = int.parse(volumeValue) - (releves.first['volume'] as int);
 
           // Incrémenter l'ID du nouveau relevé en ajoutant 1 à l'ID du dernier relevé
-          int newReleveId = latestReleve['id'] + 1;
-          print("Relever trouver $consoValue");
+          debugPrint("Relever trouver $consoValue");
 
           // Insérer les données de relevé dans la table "releves"
 
@@ -308,14 +308,14 @@ class MissionsRepository {
 
           if (updateResult == 1) {
             // Les données ont été mises à jour avec succès
-            print('Données mises à jour.');
+            debugPrint('Données mises à jour.');
           } else {
             // Aucune mise à jour n'a été effectuée
-            print('Erreur: Aucune mise à jour effectuée.');
+            debugPrint('Erreur: Aucune mise à jour effectuée.');
           }
         } else {
           // Aucun relevé trouvé pour le mois en cours
-          print('Aucun relevé trouvé pour le mois en cours.');
+          debugPrint('Aucun relevé trouvé pour le mois en cours.');
         }
       }
 
@@ -324,9 +324,5 @@ class MissionsRepository {
       throw Exception('Failed to update releve from existing data: $e');
     }
   }
-
-
-
-
 }
 

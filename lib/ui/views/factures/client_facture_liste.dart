@@ -11,7 +11,7 @@ import '../../../blocs/payements/payement_bloc.dart';
 import '../../../blocs/payements/payement_event.dart';
 import '../../../data/models/releves_model.dart';
 import '../../routing/routes.dart';
-import '../../shared/DateFormatter.dart';
+import '../../shared/date_formatter.dart';
 import 'client_list_page.dart';
 
 class ClientFactureList extends StatefulWidget {

@@ -14,10 +14,10 @@ class NewAnomalyPage extends StatefulWidget {
   const NewAnomalyPage({super.key});
 
   @override
-  _NewAnomalyPageState createState() => _NewAnomalyPageState();
+  NewAnomalyPageState createState() => NewAnomalyPageState();
 }
 
-class _NewAnomalyPageState extends State<NewAnomalyPage> {
+class NewAnomalyPageState extends State<NewAnomalyPage> {
   final TextEditingController _typeController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();

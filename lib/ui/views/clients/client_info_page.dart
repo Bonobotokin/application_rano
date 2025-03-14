@@ -10,10 +10,10 @@ class ClientInfoPage extends StatefulWidget {
   const ClientInfoPage({super.key});
 
   @override
-  _ClientInfoPageState createState() => _ClientInfoPageState();
+  ClientInfoPageState createState() => ClientInfoPageState();
 }
 
-class _ClientInfoPageState extends State<ClientInfoPage> {
+class ClientInfoPageState extends State<ClientInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,7 +58,7 @@ class _ClientInfoPageState extends State<ClientInfoPage> {
   }
 
   Widget _buildProfileHeader(ClientModel client) {
-    Widget verifiedText = client.actif == true
+    Widget verifiedText = client.actif == 1
         ? const Text('Actif', style: TextStyle(color: Colors.blueAccent))
         : const Text('Non actif', style: TextStyle(color: Colors.grey));
 

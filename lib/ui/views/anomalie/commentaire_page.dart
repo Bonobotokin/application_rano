@@ -10,13 +10,13 @@ import 'package:application_rano/data/models/commentaire_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 
 class CommentairePage extends StatefulWidget {
-  const CommentairePage({Key? key}) : super(key: key);
+  const CommentairePage({super.key});
 
   @override
-  _CommentairePageState createState() => _CommentairePageState();
+  CommentairePageState createState() => CommentairePageState();
 }
 
-class _CommentairePageState extends State<CommentairePage> {
+class CommentairePageState extends State<CommentairePage> {
   final TextEditingController _commentController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late int _idMc;
@@ -43,7 +43,7 @@ class _CommentairePageState extends State<CommentairePage> {
               const SizedBox(height: 5),
               Container(
                 padding: const EdgeInsets.all(20.0),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
@@ -94,7 +94,7 @@ class _CommentairePageState extends State<CommentairePage> {
   }
 
   Widget _buildLoadingState() {
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
         backgroundColor: Colors.white,
@@ -116,7 +116,7 @@ class _CommentairePageState extends State<CommentairePage> {
             subtitle: Text(
               DateFormat('dd/MM/yyyy HH:mm').format(commentaire.dateSuivie),
             ),
-            leading: Icon(
+            leading: const Icon(
               Icons.comment,
               color: Colors.blue,
             ),
@@ -144,7 +144,7 @@ class _CommentairePageState extends State<CommentairePage> {
               ),
               child: TextField(
                 controller: _commentController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                   labelText: 'Nouveau commentaire',
                   border: InputBorder.none,
@@ -156,7 +156,7 @@ class _CommentairePageState extends State<CommentairePage> {
             ),
           ),
           IconButton(
-            icon: Icon(Icons.send),
+            icon: const Icon(Icons.send),
             onPressed: () {
               if (_commentController.text.isNotEmpty) {
                 BlocProvider.of<CommentaireBLoc>(context).add(
@@ -169,7 +169,7 @@ class _CommentairePageState extends State<CommentairePage> {
                 _commentController.clear();
                 _scrollController.animateTo(
                   _scrollController.position.maxScrollExtent,
-                  duration: Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 300),
                   curve: Curves.easeOut,
                 );
               }

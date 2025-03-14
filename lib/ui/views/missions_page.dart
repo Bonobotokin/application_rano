@@ -14,23 +14,21 @@ import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/blocs/clients/client_bloc.dart';
 import 'package:application_rano/blocs/clients/client_event.dart';
 import 'package:intl/intl.dart';
-import '../shared/DateFormatter.dart';
-import '../shared/MaskedTextField.dart';
+import '../shared/date_formatter.dart';
 import '../routing/routes.dart';
 import 'package:get/get.dart';
 
 class MissionsPage extends StatefulWidget {
-  const MissionsPage({Key? key}) : super(key: key);
+  const MissionsPage({super.key});
 
   @override
-  _MissionsPageState createState() => _MissionsPageState();
+  MissionsPageState createState() => MissionsPageState();
 }
 
-class _MissionsPageState extends State<MissionsPage> {
+class MissionsPageState extends State<MissionsPage> {
   String _searchText = '';
 
   // Déclarez une variable pour stocker le chemin de l'image sélectionnée
-  late String _imagePath = '';
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +107,7 @@ class _MissionsPageState extends State<MissionsPage> {
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Couleur bleue pour la bordure
         backgroundColor: Colors.white, // Fond blanc
@@ -219,14 +217,13 @@ class _MissionsPageState extends State<MissionsPage> {
       ) {
     Color cardColor = mission.statut == 1 || mission.statut == 2 ? Colors.white : const Color(0xFFBBDEFB);
 
-    Color btnColor = mission.statut == 1 ? const Color(0xFFEEE9E9) : const Color(0xFFBBDEFB);
     String buttonText = mission.statut == 1 ? 'Modifier' : 'Ajouter';
 
     bool canModify = !(mission.statut == 2 && isCurrentYearAndMonth(mission.dateReleve!));
 
     Widget linkButton = canModify
         ? _buildLinkButton(context, mission, authState, buttonText)
-        : SizedBox.shrink();
+        : const SizedBox.shrink();
 
     return GestureDetector(
       onTap: () {
@@ -327,10 +324,9 @@ class _MissionsPageState extends State<MissionsPage> {
     DateTime currentDate = DateTime.now();
     String formattedDate = DateFormat('dd-MM-yyyy').format(currentDate);
     dateController.text = formattedDate;
-    String dateValue = formattedDate;
 
-    late String _imagePath = ''; // Déclaration du chemin de l'image à l'intérieur de la méthode
-    bool _isLoading = false; // État de chargement
+    late String imagePath0 = ''; // Déclaration du chemin de l'image à l'intérieur de la méthode
+    bool isLoading = false; // État de chargement
 
     final formKey = GlobalKey<FormState>();
 
@@ -371,11 +367,11 @@ class _MissionsPageState extends State<MissionsPage> {
                         readOnly: true,
                       ),
                       const SizedBox(height: 10),
-                      if (_isLoading)
-                        CircularProgressIndicator(), // Indicateur de chargement
-                      if (_imagePath.isNotEmpty && !_isLoading)
+                      if (isLoading)
+                        const CircularProgressIndicator(), // Indicateur de chargement
+                      if (imagePath0.isNotEmpty && !isLoading)
                         Image.file(
-                          File(_imagePath),
+                          File(imagePath0),
                           width: 100,
                           height: 100,
                         ),
@@ -383,12 +379,12 @@ class _MissionsPageState extends State<MissionsPage> {
                       ElevatedButton.icon(
                         onPressed: () async {
                           setState(() {
-                            _isLoading = true; // Affiche l'indicateur de chargement
+                            isLoading = true; // Affiche l'indicateur de chargement
                           });
                           String? imagePath = await _getImage();
                           setState(() {
-                            _imagePath = imagePath ?? ''; // Mettre à jour le chemin de l'image
-                            _isLoading = false; // Masque l'indicateur de chargement
+                            imagePath0 = imagePath ?? ''; // Mettre à jour le chemin de l'image
+                            isLoading = false; // Masque l'indicateur de chargement
                           });
                         },
                         icon: const Icon(Icons.camera_alt),
@@ -406,16 +402,16 @@ class _MissionsPageState extends State<MissionsPage> {
                               foregroundColor: Colors.white,
                               backgroundColor: Colors.redAccent,
                             ),
-                            child: Text('Fermer'),
+                            child: const Text('Fermer'),
                           ),
                           const SizedBox(width: 10),
                           ElevatedButton(
                             onPressed: () async {
                               if (formKey.currentState!.validate()) {
                                 // Vérification si l'image est vide
-                                if (_imagePath.isEmpty) {
+                                if (imagePath0.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
+                                    const SnackBar(
                                       content: Text('Veuillez prendre une photo'),
                                       backgroundColor: Colors.red,
                                     ),
@@ -434,7 +430,7 @@ class _MissionsPageState extends State<MissionsPage> {
                                           consoValue: volumeValue,
                                           date: formattedDate,
                                           accessToken: authState is AuthSuccess ? authState.userInfo.lastToken ?? '' : '',
-                                          imageCompteur: _imagePath,
+                                          imageCompteur: imagePath0,
                                         ),
                                       );
                                     } else {
@@ -445,7 +441,7 @@ class _MissionsPageState extends State<MissionsPage> {
                                           consoValue: volumeValue,
                                           date: formattedDate,
                                           accessToken: authState is AuthSuccess ? authState.userInfo.lastToken ?? '' : '',
-                                          imageCompteur: _imagePath,
+                                          imageCompteur: imagePath0,
                                         ),
                                       );
                                     }
@@ -495,26 +491,26 @@ class _MissionsPageState extends State<MissionsPage> {
 
     if (pickedFile != null) {
       String imagePath = pickedFile.path;
-      print('Chemin de l\'image avant compression : $imagePath');
+      debugPrint('Chemin de l\'image avant compression : $imagePath');
 
       File imageFile = File(imagePath);
       int originalSize = await imageFile.length();
-      print('Taille de l\'image avant compression : ${originalSize ~/ 1024} KB');
+      debugPrint('Taille de l\'image avant compression : ${originalSize ~/ 1024} KB');
 
       String? compressedImagePath = await _resizeAndCompressImage(imagePath);
 
       if (compressedImagePath != null) {
         File compressedImage = File(compressedImagePath);
         int compressedSize = await compressedImage.length();
-        print('Chemin de l\'image après compression : $compressedImagePath');
-        print('Taille de l\'image après compression : ${compressedSize ~/ 1024} KB');
+        debugPrint('Chemin de l\'image après compression : $compressedImagePath');
+        debugPrint('Taille de l\'image après compression : ${compressedSize ~/ 1024} KB');
       } else {
-        print('Erreur lors de la compression de l\'image.');
+        debugPrint('Erreur lors de la compression de l\'image.');
       }
 
       return compressedImagePath;
     } else {
-      print('Aucune image sélectionnée.');
+      debugPrint('Aucune image sélectionnée.');
       return null;
     }
   }
@@ -537,11 +533,11 @@ class _MissionsPageState extends State<MissionsPage> {
 
         return compressedImage.path;
       } else {
-        print('Erreur lors du décodage de l\'image.');
+        debugPrint('Erreur lors du décodage de l\'image.');
         return null;
       }
     } catch (e) {
-      print('Erreur lors de la manipulation de l\'image : $e');
+      debugPrint('Erreur lors de la manipulation de l\'image : $e');
       return null;
     }
   }

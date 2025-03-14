@@ -21,9 +21,9 @@ import 'package:application_rano/blocs/payements/payement_bloc.dart';
 import 'package:application_rano/ui/views/clients/detail_compteur_page.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
 import 'package:application_rano/data/repositories/local/facture_local_repository.dart';
-import '../../../ui/views/anomalie/anomaliePage.dart';
+import '../../../ui/views/anomalie/anomalie_page.dart';
 import 'package:application_rano/ui/views/factures/client_list_page.dart';
-import 'package:application_rano/data/repositories/commentaire/CommentaireRepositoryLocale.dart';
+import 'package:application_rano/data/repositories/commentaire/commentaire_repository_locale.dart';
 
 List<BlocProvider> createBlocProviders(String baseUrl) {
   return [

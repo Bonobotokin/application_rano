@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:io';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
 import 'package:application_rano/blocs/commentaire/commentaire_bloc.dart';
@@ -11,23 +10,19 @@ import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_state.dart';
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
-import 'package:get/get_state_manager/src/simple/list_notifier.dart';
 import 'new_anomaly_page.dart';
-import '../../shared/DateFormatter.dart';
-import '../../shared/MaskedTextField.dart';
+import '../../shared/date_formatter.dart';
 import 'package:application_rano/ui/routing/routes.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
-import 'commentaire_page.dart';
 
 class AnomaliePage extends StatefulWidget {
   const AnomaliePage({super.key});
 
   @override
-  _AnomaliePageState createState() => _AnomaliePageState();
+  AnomaliePageState createState() => AnomaliePageState();
 }
 
-class _AnomaliePageState extends State<AnomaliePage> {
+class AnomaliePageState extends State<AnomaliePage> {
   String _searchText = '';
   @override
   Widget build(BuildContext context) {
@@ -46,7 +41,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       "Anomalie",
                       style: TextStyle(
                         color: Color(0xdd2e3131),
@@ -59,13 +54,13 @@ class _AnomaliePageState extends State<AnomaliePage> {
                         // Naviguer vers une nouvelle page pour créer une nouvelle anomalie
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => NewAnomalyPage()), // Remplacez NewAnomalyPage() par le nom de votre page de création d'anomalie
+                          MaterialPageRoute(builder: (context) => const NewAnomalyPage()), // Remplacez NewAnomalyPage() par le nom de votre page de création d'anomalie
                         );
                       },
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Nouvelles anomalies',
                         style: TextStyle(color: Colors.white),
                       ),
@@ -97,7 +92,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
     );
   }
   Widget _buildLoadingState(BuildContext context) {
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Couleur bleue pour la bordure
         backgroundColor: Colors.white, // Fond blanc
@@ -271,7 +266,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
-                    Text('Statut: ${status}',
+                    Text('Statut: $status',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -309,7 +304,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.lightBlueAccent,
                   ),
-                  child: Text(
+                  child: const Text(
                     'Modification',
                     style: TextStyle(
                       color: Colors.white,
@@ -317,7 +312,7 @@ class _AnomaliePageState extends State<AnomaliePage> {
                   ),
                 ) : null,
               ),
-              SizedBox(height: 8), // Espacement entre le contenu et les images
+              const SizedBox(height: 8), // Espacement entre le contenu et les images
               Wrap(
                 spacing: 8.0,
                 runSpacing: 8.0,

@@ -1,6 +1,6 @@
 import 'package:application_rano/data/models/anomalie_model.dart';
-import 'package:application_rano/data/models/photo_anomalie_model.dart';
 import 'package:application_rano/data/models/client_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
 
@@ -24,7 +24,7 @@ class AnomalieRepository {
     try {
       final Database db = await _niaDatabases.database;
       final List<Map<String, dynamic>> maps = await db.query('anomalie');
-      print("mapas $maps");
+      debugPrint("mapas $maps");
       return List.generate(maps.length, (i) {
         return AnomalieModel(
             id: maps[i]['id'],
@@ -69,7 +69,7 @@ class AnomalieRepository {
       Map<String, dynamic>? lastAnomalie = await db.query('anomalie').then((value) => value.isNotEmpty ? value.last : null);
 
       if (lastAnomalie != null) {
-        print("lastAnomalie ${lastAnomalie['id']}" );
+        debugPrint("lastAnomalie ${lastAnomalie['id']}" );
         int newIdMc = lastAnomalie['id'] + 1;
         await db.insert(
           'anomalie',
@@ -84,7 +84,7 @@ class AnomalieRepository {
             'cp_commune': cpCommune,
             'commune': commune,
             'status': 4,
-            'photo_anomalie_1': imagePaths.length > 0 ? imagePaths[0] : null,
+            'photo_anomalie_1': imagePaths.isNotEmpty ? imagePaths[0] : null,
             'photo_anomalie_2': imagePaths.length > 1 ? imagePaths[1] : null,
             'photo_anomalie_3': imagePaths.length > 2 ? imagePaths[2] : null,
             'photo_anomalie_4': imagePaths.length > 3 ? imagePaths[3] : null,
@@ -92,17 +92,17 @@ class AnomalieRepository {
           },
         );
         await _updateAcceuil(db);
-        print('Anomalie insérée avec succès dans la base de données locale');
+        debugPrint('Anomalie insérée avec succès dans la base de données locale');
         // Récupérer les données insérées et les afficher
         final insertedAnomalie = await db.query('anomalie',
             orderBy: 'id DESC', limit: 1); // Récupérer la dernière anomalie insérée
         if (insertedAnomalie.isNotEmpty) {
-          print('Données de la dernière anomalie insérée : $insertedAnomalie');
+          debugPrint('Données de la dernière anomalie insérée : $insertedAnomalie');
         } else {
-          print('Aucune donnée n\'a été trouvée pour la dernière anomalie insérée');
+          debugPrint('Aucune donnée n\'a été trouvée pour la dernière anomalie insérée');
         }
       } else {
-        print("Aucune anomalie n'a été trouvée dans la base de données.");
+        debugPrint("Aucune anomalie n'a été trouvée dans la base de données.");
 
         int newIdMc = 1;
         await db.insert(
@@ -126,18 +126,18 @@ class AnomalieRepository {
           },
         );
         await _updateAcceuil(db);
-        print('Anomalie insérée avec succès dans la base de données locale');
+        debugPrint('Anomalie insérée avec succès dans la base de données locale');
         // Récupérer les données insérées et les afficher
         final insertedAnomalie = await db.query('anomalie',
             orderBy: 'id DESC', limit: 1); // Récupérer la dernière anomalie insérée
         if (insertedAnomalie.isNotEmpty) {
-          print('Données de la dernière anomalie insérée : $insertedAnomalie');
+          debugPrint('Données de la dernière anomalie insérée : $insertedAnomalie');
         } else {
-          print('Aucune donnée n\'a été trouvée pour la dernière anomalie insérée');
+          debugPrint('Aucune donnée n\'a été trouvée pour la dernière anomalie insérée');
         }
       }
     } catch (e) {
-      print('Échec de l\'enregistrement de l\'anomalie dans la base de données locale: $e');
+      debugPrint('Échec de l\'enregistrement de l\'anomalie dans la base de données locale: $e');
       throw Exception('Échec de l\'enregistrement de l\'anomalie dans la base de données locale: $e');
     }
   }
@@ -171,7 +171,7 @@ class AnomalieRepository {
             'cp_commune': cpCommune,
             'commune': commune,
             'status': 4,
-            'photo_anomalie_1': imagePaths.length > 0 ? imagePaths[0] : null,
+            'photo_anomalie_1': imagePaths.isNotEmpty ? imagePaths[0] : null,
             'photo_anomalie_2': imagePaths.length > 1 ? imagePaths[1] : null,
             'photo_anomalie_3': imagePaths.length > 2 ? imagePaths[2] : null,
             'photo_anomalie_4': imagePaths.length > 3 ? imagePaths[3] : null,
@@ -182,20 +182,20 @@ class AnomalieRepository {
         );
 
         await _updateAcceuil(db);
-        print('Mises a jour Anomalie avec succès dans la base de données locale');
+        debugPrint('Mises a jour Anomalie avec succès dans la base de données locale');
         // Récupérer les données insérées et les afficher
         final insertedAnomalie = await db.query('anomalie',
             orderBy: 'id DESC', limit: 1); // Récupérer la dernière anomalie insérée
         if (insertedAnomalie.isNotEmpty) {
-          print('Données de la dernière anomalie insérée : $insertedAnomalie');
+          debugPrint('Données de la dernière anomalie insérée : $insertedAnomalie');
         } else {
-          print('Aucune donnée n\'a été trouvée pour la dernière anomalie insérée');
+          debugPrint('Aucune donnée n\'a été trouvée pour la dernière anomalie insérée');
         } 
       } else {
-        print("Aucune anomalie n'a été trouvée dans la base de données.");
+        debugPrint("Aucune anomalie n'a été trouvée dans la base de données.");
       }
     } catch (e) {
-      print('Échec de l\'enregistrement de l\'anomalie dans la base de données locale: $e');
+      debugPrint('Échec de l\'enregistrement de l\'anomalie dans la base de données locale: $e');
       throw Exception('Échec de l\'enregistrement de l\'anomalie dans la base de données locale: $e');
     }
   }

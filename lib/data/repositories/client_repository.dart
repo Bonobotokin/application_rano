@@ -2,6 +2,7 @@ import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
 import 'package:application_rano/data/models/contrat_model.dart';
 import 'package:application_rano/data/models/releves_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
 
@@ -39,7 +40,7 @@ class ClientRepository {
       GROUP BY client.id;
     ''');
 
-      print(rows);
+      debugPrint(rows.toString());
       // Vérifiez si des données ont été récupérées
       if (rows.isNotEmpty) {
         // Créez des listes pour stocker les clients, les compteurs et les nombres d'états de facture impayés
@@ -154,7 +155,7 @@ class ClientRepository {
         WHERE releves.compteur_id = ? 
       ''', [numCompteur]);
 
-      print("clientData verrifie : $rows");
+      debugPrint("clientData verrifie : $rows");
 
       // Vérifiez si des données ont été récupérées
       if (rows.isNotEmpty) {
@@ -205,7 +206,7 @@ class ClientRepository {
         )).toList();
 
 
-        print("client : $releves");
+        debugPrint("client : $releves");
 
         return {
           'client': client,
@@ -269,7 +270,7 @@ class ClientRepository {
           WHERE releves.id_releve = ?  
         ''', [relevecompteurId]);
 
-      print("clientData verrifiesssss  : $rows");
+      debugPrint("clientData verrifiesssss  : $rows");
 
       // Vérifiez si des données ont été récupérées
       if (rows.isNotEmpty) {
@@ -320,7 +321,7 @@ class ClientRepository {
         )).toList();
 
 
-        print("client : $releves");
+        debugPrint("client : $releves");
 
         return {
           'client': client,
@@ -383,7 +384,7 @@ class ClientRepository {
         WHERE releves.client_id = ? 
       ''', [clientId]);
 
-      print("clientData verrifie : $rows");
+      debugPrint("clientData verrifie : $rows");
 
       // Vérifiez si des données ont été récupérées
       if (rows.isNotEmpty) {
@@ -434,7 +435,7 @@ class ClientRepository {
         )).toList();
 
 
-        print("client : $releves");
+        debugPrint("client : $releves");
 
         return {
           'client': client,
@@ -454,7 +455,7 @@ class ClientRepository {
   Future<Map<String, List<RelevesModel>>> getReleverByDate(int numCompteur, String date) async {
     try {
       final Database db = await _niaDatabases.database;
-      print("compteur et date ${numCompteur} ${date}");
+      debugPrint("compteur et date $numCompteur $date");
       // 1. Récupérer d'abord les relevés pour la date spécifique
       List<Map<String, dynamic>> specificDateRows = await db.rawQuery('''
       SELECT * FROM releves
@@ -508,7 +509,7 @@ class ClientRepository {
 
       return relevesMap;
     } catch (e) {
-      print('Error fetching releves: $e');
+      debugPrint('Error fetching releves: $e');
       throw Exception('Failed to get releves data by date from local database: $e');
     }
   }
@@ -532,7 +533,7 @@ class ClientRepository {
         GROUP BY client.id;
       ''');
 
-      print(rows);
+      debugPrint(rows.toString());
 
       // Vérifiez si des données ont été récupérées
       if (rows.isNotEmpty) {

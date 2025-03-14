@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:application_rano/data/models/user.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
@@ -17,7 +18,7 @@ class AuthenticationLocale {
         where: 'num_utilisateur = ?',
         whereArgs: [phoneNumber],
       );
-      print(result);
+      debugPrint(result.toString());
       if (result.isNotEmpty) {
         final User user = User.fromMap(result.first);
         /*
@@ -43,7 +44,7 @@ class AuthenticationLocale {
         where: 'num_utilisateur = ?',
         whereArgs: [id],
       );
-      print(result);
+      debugPrint(result.toString());
       if (result.isNotEmpty) {
         final User user = User.fromMap(result.first);
         /*

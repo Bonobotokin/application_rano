@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart'; // Importez le package intl pour formater les dates
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -12,7 +13,7 @@ class DateFormatter {
       // Utiliser le package intl pour formater la date en français
       return DateFormat('dd-MM-yyyy').format(date);
     } catch (e) {
-      print('Erreur de format de date: $e');
+      debugPrint('Erreur de format de date: $e');
       return 'Format de date invalide';
     }
   }

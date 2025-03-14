@@ -3,18 +3,20 @@ import 'dart:async'; // Importez Timer depuis dart:async
 import 'package:flutter/material.dart';
 
 class SendDataDialog extends StatefulWidget {
+  const SendDataDialog({super.key});
+
   @override
-  _SendDataDialogState createState() => _SendDataDialogState();
+  SendDataDialogState createState() => SendDataDialogState();
 }
 
-class _SendDataDialogState extends State<SendDataDialog> {
-  TextEditingController _controller = TextEditingController();
+class SendDataDialogState extends State<SendDataDialog> {
+  final TextEditingController _controller = TextEditingController();
   double _progressValue = 0.0;
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Envoyer les données'),
+      title: const Text('Envoyer les données'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -22,7 +24,7 @@ class _SendDataDialogState extends State<SendDataDialog> {
           TextFormField(
             controller: _controller,
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
+            decoration: const InputDecoration(labelText: 'Nombre de données à envoyer'),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Veuillez entrer un nombre';
@@ -30,10 +32,10 @@ class _SendDataDialogState extends State<SendDataDialog> {
               return null;
             },
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           LinearProgressIndicator(value: _progressValue),
-          SizedBox(height: 10),
-          Text('Veuillez patienter...'),
+          const SizedBox(height: 10),
+          const Text('Veuillez patienter...'),
         ],
       ),
       actions: [
@@ -41,7 +43,7 @@ class _SendDataDialogState extends State<SendDataDialog> {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: Text('Annuler'),
+          child: const Text('Annuler'),
         ),
         ElevatedButton(
           onPressed: () {
@@ -68,18 +70,18 @@ class _SendDataDialogState extends State<SendDataDialog> {
               });
 
               // Fermer la boîte de dialogue après un certain délai
-              Future.delayed(Duration(seconds: 2), () {
+              Future.delayed(const Duration(seconds: 2), () {
                 Navigator.of(context).pop();
               });
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
+                const SnackBar(
                   content: Text('Le nombre minimum de données à envoyer est de 50'),
                 ),
               );
             }
           },
-          child: Text('Valider'),
+          child: const Text('Valider'),
         ),
       ],
     );

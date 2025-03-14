@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'dart:io';
-import 'package:path/path.dart' as path;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/clients/client_bloc.dart';
@@ -12,11 +11,10 @@ import 'package:application_rano/data/models/releves_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
-import 'package:application_rano/ui/shared/DateFormatter.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:application_rano/ui/shared/date_formatter.dart';
 
 class DetailCompteurPage extends StatelessWidget {
-  const DetailCompteurPage({Key? key}) : super(key: key);
+  const DetailCompteurPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +153,7 @@ class DetailCompteurPage extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 56,
                     height: 56,
                     child: _buildReleveLeading(context, releve, randomColor),
@@ -212,7 +210,7 @@ class DetailCompteurPage extends StatelessWidget {
 
 
   Widget _buildReleveLeading(BuildContext context, RelevesModel releve, Color randomColor) {
-    if (releve.imageCompteur != null && releve.imageCompteur.isNotEmpty && File(releve.imageCompteur).existsSync()) {
+    if (releve.imageCompteur.isNotEmpty && File(releve.imageCompteur).existsSync()) {
       return GestureDetector(
         onTap: () {
           showDialog(

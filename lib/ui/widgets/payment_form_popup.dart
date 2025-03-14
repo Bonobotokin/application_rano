@@ -12,10 +12,10 @@ class PaymentFormPopup extends StatefulWidget {
   const PaymentFormPopup({super.key, required this.facture, required this.authState});
 
   @override
-  _PaymentFormPopupState createState() => _PaymentFormPopupState();
+  PaymentFormPopupState createState() => PaymentFormPopupState();
 }
 
-class _PaymentFormPopupState extends State<PaymentFormPopup> {
+class PaymentFormPopupState extends State<PaymentFormPopup> {
   final TextEditingController _amountController = TextEditingController();
 
   @override

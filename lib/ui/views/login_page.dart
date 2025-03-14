@@ -58,7 +58,7 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Couleur bleue pour la bordure
         backgroundColor: Colors.white, // Fond blanc
@@ -67,10 +67,10 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildStartSendDataState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
             backgroundColor: Colors.white, // Fond blanc
@@ -86,10 +86,10 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildStartSendDataEndState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
             backgroundColor: Colors.white, // Fond blanc
@@ -105,10 +105,10 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildLoadingSynchronisationState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
             backgroundColor: Colors.white, // Fond blanc
@@ -124,10 +124,10 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildLoadingSynchronisationEndState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
             backgroundColor: Colors.white, // Fond blanc

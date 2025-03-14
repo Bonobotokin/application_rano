@@ -15,7 +15,7 @@ import 'package:application_rano/blocs/auth/auth_state.dart';
 import 'package:application_rano/blocs/missions/missions_bloc.dart';
 import 'package:application_rano/blocs/missions/missions_event.dart';
 import 'package:application_rano/ui/routing/routes.dart';
-import 'package:application_rano/ui/shared/SyncDialog.dart';
+import 'package:application_rano/ui/shared/sync_dialog.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
 import 'package:application_rano/data/services/synchronisation/missions/SyncMissionService.dart';
 import 'package:application_rano/data/services/synchronisation/factures/SyncFactureService.dart';

@@ -79,7 +79,7 @@ class GetUpdateAnomalie extends AnomalieEvent {
 class UpdateAnomalie extends AnomalieEvent {
   final AnomalieModel anomalieItem; // L'objet anomalieItem avec les valeurs mises à jour
 
-  UpdateAnomalie({
+  const UpdateAnomalie({
     required this.anomalieItem,
   });
 }

@@ -54,7 +54,7 @@ class LoadingSynchronisationSuccessState extends AuthState {
 class AuthSyncInProgress extends AuthState {
   final double progress;
 
-  AuthSyncInProgress(this.progress);
+  const AuthSyncInProgress(this.progress);
 }
 
 class AuthSyncSuccess extends AuthState {}
@@ -62,7 +62,7 @@ class AuthSyncSuccess extends AuthState {}
 class AuthSyncError extends AuthState {
   final String errorMessage;
 
-  AuthSyncError(this.errorMessage);
+  const AuthSyncError(this.errorMessage);
 }
 
 class LoadSendDataLocal extends AuthState {

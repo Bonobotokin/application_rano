@@ -1,6 +1,6 @@
-import 'package:application_rano/blocs/commentaire/commentaire_bloc.dart';
 import 'package:application_rano/data/models/commentaire_model.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:intl/intl.dart';
 
@@ -45,7 +45,7 @@ class CommentaireRepositoryLocale
 
       final now = DateTime.now();
       final startOfMonth = DateTime(now.year, now.month, 1);
-      final endOfMonth = DateTime(now.year, now.month + 1, 1).subtract(Duration(milliseconds: 1));
+      final endOfMonth = DateTime(now.year, now.month + 1, 1).subtract(const Duration(milliseconds: 1));
 
       final commentaireTosync = commentaireLocal.where((commentaire) {
         final date = commentaire.dateSuivie;
@@ -67,7 +67,7 @@ class CommentaireRepositoryLocale
         whereArgs: [idMc],
         orderBy: 'id DESC', // Sort by date_suivie in descending order
       );
-      print("maps $maps");
+      debugPrint("maps $maps");
 
       final commentaires = List.generate(maps.length, (i) {
         return CommentaireModel(

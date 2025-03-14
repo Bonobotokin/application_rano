@@ -1,4 +1,3 @@
-import 'package:application_rano/data/models/facture_model.dart';
 import 'package:equatable/equatable.dart';
 import '../../data/models/client_model.dart';
 import '../../data/models/compteur_model.dart';
@@ -53,6 +52,7 @@ class FactureLoaded extends FactureState {
 }
 
 class FactureClientLoading extends FactureState {
+  @override
   final ClientModel client;
   final List<CompteurModel> compteur; // Modifier la déclaration de compteur
   final ContratModel contrat;
@@ -70,6 +70,7 @@ class FactureClientLoading extends FactureState {
 }
 
 class FactureClientLoaded extends FactureState {
+  @override
   final ClientModel client;
   final List<CompteurModel> compteur; // Modifier la déclaration de compteur
   final ContratModel contrat;
