@@ -1,7 +1,7 @@
 import 'package:http/http.dart' as http;
 
 class ApiConfig {
-  static const String ipAddress = 'http://89.116.38.149:8000';
+  static const String ipAddress = 'https://app.eatc.me';
 
   // Augmentation du délai d'expiration à 20 secondes
   static Future<String> determineBaseUrl() async {

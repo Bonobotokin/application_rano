@@ -142,7 +142,7 @@ class SyncAnomalieService {
 
   Future<List<AnomalieModel>> _fetchAnomalieDataFromEndpoint(String baseUrl, String? accessToken) async {
     try {
-      String baseUrl = 'http://89.116.38.149:8000/api'; // Déclarez baseUrl comme une variable locale
+      String baseUrl = 'https://app.eatc.me/api'; // Déclarez baseUrl comme une variable locale
       final response = await http.get(
         Uri.parse('$baseUrl/anomalie'),
         headers: {'Authorization': 'Bearer $accessToken'},

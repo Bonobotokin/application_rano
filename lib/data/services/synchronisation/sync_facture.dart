@@ -42,7 +42,7 @@ class SyncFacture {
       ) async {
     print("ID Releve: $idReleve");
     print("AccessToken Facture: $accessToken");
-    String baseUrl = 'http://89.116.38.149:8000/api'; // Déclarez baseUrl comme une variable locale
+    String baseUrl = 'https://app.eatc.me/api'; // Déclarez baseUrl comme une variable locale
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/facture?id_releve=$idReleve'),

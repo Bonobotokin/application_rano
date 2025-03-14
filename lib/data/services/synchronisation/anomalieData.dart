@@ -13,7 +13,7 @@ class AnomalieData {
 
   static Future<void> sendLocalDataToServer(AnomalieModel anomalie, String? accessToken) async {
     try {
-      String baseUrl = 'http://89.116.38.149:8000/api'; // Déclarez baseUrl comme une variable locale
+      String baseUrl = 'https://app.eatc.me/api'; // Déclarez baseUrl comme une variable locale
       final url = '$baseUrl/anomalie';
       final headers = {
         'Authorization': 'Bearer $accessToken',

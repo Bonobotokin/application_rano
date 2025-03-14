@@ -123,7 +123,7 @@ class AuthRepository {
         };
       } else {
         final response = await http.get(
-          Uri.parse('http://89.116.38.149:8000/api/releverClient?num_compteur=$numCompteur'),
+          Uri.parse('https://app.eatc.me/api/releverClient?num_compteur=$numCompteur'),
           headers: {'Authorization': 'Bearer $accessToken'},
         );
         if (response.statusCode == 200) {

@@ -8,7 +8,7 @@ class CommentaireData {
 
   static Future<void> sendCommentaireToServer(CommentaireModel commentaire, String? accessToken) async {
     try {
-      String baseUrl = 'http://89.116.38.149:8000/api'; // Déclarez baseUrl comme une variable locale
+      String baseUrl = 'https://app.eatc.me/api'; // Déclarez baseUrl comme une variable locale
       final url = '$baseUrl/commentaire'; // Assurez-vous que l'URL est correcte
       final headers = {
         'Authorization': 'Bearer $accessToken',

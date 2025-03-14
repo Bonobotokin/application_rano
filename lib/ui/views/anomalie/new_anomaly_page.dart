@@ -48,7 +48,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
 
   Future<void> _fetchClients() async {
     try {
-      final List<ClientModel> clients = await AnomalieRepository(baseUrl: "http://89.116.38.149:8000/api").getAllClients();
+      final List<ClientModel> clients = await AnomalieRepository(baseUrl: "https://app.eatc.me/api").getAllClients();
       if (mounted) {
         setState(() {
           _clients = clients;

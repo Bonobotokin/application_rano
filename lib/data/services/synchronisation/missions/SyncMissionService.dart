@@ -115,7 +115,7 @@ class SyncMissionService {
 
   Future<int> syncDataMissionToLocal(String accessToken) async {
     try {
-      final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+      final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
       final startTime = DateTime.now();
 
       print("Start syncing missions");
@@ -151,7 +151,7 @@ class SyncMissionService {
   }
 
   Future<Map<String, dynamic>> fetchDataClientDetails(int? numCompteur, String? accessToken) async {
-    String baseUrl = 'http://89.116.38.149:8000/api';
+    String baseUrl = 'https://app.eatc.me/api';
 
     try {
       if (accessToken == null) {

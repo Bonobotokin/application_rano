@@ -444,7 +444,7 @@ class _HomePageState extends State<HomePage> {
                 TextButton(
                   child: Text('OK'),
                   onPressed: () {
-                    final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+                    final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
                     authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
                     BlocProvider.of<HomeBloc>(context).add(RefreshHomePageData(
                         accessToken: authState.userInfo.lastToken ?? ''));
@@ -543,7 +543,7 @@ class _HomePageState extends State<HomePage> {
                 TextButton(
                   child: Text('OK'),
                   onPressed: () {
-                    final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+                    final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
                     authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
                     BlocProvider.of<HomeBloc>(context).add(RefreshHomePageData(
                         accessToken: authState.userInfo.lastToken ?? ''));
@@ -779,7 +779,7 @@ class _HomePageState extends State<HomePage> {
       try {
         // Appeler la fonction de synchronisation des relevés
         final SyncFactureService syncFactureService = SyncFactureService();
-        final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+        final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
         final durationFactureInSeconds = await syncFactureService.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
         await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
 
@@ -895,7 +895,7 @@ class _HomePageState extends State<HomePage> {
                 TextButton(
                   child: Text('OK'),
                   onPressed: () {
-                    final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+                    final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
                     authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
                     BlocProvider.of<HomeBloc>(context).add(RefreshHomePageData(accessToken: authState.userInfo.lastToken ?? ''));
                     Get.offNamed(AppRoutes.home);
@@ -1035,7 +1035,7 @@ class _HomePageState extends State<HomePage> {
       try {
         // Appeler la fonction de synchronisation des relevés
         final SyncAnomalieService syncAnomalieService = SyncAnomalieService();
-        final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+        final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
         final durationAnomalieInSeconds = await syncAnomalieService.syncDataAnomalieToLocal(authState.userInfo.lastToken ?? '');
         await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
 
