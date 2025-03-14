@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_event.dart';
@@ -58,7 +59,7 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildLoadingState(BuildContext context) {
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(
         valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Couleur bleue pour la bordure
         backgroundColor: Colors.white, // Fond blanc
@@ -67,10 +68,10 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildStartSendDataState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
             backgroundColor: Colors.white, // Fond blanc
@@ -86,10 +87,10 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildStartSendDataEndState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
             backgroundColor: Colors.white, // Fond blanc
@@ -105,10 +106,10 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildLoadingSynchronisationState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
             backgroundColor: Colors.white, // Fond blanc
@@ -124,10 +125,10 @@ class LoginPage extends StatelessWidget {
   }
 
   Widget _buildLoadingSynchronisationEndState(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Bordure bleue
             backgroundColor: Colors.white, // Fond blanc
@@ -174,6 +175,10 @@ class LoginPage extends StatelessWidget {
                 prefixIcon: const Icon(Icons.phone, color: Colors.grey),
               ),
               style: const TextStyle(color: Colors.black),
+              keyboardType: TextInputType.number, // Clavier numérique
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly, // N'accepte que les chiffres
+              ],
               validator: (value) {
                 if (value!.isEmpty) {
                   return 'Veuillez saisir un numéro de téléphone';
