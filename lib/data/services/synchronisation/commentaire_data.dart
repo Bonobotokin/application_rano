@@ -1,8 +1,7 @@
 import 'dart:convert'; // Ajoutez cette ligne pour utiliser jsonEncode
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import '../../models/commentaire_model.dart';
-import '../config/api_configue.dart';
 
 class CommentaireData {
 
@@ -20,7 +19,7 @@ class CommentaireData {
         ...commentaire.toMapWithoutId(),
       });
 
-      print("data commentaire send ${body}");
+      debugPrint("data commentaire send $body");
 
       final response = await http.post(
         Uri.parse(url),
@@ -29,13 +28,13 @@ class CommentaireData {
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        print('Données de commentaire envoyées avec succès !');
+        debugPrint('Données de commentaire envoyées avec succès !');
       } else {
-        print('Erreur lors de l\'envoi des données commentaire: ${response.statusCode}');
-        print('Réponse du serveur commentaire: ${response.body}');
+        debugPrint('Erreur lors de l\'envoi des données commentaire: ${response.statusCode}');
+        debugPrint('Réponse du serveur commentaire: ${response.body}');
       }
     } catch (e) {
-      print('Erreur lors de l\'envoi des données commentaire: $e');
+      debugPrint('Erreur lors de l\'envoi des données commentaire: $e');
     }
   }
 }

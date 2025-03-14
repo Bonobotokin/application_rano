@@ -1,19 +1,18 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../models/anomalie_model.dart';
-import '../config/api_configue.dart';
 import '../databases/nia_databases.dart';
 import 'package:intl/intl.dart';
 
 class AnomalieData {
-  final NiADatabases _niaDatabase = NiADatabases();
-
-  static Future<void> sendLocalDataToServer(AnomalieModel anomalie, String? accessToken) async {
+  static Future<bool> sendLocalDataToServer(AnomalieModel anomalie, String? accessToken) async {
+    debugPrint("=== DÉBUT sendLocalDataToServer pour anomalie ${anomalie.id} ===");
     try {
-      String baseUrl = 'https://app.eatc.me/api'; // Déclarez baseUrl comme une variable locale
+      String baseUrl = 'https://app.eatc.me/api';
       final url = '$baseUrl/anomalie';
       final headers = {
         'Authorization': 'Bearer $accessToken',
@@ -34,7 +33,7 @@ class AnomalieData {
 
           request.files.add(
             http.MultipartFile(
-              'photo_anomalie_${i + 1}', // Utilisez le nom de champ attendu par l'API Django
+              'photo_anomalie_${i + 1}',
               fileStream,
               fileLength,
               filename: fileName,
@@ -42,7 +41,6 @@ class AnomalieData {
           );
         }
 
-        // Ajouter les autres champs
         DateTime dateDeclaration = DateTime.parse(anomalie.dateDeclaration!);
         String formattedDate = DateFormat('yyyy-MM-dd').format(dateDeclaration);
 
@@ -55,36 +53,38 @@ class AnomalieData {
         request.fields['cp_commune'] = anomalie.cpCommune.toString();
         request.fields['status'] = anomalie.status.toString();
 
-        print('Détails de la requête avant envoi : $request');
+        debugPrint('Détails de la requête avant envoi : $request');
         final response = await request.send();
         final responseBody = await response.stream.bytesToString();
 
         if (response.statusCode == 201 || response.statusCode == 200) {
-          print('Données envoyées avec succès !');
+          debugPrint('Données envoyées avec succès ! Réponse : $responseBody');
+          return true; // Succès
         } else {
-          print('Erreur lors de l\'envoi des données: ${response.statusCode}');
-          print('Réponse du serveur: $responseBody');
+          debugPrint('Erreur lors de l\'envoi des données : ${response.statusCode}');
+          debugPrint('Réponse du serveur : $responseBody');
+          return false; // Échec
         }
       } else {
-        print('Aucune image d\'anomalie trouvée.');
+        debugPrint('Aucune image d\'anomalie trouvée pour l\'anomalie ${anomalie.id}.');
+        return false; // Échec si pas d'image
       }
     } catch (e) {
-      print('Erreur lors de l\'envoi des données: $e');
+      debugPrint('Erreur lors de l\'envoi des données pour l\'anomalie ${anomalie.id} : $e');
+      return false; // Échec en cas d'exception
     }
   }
 
-  static Future<List<File>> getImageAnomalie(int? idMc, NiADatabases _niaDatabase) async {
+  static Future<List<File>> getImageAnomalie(int? idMc, NiADatabases niaDatabase) async {
     try {
-      final Database db = await _niaDatabase.database;
+      final Database db = await niaDatabase.database;
       List<Map<String, dynamic>> rows = await db.rawQuery('''
-      SELECT photo_anomalie_1, photo_anomalie_2, photo_anomalie_3, photo_anomalie_4, photo_anomalie_5
-      FROM anomalie 
-      WHERE 
-      id_mc = ?
-    ''', [idMc]);
+        SELECT photo_anomalie_1, photo_anomalie_2, photo_anomalie_3, photo_anomalie_4, photo_anomalie_5
+        FROM anomalie 
+        WHERE id_mc = ?
+      ''', [idMc]);
 
       List<File> images = [];
-
       for (var row in rows) {
         for (var i = 1; i <= 5; i++) {
           final String? imagePath = row['photo_anomalie_$i'] as String?;
@@ -94,15 +94,14 @@ class AnomalieData {
             if (imageFile.existsSync()) {
               images.add(imageFile);
             } else {
-              print('Le fichier image n\'existe pas : $fullPath');
+              debugPrint('Le fichier image n\'existe pas : $fullPath');
             }
           }
         }
       }
-
       return images;
     } catch (e) {
-      print('Erreur lors de la récupération des images d\'anomalie: $e');
+      debugPrint('Erreur lors de la récupération des images d\'anomalie : $e');
       return [];
     }
   }

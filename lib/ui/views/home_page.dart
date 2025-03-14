@@ -19,10 +19,10 @@ import 'package:application_rano/ui/shared/SyncDialog.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
 import 'package:application_rano/data/services/synchronisation/missions/SyncMissionService.dart';
 import 'package:application_rano/data/services/synchronisation/factures/SyncFactureService.dart';
-import 'package:application_rano/data/services/synchronisation/anomalie/SyncAnomalieService.dart';
+import 'package:application_rano/data/services/synchronisation/anomalie/sync_anomalie_service.dart';
 import 'package:application_rano/blocs/home/home_event.dart';
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -268,7 +268,7 @@ class _HomePageState extends State<HomePage> {
                               future: checkMissionsToSync(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return SizedBox(
+                                  return const SizedBox(
                                     width: 20.0,
                                     height: 20.0,
                                     child: CircularProgressIndicator(
@@ -276,7 +276,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   );
                                 } else if (snapshot.hasError) {
-                                  return Icon(Icons.error, color: Colors.red);
+                                  return const Icon(Icons.error, color: Colors.red);
                                 } else if (snapshot.hasData && snapshot.data! > 0) {
                                   return IconButton(
                                     icon: const Icon(Icons.send),
@@ -296,7 +296,7 @@ class _HomePageState extends State<HomePage> {
                               future: checkFactureToSync(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return SizedBox(
+                                  return const SizedBox(
                                     width: 20.0,
                                     height: 20.0,
                                     child: CircularProgressIndicator(
@@ -304,7 +304,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   );
                                 } else if (snapshot.hasError) {
-                                  return Icon(Icons.error, color: Colors.red);
+                                  return const Icon(Icons.error, color: Colors.red);
                                 } else if (snapshot.hasData && snapshot.data! > 0) {
                                   return IconButton(
                                     icon: const Icon(Icons.send),
@@ -323,7 +323,7 @@ class _HomePageState extends State<HomePage> {
                               future: checkAnomalieToSync(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return SizedBox(
+                                  return const SizedBox(
                                     width: 20.0,
                                     height: 20.0,
                                     child: CircularProgressIndicator(
@@ -331,7 +331,7 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   );
                                 } else if (snapshot.hasError) {
-                                  return Icon(Icons.error, color: Colors.red);
+                                  return const Icon(Icons.error, color: Colors.red);
                                 } else if (snapshot.hasData && snapshot.data! > 0) {
                                   return IconButton(
                                     icon: const Icon(Icons.send),
@@ -347,7 +347,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           if (canSyncMission || canSyncFacture || canSyncAnomalie)
                             IconButton(
-                              icon: Icon(Icons.sync),
+                              icon: const Icon(Icons.sync),
                               color: iconColor,
                               onPressed: () {
                                 if (canSyncMission) {
@@ -408,12 +408,12 @@ class _HomePageState extends State<HomePage> {
           builder: (BuildContext context, StateSetter setState) {
             _setState = setState;
             return AlertDialog(
-              title: Text('Envoi des données'),
+              title: const Text('Envoi des données'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   LinearProgressIndicator(value: _progressValue),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Text('Envoi de $numberOfMissions missions. Veuillez patienter...'),
                 ],
               ),
@@ -438,11 +438,11 @@ class _HomePageState extends State<HomePage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Envoi terminé'),
-              content: Text('Les données ont été envoyées avec succès.'),
+              title: const Text('Envoi terminé'),
+              content: const Text('Les données ont été envoyées avec succès.'),
               actions: <Widget>[
                 TextButton(
-                  child: Text('OK'),
+                  child: const Text('OK'),
                   onPressed: () {
                     final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
                     authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
@@ -471,11 +471,11 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Erreur d\'envoi'),
+            title: const Text('Erreur d\'envoi'),
             content: Text('Une erreur s\'est produite lors de l\'envoi des données : $error'),
             actions: <Widget>[
               TextButton(
-                child: Text('OK'),
+                child: const Text('OK'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -501,12 +501,12 @@ class _HomePageState extends State<HomePage> {
           builder: (BuildContext context, StateSetter setState) {
             _setState = setState;
             return AlertDialog(
-              title: Text('Envoi des données'),
+              title: const Text('Envoi des données'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   LinearProgressIndicator(value: _progressValue),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Text('Envoi de $checkFactureToSync missions. Veuillez patienter...'),
                 ],
               ),
@@ -537,11 +537,11 @@ class _HomePageState extends State<HomePage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Envoi terminé'),
-              content: Text('Les données ont été envoyées avec succès.'),
+              title: const Text('Envoi terminé'),
+              content: const Text('Les données ont été envoyées avec succès.'),
               actions: <Widget>[
                 TextButton(
-                  child: Text('OK'),
+                  child: const Text('OK'),
                   onPressed: () {
                     final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
                     authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
@@ -570,11 +570,11 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Erreur d\'envoi'),
+            title: const Text('Erreur d\'envoi'),
             content: Text('Une erreur s\'est produite lors de l\'envoi des données : $error'),
             actions: <Widget>[
               TextButton(
-                child: Text('OK'),
+                child: const Text('OK'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -697,7 +697,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return SyncDialog(
+        return const SyncDialog(
           duration: 0, // Initialisez la durée à 0 pour l'instant
         );
       },
@@ -713,7 +713,7 @@ class _HomePageState extends State<HomePage> {
         final totalDurationInSeconds = durationMissionInSeconds;
 
         // Fermer la boîte de dialogue initiale après un certain temps
-        Timer(Duration(seconds: 2), () {
+        Timer(const Duration(seconds: 2), () {
           Navigator.of(context).pop();
         });
 
@@ -744,7 +744,7 @@ class _HomePageState extends State<HomePage> {
             SnackBar(
               content: Text(
                 '$label synchronisé avec succès',
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -769,7 +769,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return SyncDialog(
+        return const SyncDialog(
           duration: 0, // Initialisez la durée à 0 pour l'instant
         );
       },
@@ -787,7 +787,7 @@ class _HomePageState extends State<HomePage> {
         final totalDurationInSeconds = durationFactureInSeconds;
 
         // Fermer la boîte de dialogue initiale après un certain temps
-        Timer(Duration(seconds: 2), () {
+        Timer(const Duration(seconds: 2), () {
           Navigator.of(context).pop();
         });
 
@@ -818,7 +818,7 @@ class _HomePageState extends State<HomePage> {
             SnackBar(
               content: Text(
                 '$label synchronisé avec succès',
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -836,7 +836,7 @@ class _HomePageState extends State<HomePage> {
 
         // Afficher un message d'erreur
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
               'Erreur lors de la synchronisation',
               style: TextStyle(color: Colors.white),
@@ -860,12 +860,12 @@ class _HomePageState extends State<HomePage> {
           builder: (BuildContext context, StateSetter setState) {
             _setState = setState;
             return AlertDialog(
-              title: Text('Envoi des données'),
+              title: const Text('Envoi des données'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   LinearProgressIndicator(value: _progressValue),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
                   Text('Envoi de $checkAnomalieToSync anomalies. Veuillez patienter...'),
                 ],
               ),
@@ -889,11 +889,11 @@ class _HomePageState extends State<HomePage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Envoi terminé'),
-              content: Text('Les données ont été envoyées avec succès.'),
+              title: const Text('Envoi terminé'),
+              content: const Text('Les données ont été envoyées avec succès.'),
               actions: <Widget>[
                 TextButton(
-                  child: Text('OK'),
+                  child: const Text('OK'),
                   onPressed: () {
                     final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
                     authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
@@ -915,11 +915,11 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Erreur d\'envoi'),
+            title: const Text('Erreur d\'envoi'),
             content: Text('Une erreur s\'est produite lors de l\'envoi des données : $error'),
             actions: <Widget>[
               TextButton(
-                child: Text('OK'),
+                child: const Text('OK'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -937,7 +937,7 @@ class _HomePageState extends State<HomePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Envoyer les données'),
+            title: const Text('Envoyer les données'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -945,7 +945,7 @@ class _HomePageState extends State<HomePage> {
                 TextFormField(
                   controller: _controller,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
+                  decoration: const InputDecoration(labelText: 'Nombre de données à envoyer'),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Veuillez entrer un nombre';
@@ -954,11 +954,11 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 // Utilisez la valeur de progression mise à jour ici
                 LinearProgressIndicator(value: _progressValue),
-                SizedBox(height: 10),
-                Text('Veuillez patienter...'),
+                const SizedBox(height: 10),
+                const Text('Veuillez patienter...'),
               ],
             ),
             actions: [
@@ -966,7 +966,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Annuler'),
+                child: const Text('Annuler'),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -994,7 +994,7 @@ class _HomePageState extends State<HomePage> {
                   }
                   else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                           'Le nombre minimum de données à envoyer est de 50',
                           style: TextStyle(color: Colors.white),
@@ -1004,7 +1004,7 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
                 },
-                child: Text('Valider'),
+                child: const Text('Valider'),
               ),
             ],
           );
@@ -1025,7 +1025,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return SyncDialog(
+        return const SyncDialog(
           duration: 0, // Initialisez la durée à 0 pour l'instant
         );
       },
@@ -1043,7 +1043,7 @@ class _HomePageState extends State<HomePage> {
         final totalDurationInSeconds = durationAnomalieInSeconds;
 
         // Fermer la boîte de dialogue initiale après un certain temps
-        Timer(Duration(seconds: 2), () {
+        Timer(const Duration(seconds: 2), () {
           Navigator.of(context).pop();
         });
 
@@ -1074,7 +1074,7 @@ class _HomePageState extends State<HomePage> {
             SnackBar(
               content: Text(
                 '$label synchronisé avec succès',
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -1092,7 +1092,7 @@ class _HomePageState extends State<HomePage> {
 
         // Afficher un message d'erreur
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
               'Erreur lors de la synchronisation',
               style: TextStyle(color: Colors.white),
