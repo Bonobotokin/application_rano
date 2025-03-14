@@ -1,6 +1,7 @@
 
 import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/data/models/client_model.dart';
+import 'package:application_rano/data/models/commentaire_model.dart';
 import 'package:application_rano/data/models/compteur_model.dart';
 import 'package:application_rano/data/models/contrat_model.dart';
 import 'package:application_rano/data/models/facture_model.dart';
@@ -12,6 +13,7 @@ import 'package:application_rano/data/models/user.dart';
 import 'package:application_rano/data/repositories/local/facture_local_repository.dart';
 import 'package:application_rano/data/repositories/relever_repository.dart';
 import 'package:application_rano/data/services/databases/nia_databases.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../repositories/local/missions_repository_locale.dart';
@@ -32,10 +34,10 @@ class SaveDataRepositoryLocale {
         await isUserExists(txn, user.id_utilisateur ?? 0);
         if (userExists) {
           await updateUserInDatabase(txn, user);
-          print('Données utilisateur mises à jour avec succès dans la base de données locale.');
+          debugPrint('Données utilisateur mises à jour avec succès dans la base de données locale.');
         } else {
           await addUserToDatabase(txn, user);
-          print('Données utilisateur enregistrées avec succès dans la base de données locale.');
+          debugPrint('Données utilisateur enregistrées avec succès dans la base de données locale.');
         }
         await saveLastConnectedToDatabase(txn, user);
       });
@@ -51,7 +53,7 @@ class SaveDataRepositoryLocale {
         final bool userExists = await isUserExists(txn, user.id_utilisateur ?? 0);
         if (userExists) {
           await saveLastConnectedToDatabase(txn, user);
-          print('User Authentificaiotn instace connection enregistrer avec succès dans la base de données locale.');
+          debugPrint('User Authentificaiotn instace connection enregistrer avec succès dans la base de données locale.');
         }
       });
     } catch (error) {
@@ -98,7 +100,7 @@ class SaveDataRepositoryLocale {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    print('Données de connexion enregistrées avec succès dans la base de données locale.');
+    debugPrint('Données de connexion enregistrées avec succès dans la base de données locale.');
   }
 
   Future<void> saveHomeDataToLocalDatabase(HomeModel homeModel) async {
@@ -113,14 +115,14 @@ class SaveDataRepositoryLocale {
           homeModel.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace,
         );
-        print('Nouvelle ligne d\'accueil insérée avec succès dans la base de données locale: $homeModel');
+        debugPrint('Nouvelle ligne d\'accueil insérée avec succès dans la base de données locale: $homeModel');
       } else {
         // Si la table n'est pas vide, mettre à jour la seule ligne existante avec les nouvelles données
         await db.update(
           'acceuil',
           homeModel.toMap(),
         );
-        print('Données d\'accueil mises à jour avec succès dans la base de données locale: $homeModel');
+        debugPrint('Données d\'accueil mises à jour avec succès dans la base de données locale: $homeModel');
       }
     } catch (error) {
       throw Exception("Failed to save home data to local database: $error");
@@ -138,23 +140,23 @@ class SaveDataRepositoryLocale {
               (mission) => mission.numCompteur == missionOnline.numCompteur,
           orElse: () => MissionModel(), // Utiliser null pour indiquer qu'aucune mission n'existe
         );
-        print("verrifie missionExiste ${existingMission}");
+        debugPrint("verrifie missionExiste ${existingMission}");
         try {
           if (existingMission.numCompteur != null) {
 
             // Si existingMission n'est pas null, vous pouvez accéder à ses propriétés en toute sécurité
-            print('Données existantes de mission : $existingMission');
+            debugPrint('Données existantes de mission : $existingMission');
             final updatedata = await _updateMission(txn, missionOnline);
-            print('Données de mission mises à jour avec succès dans la base de données locale : $missionOnline');
+            debugPrint('Données de mission mises à jour avec succès dans la base de données locale : $missionOnline');
           } else {
             // Si existingMission est null, vous devez gérer ce cas
-            print('Aucune donnée existante de mission trouvée.');
+            debugPrint('Aucune donnée existante de mission trouvée.');
             final inserte = await _insertMission(txn, missionOnline);
-            print('Données de mission enregistrées avec succès dans la base de données locale : $missionOnline');
+            debugPrint('Données de mission enregistrées avec succès dans la base de données locale : $missionOnline');
           }
 
         } catch (e) {
-          print('Erreur lors de la mise à jour ou de l\'insertion des données de mission : $e');
+          debugPrint('Erreur lors de la mise à jour ou de l\'insertion des données de mission : $e');
         }
       }
     });
@@ -172,9 +174,9 @@ class SaveDataRepositoryLocale {
         ],
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      print('Mission mise à jour : ${mission.toJson()}');
+      debugPrint('Mission mise à jour : ${mission.toJson()}');
     } catch (e) {
-      print('Erreur lors de la mise à jour de la mission : $e');
+      debugPrint('Erreur lors de la mise à jour de la mission : $e');
       rethrow; // Relancer l'exception pour gérer l'erreur au niveau supérieur
     }
   }
@@ -186,9 +188,9 @@ class SaveDataRepositoryLocale {
         mission.toJson(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      print('Mission insérée : ${mission.toJson()}');
+      debugPrint('Mission insérée : ${mission.toJson()}');
     } catch (e) {
-      print('Erreur lors de l\'insertion de la mission : $e');
+      debugPrint('Erreur lors de l\'insertion de la mission : $e');
       rethrow; // Relancer l'exception pour gérer l'erreur au niveau supérieur
     }
   }
@@ -205,7 +207,7 @@ class SaveDataRepositoryLocale {
         whereArgs: [compteurModel.id],
       );
       if (existingRows.isNotEmpty) {
-        print('Les données de compteur existent déjà dans la base de données locale.');
+        debugPrint('Les données de compteur existent déjà dans la base de données locale.');
         return;
       }
 
@@ -216,7 +218,7 @@ class SaveDataRepositoryLocale {
       );
 
       // Affichage de l'aperçu pour le compteur enregistré
-      print('Données du compteur enregistrées avec succès dans la base de données locale : $compteurModel');
+      debugPrint('Données du compteur enregistrées avec succès dans la base de données locale : $compteurModel');
     } catch (error) {
       throw Exception("Failed to save compteur data to local database: $error");
     }
@@ -232,7 +234,7 @@ class SaveDataRepositoryLocale {
         whereArgs: [contratModel.id],
       );
       if (existingRows.isNotEmpty) {
-        print('Les données de contrat existent déjà dans la base de données locale.');
+        debugPrint('Les données de contrat existent déjà dans la base de données locale.');
         return;
       }
       await db.insert(
@@ -242,7 +244,7 @@ class SaveDataRepositoryLocale {
       );
 
       // Affichage de l'aperçu pour le contrat enregistré
-      print('Données du contrat enregistrées avec succès dans la base de données locale : $contratModel');
+      debugPrint('Données du contrat enregistrées avec succès dans la base de données locale : $contratModel');
     } catch (error) {
       throw Exception("Failed to save contrat data to local database: $error");
     }
@@ -270,7 +272,7 @@ class SaveDataRepositoryLocale {
       );
 
       if (existingRows.isNotEmpty) {
-        print('Les données de client existent déjà dans la base de données locale.');
+        debugPrint('Les données de client existent déjà dans la base de données locale.');
         return;
       }
 
@@ -281,7 +283,7 @@ class SaveDataRepositoryLocale {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
 
-      print('Données du client enregistrées avec succès dans la base de données locale.');
+      debugPrint('Données du client enregistrées avec succès dans la base de données locale.');
 
       // Vérifier si les données du client ont été correctement enregistrées
       final List<Map<String, dynamic>> insertedRows = await db.query(
@@ -300,10 +302,10 @@ class SaveDataRepositoryLocale {
       );
 
       if (insertedRows.isEmpty) {
-        print('Erreur : les données du client n\'ont pas été enregistrées correctement localement.');
+        debugPrint('Erreur : les données du client n\'ont pas été enregistrées correctement localement.');
       } else {
-        print('Vérification réussie : les données du client ont été correctement enregistrées localement.');
-        print('Données insérées : $insertedRows');
+        debugPrint('Vérification réussie : les données du client ont été correctement enregistrées localement.');
+        debugPrint('Données insérées : $insertedRows');
       }
     } catch (error) {
       throw Exception("Failed to save client data to local database: $error");
@@ -315,11 +317,11 @@ class SaveDataRepositoryLocale {
 
     final List<Map<String, dynamic>> localRelever = await ReleverRepository().getAllReleves(db);
 
-    print("localRelever ${localRelever}");
+    debugPrint("localRelever ${localRelever}");
     // Vérifier si les données locales existent
     // if (localRelever == null || localRelever.isEmpty) {
       // Les données locales sont vides, procédez à la synchronisation
-      print("Les données locales de relevé sont vides. Effectuer la synchronisation...");
+      debugPrint("Les données locales de relevé sont vides. Effectuer la synchronisation...");
 
       await db.transaction((txn) async {
         for (final releverDataOnline in releverDataOnlines) {
@@ -329,7 +331,7 @@ class SaveDataRepositoryLocale {
               orElse: () => <String, dynamic>{}, // Retourne une map vide par défaut si aucun relevé n'est trouvé
             );
 
-            print("vérifie relevéExiste ${existingRelever}");
+            debugPrint("vérifie relevéExiste ${existingRelever}");
 
             // Modifier l'image du compteur si nécessaire
             String modifiedImageCompteur = releverDataOnline.imageCompteur;
@@ -339,26 +341,26 @@ class SaveDataRepositoryLocale {
 
             if (existingRelever != null && existingRelever.isNotEmpty) {
               // Si le relevé existe déjà, mettez à jour les données
-              print('Données existantes de relevé : $existingRelever');
+              debugPrint('Données existantes de relevé : $existingRelever');
               await _updateRelever(txn, releverDataOnline, modifiedImageCompteur);
-              print('Données de relevé mises à jour avec succès dans la base de données locale : $releverDataOnline');
+              debugPrint('Données de relevé mises à jour avec succès dans la base de données locale : $releverDataOnline');
             } else {
               // Si le relevé n'existe pas, insérez de nouvelles données
-              print('Aucune donnée existante de relevé trouvée ou relevé vide.');
+              debugPrint('Aucune donnée existante de relevé trouvée ou relevé vide.');
               await _insertRelever(txn, releverDataOnline, modifiedImageCompteur);
-              print('Données de relevé enregistrées avec succès dans la base de données locale : $releverDataOnline');
+              debugPrint('Données de relevé enregistrées avec succès dans la base de données locale : $releverDataOnline');
             }
 
           } catch (e) {
-            print('Erreur lors de la mise à jour ou de l\'insertion des données de relevé : $e');
+            debugPrint('Erreur lors de la mise à jour ou de l\'insertion des données de relevé : $e');
           }
         }
       });
 
-      print("Synchronisation terminée.");
+      debugPrint("Synchronisation terminée.");
     // } else {
     //   // Les données locales existent, aucune synchronisation nécessaire
-    //   print("Les données locales de relevé existent. Aucune synchronisation nécessaire.");
+    //   debugPrint("Les données locales de relevé existent. Aucune synchronisation nécessaire.");
     // }
   }
 
@@ -374,9 +376,9 @@ class SaveDataRepositoryLocale {
         whereArgs: [relever.id],
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      print('Relevé mis à jour : ${relever.toJson()}');
+      debugPrint('Relevé mis à jour : ${relever.toJson()}');
     } catch (e) {
-      print('Erreur lors de la mise à jour du relevé : $e');
+      debugPrint('Erreur lors de la mise à jour du relevé : $e');
       rethrow;
     }
   }
@@ -392,18 +394,18 @@ class SaveDataRepositoryLocale {
         },
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      print('Relevé inséré : ${relever.toJson()}');
+      debugPrint('Relevé inséré : ${relever.toJson()}');
     } catch (e) {
-      print('Erreur lors de l\'insertion du relevé : $e');
+      debugPrint('Erreur lors de l\'insertion du relevé : $e');
       rethrow;
     }
   }
 
   Future<void> saveFactureData(List<FactureModel> factureDataOnline, Transaction txn) async {
-    print("Début de la synchronisation des factures");
+    debugPrint("Début de la synchronisation des factures");
 
     final List<Map<String, dynamic>> factureLocal = await FactureLocalRepository().getAllFactures(txn);
-    print("Factures locales synchronisées : $factureLocal");
+    debugPrint("Factures locales synchronisées : $factureLocal");
 
     for (final factureOnline in factureDataOnline) {
       try {
@@ -413,19 +415,19 @@ class SaveDataRepositoryLocale {
         );
 
         if (existingFacture.isNotEmpty) {
-          print('Les données de facture existent déjà dans la base de données locale.');
+          debugPrint('Les données de facture existent déjà dans la base de données locale.');
           final existingFactureId = existingFacture['id'];
           //
           //
-          // print('factureOnline.montantTotalTTC: ${factureOnline.montantTotalTTC}');
-          // print('existingFacture["montant_total_ttc"]: ${existingFacture["montant_total_ttc"]}');
-          // print('montantTotalTTC different: ${factureOnline.montantTotalTTC != existingFacture["montant_total_ttc"]}');
-          // print('factureOnline.statut: ${factureOnline.statut}');
-          // print('existingFacture["statut"]: ${existingFacture["statut"]}');
-          // print('statut different: ${factureOnline.statut != existingFacture["statut"]}');
-          // print('verrification data ${factureOnline.montantTotalTTC == existingFacture['montant_total_ttc'] || factureOnline.statut == existingFacture['statut']}');
+          // debugPrint('factureOnline.montantTotalTTC: ${factureOnline.montantTotalTTC}');
+          // debugPrint('existingFacture["montant_total_ttc"]: ${existingFacture["montant_total_ttc"]}');
+          // debugPrint('montantTotalTTC different: ${factureOnline.montantTotalTTC != existingFacture["montant_total_ttc"]}');
+          // debugPrint('factureOnline.statut: ${factureOnline.statut}');
+          // debugPrint('existingFacture["statut"]: ${existingFacture["statut"]}');
+          // debugPrint('statut different: ${factureOnline.statut != existingFacture["statut"]}');
+          // debugPrint('verrification data ${factureOnline.montantTotalTTC == existingFacture['montant_total_ttc'] || factureOnline.statut == existingFacture['statut']}');
           if(factureOnline.statut == "Payé" && factureOnline.montantPayer >= 0.0) {
-            print("MandeaaaUpdate");
+            debugPrint("MandeaaaUpdate");
             await _updateFacture(txn, factureOnline);
             if (factureOnline.statut == "Payé") {
               await txn.update(
@@ -436,12 +438,12 @@ class SaveDataRepositoryLocale {
               );
             }
 
-            print('hhhhhhhhhhhhhh');
+            debugPrint('hhhhhhhhhhhhhh');
           }
 
 
         } else {
-          print("Mandeaaa Insertion");
+          debugPrint("Mandeaaa Insertion");
           final factureId = await _insertFacture(txn, factureOnline);
 
           final DateTime now = DateTime.now();
@@ -459,11 +461,11 @@ class SaveDataRepositoryLocale {
           );
         }
       } catch (e) {
-        print('Erreur lors de la mise à jour ou de l\'insertion des données de facture : $e');
+        debugPrint('Erreur lors de la mise à jour ou de l\'insertion des données de facture : $e');
       }
     }
 
-    print("Synchronisation des factures terminée.222");
+    debugPrint("Synchronisation des factures terminée.222");
   }
 
   Future<void> _updateFacture(Transaction txn, FactureModel facture) async {
@@ -478,9 +480,9 @@ class SaveDataRepositoryLocale {
         whereArgs: [facture.id],
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      print('Facture mise à jour : ${facture.toJson()}');
+      debugPrint('Facture mise à jour : ${facture.toJson()}');
     } catch (e) {
-      print('Erreur lors de la mise à jour de la facture : $e');
+      debugPrint('Erreur lors de la mise à jour de la facture : $e');
       rethrow;
     }
   }
@@ -492,10 +494,10 @@ class SaveDataRepositoryLocale {
         facture.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
-      print('Facture insérée : ${facture.toJson()}');
+      debugPrint('Facture insérée : ${facture.toJson()}');
       return factureId;
     } catch (e) {
-      print('Erreur lors de l\'insertion de la facture : $e');
+      debugPrint('Erreur lors de l\'insertion de la facture : $e');
       rethrow;
     }
   }
@@ -543,7 +545,7 @@ class SaveDataRepositoryLocale {
         );
 
         if (existingRows.isEmpty) {
-          print('Les données d\'anomalie n\'existent pas encore dans la base de données locale. Enregistrement...');
+          debugPrint('Les données d\'anomalie n\'existent pas encore dans la base de données locale. Enregistrement...');
           // Insertion de nouvelles données d'anomalie dans la base de données
           await db.insert(
             'anomalie',
@@ -568,9 +570,9 @@ class SaveDataRepositoryLocale {
             },
             conflictAlgorithm: ConflictAlgorithm.replace,
           );
-          print('Données d\'Anomalie enregistrées avec succès dans la base de données locale : $anomalie');
+          debugPrint('Données d\'Anomalie enregistrées avec succès dans la base de données locale : $anomalie');
         } else {
-          print('Les données d\'anomalie existent déjà dans la base de données locale.');
+          debugPrint('Les données d\'anomalie existent déjà dans la base de données locale.');
           // Mise à jour des données d'anomalie
           await db.update(
             'anomalie',
@@ -603,7 +605,7 @@ class SaveDataRepositoryLocale {
               modifiedImageAnomalie5
             ],
           );
-          print('Données d\'anomalie mises à jour avec succès dans la base de données locale : $anomalie');
+          debugPrint('Données d\'anomalie mises à jour avec succès dans la base de données locale : $anomalie');
         }
       }
     } catch (e) {
@@ -619,6 +621,54 @@ class SaveDataRepositoryLocale {
     }
     return imagePath;
   }
+
+  Future<void> saveCommentaireData(List<CommentaireModel> commentaires) async {
+    final db = await NiADatabases().database;
+
+    for (final commentaire in commentaires) {
+      try {
+        // Convertir la date en chaîne ISO 8601 pour la comparaison
+        final dateSuivieIso = commentaire.dateSuivie.toIso8601String();
+
+        // Rechercher un enregistrement existant
+        final existingRows = await db.query(
+          'commentaire',
+          where: 'id = ?',
+          whereArgs: [commentaire.id],
+        );
+
+        if (existingRows.isNotEmpty) {
+          // Si l'enregistrement existe, mettez-le à jour
+          final updateCount = await db.update(
+            'commentaire',
+            commentaire.toMap(),
+            where: 'id = ?',
+            whereArgs: [commentaire.id],
+          );
+
+          if (updateCount > 0) {
+            debugPrint('Enregistrement mis à jour avec succès : $commentaire');
+          } else {
+            debugPrint('Aucune mise à jour effectuée pour : $commentaire');
+          }
+        } else {
+          // Sinon, insérez un nouvel enregistrement
+          final insertId = await db.insert(
+            'commentaire',
+            commentaire.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace, // Remplace en cas de conflit
+          );
+
+          debugPrint('Données de commentaire enregistrées avec succès dans la base de données locale : $commentaire');
+          debugPrint('ID de l\'enregistrement inséré : $insertId');
+        }
+      } catch (e) {
+        debugPrint('Erreur lors de l\'enregistrement du commentaire : $commentaire');
+        debugPrint('Détails de l\'erreur : $e');
+      }
+    }
+  }
+
 
 
 }

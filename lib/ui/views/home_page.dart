@@ -19,10 +19,10 @@ import 'package:application_rano/ui/shared/SyncDialog.dart';
 import 'package:application_rano/data/repositories/auth_repository.dart';
 import 'package:application_rano/data/services/synchronisation/missions/SyncMissionService.dart';
 import 'package:application_rano/data/services/synchronisation/factures/SyncFactureService.dart';
-import 'package:application_rano/data/services/synchronisation/anomalie/SyncAnomalieService.dart';
+import 'package:application_rano/data/services/synchronisation/anomalie/sync_anomalie_service.dart';
 import 'package:application_rano/blocs/home/home_event.dart';
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
 
   @override
   _HomePageState createState() => _HomePageState();
@@ -268,7 +268,7 @@ class _HomePageState extends State<HomePage> {
                               future: checkMissionsToSync(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return SizedBox(
+                                  return const SizedBox(
                                     width: 20.0,
                                     height: 20.0,
                                     child: CircularProgressIndicator(
@@ -276,12 +276,12 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   );
                                 } else if (snapshot.hasError) {
-                                  return Icon(Icons.error, color: Colors.red);
+                                  return const Icon(Icons.error, color: Colors.red);
                                 } else if (snapshot.hasData && snapshot.data! > 0) {
                                   return IconButton(
                                     icon: const Icon(Icons.send),
                                     onPressed: () {
-                                      _sendMissionData(context, authState);
+                                      envoieData(context, authState, snapshot.data!);
                                     },
                                     tooltip: 'Envoyer les données',
                                   );
@@ -290,12 +290,13 @@ class _HomePageState extends State<HomePage> {
                                 }
                               },
                             ),
+
                           if (canSendDataFacture)
                             FutureBuilder<int>(
                               future: checkFactureToSync(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return SizedBox(
+                                  return const SizedBox(
                                     width: 20.0,
                                     height: 20.0,
                                     child: CircularProgressIndicator(
@@ -303,12 +304,12 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   );
                                 } else if (snapshot.hasError) {
-                                  return Icon(Icons.error, color: Colors.red);
+                                  return const Icon(Icons.error, color: Colors.red);
                                 } else if (snapshot.hasData && snapshot.data! > 0) {
                                   return IconButton(
                                     icon: const Icon(Icons.send),
                                     onPressed: () {
-                                      _sendFactureData(context, authState);
+                                      envoieDataFacture(context, authState, snapshot.data!);
                                     },
                                     tooltip: 'Envoyer les données',
                                   );
@@ -322,7 +323,7 @@ class _HomePageState extends State<HomePage> {
                               future: checkAnomalieToSync(),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return SizedBox(
+                                  return const SizedBox(
                                     width: 20.0,
                                     height: 20.0,
                                     child: CircularProgressIndicator(
@@ -330,12 +331,12 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   );
                                 } else if (snapshot.hasError) {
-                                  return Icon(Icons.error, color: Colors.red);
+                                  return const Icon(Icons.error, color: Colors.red);
                                 } else if (snapshot.hasData && snapshot.data! > 0) {
                                   return IconButton(
                                     icon: const Icon(Icons.send),
                                     onPressed: () {
-                                      _sendAnomalieData(context, authState);
+                                      envoieDataAnomalie(context, authState, snapshot.data!);
                                     },
                                     tooltip: 'Envoyer les données',
                                   );
@@ -346,7 +347,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           if (canSyncMission || canSyncFacture || canSyncAnomalie)
                             IconButton(
-                              icon: Icon(Icons.sync),
+                              icon: const Icon(Icons.sync),
                               color: iconColor,
                               onPressed: () {
                                 if (canSyncMission) {
@@ -393,91 +394,298 @@ class _HomePageState extends State<HomePage> {
     return numberOfAnomalie;
   }
 
-  void _sendMissionData(BuildContext context, AuthState authState) async {
-    if (authState is AuthSuccess) {
-      int numDataToSend = await checkMissionsToSync(); // Récupérer le nombre de missions à envoyer
-      _controller.text = numDataToSend.toString(); // Initialiser le contrôleur de texte avec ce nombre
 
+  void envoieData(BuildContext context, AuthState authState, int numberOfMissions) async {
+    double _progressValue = 0.0;
+    late StateSetter _setState;
+
+    // Show initial dialog with progress bar at 0.0
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            _setState = setState;
+            return AlertDialog(
+              title: const Text('Envoi des données'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  LinearProgressIndicator(value: _progressValue),
+                  const SizedBox(height: 20),
+                  Text('Envoi de $numberOfMissions missions. Veuillez patienter...'),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    try {
+      if (authState is AuthSuccess && authState.userInfo.lastToken != null) {
+        final syncMissionService = SyncMissionService();
+        await syncMissionService.sendDataMissionInserver(authState.userInfo.lastToken!, numberOfMissions, (double progress) {
+          _setState(() {
+            _progressValue = progress;
+          });
+        });
+
+        // Close dialog after successful send
+        Navigator.of(context).pop();
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Envoi terminé'),
+              content: const Text('Les données ont été envoyées avec succès.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
+                    authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
+                    BlocProvider.of<HomeBloc>(context).add(RefreshHomePageData(
+                        accessToken: authState.userInfo.lastToken ?? ''));
+                    Get.offNamed(AppRoutes.home);
+                    Navigator.of(context).pop(); // Close "Envoi terminé" dialog
+
+                    // Fetch updated data
+                    // Optionally, you can refresh UI here if needed
+                    // For example, call a method to refresh the UI state
+                    // refreshUI();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        throw Exception('Token de session invalide.');
+      }
+    } catch (error) {
+      // Handle send error
+      Navigator.of(context).pop(); // Close dialog on error
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Envoyer les données'),
-            content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      controller: _controller,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Veuillez entrer un nombre';
-                        }
-                        return null;
-                      },
-                    ),
-                    SizedBox(height: 20),
-                    LinearProgressIndicator(value: _progressValue),
-                    SizedBox(height: 10),
-                    Text('Veuillez patienter...'),
-                  ],
-                );
-              },
-            ),
-            actions: [
-              ElevatedButton(
+            title: const Text('Erreur d\'envoi'),
+            content: Text('Une erreur s\'est produite lors de l\'envoi des données : $error'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Annuler'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  int? numData = int.tryParse(_controller.text);
-                  if (numData != null && numData >= 1) {
-                    final syncMissionService = SyncMissionService();
-                    setState(() {
-                      _progressValue = 0.0; // Réinitialiser la progression
-                    });
-                    await syncMissionService.sendDataMissionInserver(
-                      authState.userInfo.lastToken ?? '',
-                      numData, // Passer le nombre de données à envoyer
-                          (value) {
-                        setState(() {
-                          _progressValue = value;
-                        });
-                      },
-                    );
-
-                    final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
-                    await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
-                    Navigator.of(context).pop();
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Le nombre minimum de données à envoyer est de 50',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
-                child: Text('Valider'),
               ),
             ],
           );
         },
       );
-    } else {
-      // Gérer le cas où authState n'est pas AuthSuccess
     }
   }
+
+
+  void envoieDataFacture(BuildContext context, AuthState authState, int checkFactureToSync) async {
+    double _progressValue = 0.0;
+    late StateSetter _setState;
+
+    // Show initial dialog with progress bar at 0.0
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            _setState = setState;
+            return AlertDialog(
+              title: const Text('Envoi des données'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  LinearProgressIndicator(value: _progressValue),
+                  const SizedBox(height: 20),
+                  Text('Envoi de $checkFactureToSync missions. Veuillez patienter...'),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    try {
+      if (authState is AuthSuccess && authState.userInfo.lastToken != null) {
+        final syncFactureService = SyncFactureService();
+        // await syncMissionService.sendDataMissionInserver(authState.userInfo.lastToken!, 10, (double progress) {
+        //   _setState(() {
+        //     _progressValue = progress;
+        //   });
+        // });
+        await syncFactureService.sendDataFactureInserver(authState.userInfo.lastToken ?? '',checkFactureToSync , (double progress)  {
+            setState(() {
+              _progressValue = progress;
+            });
+          },
+        );
+
+        // Close dialog after successful send
+        Navigator.of(context).pop();
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Envoi terminé'),
+              content: const Text('Les données ont été envoyées avec succès.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
+                    authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
+                    BlocProvider.of<HomeBloc>(context).add(RefreshHomePageData(
+                        accessToken: authState.userInfo.lastToken ?? ''));
+                    Get.offNamed(AppRoutes.home);
+                    Navigator.of(context).pop(); // Close "Envoi terminé" dialog
+
+                    // Fetch updated data
+                    // Optionally, you can refresh UI here if needed
+                    // For example, call a method to refresh the UI state
+                    // refreshUI();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        throw Exception('Token de session invalide.');
+      }
+    } catch (error) {
+      // Handle send error
+      Navigator.of(context).pop(); // Close dialog on error
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Erreur d\'envoi'),
+            content: Text('Une erreur s\'est produite lors de l\'envoi des données : $error'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+
+  // void _sendMissionData(BuildContext context, AuthState authState) async {
+  //   if (authState is AuthSuccess) {
+  //     int numDataToSend = await checkMissionsToSync();
+  //     _controller.text = numDataToSend.toString();
+  //
+  //     showDialog(
+  //       context: context,
+  //       builder: (BuildContext context) {
+  //         return AlertDialog(
+  //           title: Text('Envoyer les données'),
+  //           content: StatefulBuilder(
+  //             builder: (BuildContext context, StateSetter setState) {
+  //               return Column(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 crossAxisAlignment: CrossAxisAlignment.start,
+  //                 children: [
+  //                   TextFormField(
+  //                     controller: _controller,
+  //                     keyboardType: TextInputType.number,
+  //                     decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
+  //                     validator: (value) {
+  //                       if (value == null || value.isEmpty) {
+  //                         return 'Veuillez entrer un nombre';
+  //                       }
+  //                       return null;
+  //                     },
+  //                   ),
+  //                   SizedBox(height: 20),
+  //                   LinearProgressIndicator(value: _progressValue),
+  //                   SizedBox(height: 10),
+  //                   Text('Veuillez patienter...'),
+  //                 ],
+  //               );
+  //             },
+  //           ),
+  //           actions: [
+  //             ElevatedButton(
+  //               onPressed: () {
+  //                 Navigator.of(context).pop();
+  //               },
+  //               child: Text('Annuler'),
+  //             ),
+  //             ElevatedButton(
+  //               onPressed: () async {
+  //                 int? numData = int.tryParse(_controller.text);
+  //                 if (numData != null && numData >= 1) {
+  //                   final syncMissionService = SyncMissionService();
+  //                   setState(() {
+  //                     _progressValue = 0.0;
+  //                   });
+  //
+  //                   try {
+  //                     await syncMissionService.sendDataMissionInserver(
+  //                       authState.userInfo.lastToken ?? '',
+  //                       numData,
+  //                           (value) {
+  //                         setState(() {
+  //                           _progressValue = value;
+  //                         });
+  //                       },
+  //                     );
+  //
+  //                     final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+  //                     await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
+  //                     Navigator.of(context).pop();
+  //                   } catch (error) {
+  //                     print("Erreur lors de l'envoi des données: $error");
+  //                     ScaffoldMessenger.of(context).showSnackBar(
+  //                       SnackBar(
+  //                         content: Text(
+  //                           'Erreur lors de l\'envoi des données. Veuillez réessayer.',
+  //                           style: TextStyle(color: Colors.white),
+  //                         ),
+  //                         backgroundColor: Colors.red,
+  //                       ),
+  //                     );
+  //                   }
+  //                 } else {
+  //                   ScaffoldMessenger.of(context).showSnackBar(
+  //                     SnackBar(
+  //                       content: Text(
+  //                         'Le nombre minimum de données à envoyer est de 1',
+  //                         style: TextStyle(color: Colors.white),
+  //                       ),
+  //                       backgroundColor: Colors.red,
+  //                     ),
+  //                   );
+  //                 }
+  //               },
+  //               child: Text('Valider'),
+  //             ),
+  //           ],
+  //         );
+  //       },
+  //     );
+  //   } else {
+  //     // Gérer le cas où authState n'est pas AuthSuccess
+  //   }
+  // }
 
   void _syncData(BuildContext context, AuthState authState, String label) async {
     setState(() {
@@ -489,7 +697,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return SyncDialog(
+        return const SyncDialog(
           duration: 0, // Initialisez la durée à 0 pour l'instant
         );
       },
@@ -505,7 +713,7 @@ class _HomePageState extends State<HomePage> {
         final totalDurationInSeconds = durationMissionInSeconds;
 
         // Fermer la boîte de dialogue initiale après un certain temps
-        Timer(Duration(seconds: 2), () {
+        Timer(const Duration(seconds: 2), () {
           Navigator.of(context).pop();
         });
 
@@ -536,7 +744,7 @@ class _HomePageState extends State<HomePage> {
             SnackBar(
               content: Text(
                 '$label synchronisé avec succès',
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -551,92 +759,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _sendFactureData(BuildContext context, AuthState authState) async {
-    if (authState is AuthSuccess) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Envoyer les données'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: _controller,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un nombre';
-                    }
-                    return null;
-                  },
-                ),
-
-                SizedBox(height: 20),
-                // Utilisez la valeur de progression mise à jour ici
-                LinearProgressIndicator(value: _progressValue),
-                SizedBox(height: 10),
-                Text('Veuillez patienter...'),
-              ],
-            ),
-            actions: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Annuler'),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  int? numData = int.tryParse(_controller.text);
-                  if (numData != null && numData >= 1) {
-                    // Envoyer les données des missions
-                    final syncFactureService = SyncFactureService();
-                    // Mettez à jour la valeur de progression ici
-                    setState(() {
-                      _progressValue = 0.0; // Réinitialiser la progression
-                    });
-                    // Envoyer les données des missions en mettant à jour la progression
-                    await syncFactureService.sendDataFactureInserver(
-                      authState.userInfo.lastToken ?? '',
-                      numData,
-                          (value) {
-                        setState(() {
-                          _progressValue = value;
-                        });
-                      },
-                    );
-                    // Fermer la boîte de dialogue après l'envoi des données
-
-                    final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
-                    await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
-                    Navigator.of(context).pop();
-                  }
-                  else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Le nombre minimum de données à envoyer est de 50',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                },
-                child: Text('Valider'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      // Gérer le cas où authState n'est pas AuthSuccess
-    }
-  }
-
   void _syncDataFacture(BuildContext context, AuthState authState, String label) async {
     setState(() {
       _isSyncing = true; // Commencer la synchronisation
@@ -647,7 +769,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return SyncDialog(
+        return const SyncDialog(
           duration: 0, // Initialisez la durée à 0 pour l'instant
         );
       },
@@ -657,7 +779,7 @@ class _HomePageState extends State<HomePage> {
       try {
         // Appeler la fonction de synchronisation des relevés
         final SyncFactureService syncFactureService = SyncFactureService();
-        final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+        final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
         final durationFactureInSeconds = await syncFactureService.syncDataFactureToLocal(authState.userInfo.lastToken ?? '');
         await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
 
@@ -665,7 +787,7 @@ class _HomePageState extends State<HomePage> {
         final totalDurationInSeconds = durationFactureInSeconds;
 
         // Fermer la boîte de dialogue initiale après un certain temps
-        Timer(Duration(seconds: 2), () {
+        Timer(const Duration(seconds: 2), () {
           Navigator.of(context).pop();
         });
 
@@ -696,7 +818,7 @@ class _HomePageState extends State<HomePage> {
             SnackBar(
               content: Text(
                 '$label synchronisé avec succès',
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -714,7 +836,7 @@ class _HomePageState extends State<HomePage> {
 
         // Afficher un message d'erreur
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
               'Erreur lors de la synchronisation',
               style: TextStyle(color: Colors.white),
@@ -726,13 +848,96 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void envoieDataAnomalie(BuildContext context, AuthState authState, int checkAnomalieToSync) async {
+    double _progressValue = 0.0;
+    late StateSetter _setState;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            _setState = setState;
+            return AlertDialog(
+              title: const Text('Envoi des données'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  LinearProgressIndicator(value: _progressValue),
+                  const SizedBox(height: 20),
+                  Text('Envoi de $checkAnomalieToSync anomalies. Veuillez patienter...'),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    try {
+      if (authState is AuthSuccess && authState.userInfo.lastToken != null) {
+        final syncAnomalieService = SyncAnomalieService();
+        await syncAnomalieService.sendAnomaliesToServer(authState.userInfo.lastToken ?? '', checkAnomalieToSync, (double progress) {
+          _setState(() {
+            _progressValue = progress;
+          });
+        });
+
+        Navigator.of(context).pop();
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Envoi terminé'),
+              content: const Text('Les données ont été envoyées avec succès.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
+                    authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
+                    BlocProvider.of<HomeBloc>(context).add(RefreshHomePageData(accessToken: authState.userInfo.lastToken ?? ''));
+                    Get.offNamed(AppRoutes.home);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        throw Exception('Token de session invalide.');
+      }
+    } catch (error) {
+      Navigator.of(context).pop();
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Erreur d\'envoi'),
+            content: Text('Une erreur s\'est produite lors de l\'envoi des données : $error'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
   void _sendAnomalieData(BuildContext context, AuthState authState) async {
     if (authState is AuthSuccess) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Envoyer les données'),
+            title: const Text('Envoyer les données'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -740,7 +945,7 @@ class _HomePageState extends State<HomePage> {
                 TextFormField(
                   controller: _controller,
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Nombre de données à envoyer'),
+                  decoration: const InputDecoration(labelText: 'Nombre de données à envoyer'),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Veuillez entrer un nombre';
@@ -749,11 +954,11 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 // Utilisez la valeur de progression mise à jour ici
                 LinearProgressIndicator(value: _progressValue),
-                SizedBox(height: 10),
-                Text('Veuillez patienter...'),
+                const SizedBox(height: 10),
+                const Text('Veuillez patienter...'),
               ],
             ),
             actions: [
@@ -761,7 +966,7 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Annuler'),
+                child: const Text('Annuler'),
               ),
               ElevatedButton(
                 onPressed: () async {
@@ -789,7 +994,7 @@ class _HomePageState extends State<HomePage> {
                   }
                   else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                           'Le nombre minimum de données à envoyer est de 50',
                           style: TextStyle(color: Colors.white),
@@ -799,7 +1004,7 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
                 },
-                child: Text('Valider'),
+                child: const Text('Valider'),
               ),
             ],
           );
@@ -820,7 +1025,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return SyncDialog(
+        return const SyncDialog(
           duration: 0, // Initialisez la durée à 0 pour l'instant
         );
       },
@@ -830,7 +1035,7 @@ class _HomePageState extends State<HomePage> {
       try {
         // Appeler la fonction de synchronisation des relevés
         final SyncAnomalieService syncAnomalieService = SyncAnomalieService();
-        final AuthRepository authRepository = AuthRepository(baseUrl: "http://89.116.38.149:8000/api");
+        final AuthRepository authRepository = AuthRepository(baseUrl: "https://app.eatc.me/api");
         final durationAnomalieInSeconds = await syncAnomalieService.syncDataAnomalieToLocal(authState.userInfo.lastToken ?? '');
         await authRepository.fetchHomeDataFromEndpoint(authState.userInfo.lastToken ?? '');
 
@@ -838,7 +1043,7 @@ class _HomePageState extends State<HomePage> {
         final totalDurationInSeconds = durationAnomalieInSeconds;
 
         // Fermer la boîte de dialogue initiale après un certain temps
-        Timer(Duration(seconds: 2), () {
+        Timer(const Duration(seconds: 2), () {
           Navigator.of(context).pop();
         });
 
@@ -869,7 +1074,7 @@ class _HomePageState extends State<HomePage> {
             SnackBar(
               content: Text(
                 '$label synchronisé avec succès',
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.green,
             ),
@@ -887,7 +1092,7 @@ class _HomePageState extends State<HomePage> {
 
         // Afficher un message d'erreur
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
+          const SnackBar(
             content: Text(
               'Erreur lors de la synchronisation',
               style: TextStyle(color: Colors.white),

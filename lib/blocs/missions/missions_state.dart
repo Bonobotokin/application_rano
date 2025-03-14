@@ -11,12 +11,7 @@ abstract class MissionsState extends Equatable {
 class MissionsInitial extends MissionsState {}
 
 class MissionsLoading extends MissionsState {
-  final List<MissionModel> missions;
 
-  const MissionsLoading(this.missions);
-
-  @override
-  List<Object> get props => [missions];
 }
 
 class MissionsLoaded extends MissionsState {

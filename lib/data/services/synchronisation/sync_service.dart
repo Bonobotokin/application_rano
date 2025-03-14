@@ -1,11 +1,10 @@
 import 'package:application_rano/data/models/missions_model.dart';
 import 'package:application_rano/data/repositories/local/anomalie_repository_locale.dart';
 import 'package:application_rano/data/repositories/local/missions_repository_locale.dart';
-import 'package:application_rano/data/services/synchronisation/anomalieData.dart';
-import 'package:application_rano/data/services/synchronisation/missionData.dart';
+import 'package:application_rano/data/services/synchronisation/anomalie_data.dart';
 import 'package:application_rano/data/services/synchronisation/payementFacture.dart';
+import 'package:flutter/foundation.dart';
 import '../../repositories/local/facture_local_repository.dart';
-import '../config/api_configue.dart';
 import 'sync_mission.dart';
 import 'sync_facture.dart';
 import 'sync_anomalie.dart';
@@ -34,14 +33,14 @@ class SyncService {
       if (anomaliesToSync.isNotEmpty) {
         syncTasks.add(_processInBatches(anomaliesToSync, 50, (anomalie) async {
           if (anomalie.status != null && anomalie.status != 0) {
-            print("Envoi de l'anomalie ${anomalie.id} avec statut ${anomalie.status}...");
+            debugPrint("Envoi de l'anomalie ${anomalie.id} avec statut ${anomalie.status}...");
             await AnomalieData.sendLocalDataToServer(anomalie, accessToken);
           } else {
-            print("Anomalie ${anomalie.id} ignorée car son statut est nul ou égal à 0.");
+            debugPrint("Anomalie ${anomalie.id} ignorée car son statut est nul ou égal à 0.");
           }
         }));
       } else {
-        print("Aucune anomalie avec le statut 4 à synchroniser.");
+        debugPrint("Aucune anomalie avec le statut 4 à synchroniser.");
       }
 
       // Synchronisation des paiements de facture
@@ -49,11 +48,11 @@ class SyncService {
       final paymentsToSync = payementFacture.where((payment) => payment.statut == 'En cours').toList();
       if (paymentsToSync.isNotEmpty) {
         syncTasks.add(_processInBatches(paymentsToSync, 50, (payment) async {
-          print("Envoi du paiement de facture ${payment.id}...");
+          debugPrint("Envoi du paiement de facture ${payment.id}...");
           await PayementFacture.sendPaymentToServer(payment, accessToken);
         }));
       } else {
-        print("Aucun paiement de facture en cours à synchroniser.");
+        debugPrint("Aucun paiement de facture en cours à synchroniser.");
       }
 
       // Synchronisation des missions
@@ -63,22 +62,22 @@ class SyncService {
       if (missionsToSync.isNotEmpty) {
         syncTasks.add(_processInBatches(missionsToSync, 50, (mission) async {
           if (mission.statut != null && mission.statut != 0) {
-            print("Envoi de la mission ${mission.id} avec statut ${mission.statut}...");
+            debugPrint("Envoi de la mission ${mission.id} avec statut ${mission.statut}...");
             // await MissionData.sendLocalDataToServer(mission, accessToken);
           } else {
-            print("Mission ${mission.id} ignorée car son statut est nul ou égal à 0.");
+            debugPrint("Mission ${mission.id} ignorée car son statut est nul ou égal à 0.");
           }
         }));
       } else {
-        print("Aucune mission avec le statut 1 à synchroniser.");
+        debugPrint("Aucune mission avec le statut 1 à synchroniser.");
       }
 
       // Exécuter toutes les tâches en parallèle
       await Future.wait(syncTasks);
 
-      print('Toutes les données ont été synchronisées avec succès !');
+      debugPrint('Toutes les données ont été synchronisées avec succès !');
     } catch (e) {
-      print('Erreur lors de la synchronisation des données: $e');
+      debugPrint('Erreur lors de la synchronisation des données: $e');
     }
   }
 
@@ -87,20 +86,20 @@ class SyncService {
       final List<int> idRelievers = [];
 
       // Étape 1: Synchronisation des anomalies
-      print("Début de la synchronisation des anomalies");
+      debugPrint("Début de la synchronisation des anomalies");
         await _syncAnomalie.syncAnomalieTable(accessToken);
-      print("Synchronisation des anomalies terminée");
+      debugPrint("Synchronisation des anomalies terminée");
 
       // Étape 2: Récupération des missions
-      print("Début de la synchronisation des missions");
+      debugPrint("Début de la synchronisation des missions");
       final List<MissionModel> missionsData = await _syncMission.syncMissionTable(accessToken);
-      print("Récupération des missions terminée");
+      debugPrint("Récupération des missions terminée");
 
       // Étape 3: Traitement des missions par lots
       const int missionBatchSize = 50; // Taille des lots pour les missions
       await _processInBatches(missionsData, missionBatchSize, (mission) async {
         final int numCompteur = int.parse(mission.numCompteur.toString());
-        print("Traitement du compteur $numCompteur");
+        debugPrint("Traitement du compteur $numCompteur");
 
         final Map<String, dynamic> clientDetails = await authRepository.fetchDataClientDetails(numCompteur, accessToken);
 
@@ -111,7 +110,7 @@ class SyncService {
           saveDataRepositoryLocale.saveReleverDetailsRelever(clientDetails['releves']),
         ]);
 
-        print("Détails du relevé vérifiés : ${clientDetails['releves']}");
+        debugPrint("Détails du relevé vérifiés : ${clientDetails['releves']}");
 
         for (var releveData in clientDetails['releves']) {
           final int idReliever = int.parse(releveData.id.toString());
@@ -120,12 +119,12 @@ class SyncService {
       });
 
       // Étape 4: Synchronisation des factures après le traitement des missions
-      print("Début de la synchronisation des factures");
+      debugPrint("Début de la synchronisation des factures");
       const int factureBatchSize = 50; // Taille des lots pour les factures
       await _processInBatches(idRelievers, factureBatchSize, (idReliever) async {
         await _syncFacture.syncFactureTable(accessToken, idReliever);
       });
-      print("Synchronisation des factures terminée");
+      debugPrint("Synchronisation des factures terminée");
 
     } catch (error) {
       throw Exception('Failed to sync data: $error');

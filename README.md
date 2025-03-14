@@ -7,3 +7,8 @@ les crud doit etres bien ajuster.
 
 # Modification
  Tous les pages.
+ 
+# Flutter 3.19.3
+install flutter version 3.19.3
+
+# Java 21

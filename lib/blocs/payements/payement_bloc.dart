@@ -26,6 +26,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
   void _onloadPayement(LoadPayment event, Emitter<PaymentState> emit) async {
     try {
+      emit(PayementLoading()); // Passer les données de paiement de la facture ici
       final getAllFacturessss = await factureLocalRepository.getFactureDataFromLocalDatabase();
 
       print("all Facture ${getAllFacturessss}");
@@ -52,7 +53,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       final specificDateReleves = releverData['specificDateReleves'] ?? <RelevesModel>[];
       final previousDateReleves = releverData['previousDateReleves'] ?? <RelevesModel>[];
 
-      emit(PayementLoading(client, specificDateReleves, previousDateReleves, factures, paymentData)); // Passer les données de paiement de la facture ici
+
       emit(PayementLoaded(client, specificDateReleves, previousDateReleves, factures, paymentData)); // Passer les données de paiement de la facture ici
     } catch (e) {
       print(e.toString());
@@ -65,10 +66,15 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       // Effectuez les opérations nécessaires pour mettre à jour la facture ici
       await factureLocalRepository.savePayementFactureLocal(event.idFacture, event.montant);
       // Émettez ensuite un nouvel état pour indiquer que la mise à jour est terminée avec succès
-      emit(PaymentSuccess()); // Par exemple
+      emit(PaymentSuccess(true)); // Passer les données de paiement de la facture ici
     } catch (e) {
       emit(PaymentFailure(e.toString())); // Émettre un état d'échec en cas d'erreur
     }
   }
+
+  // void _onReloadPayment(ReloadPayment event, Emitter<PaymentState> emit) {
+  //   // Méthode pour recharger les données et émettre à nouveau PayementLoaded
+  //   add(ReloadPayments(relevecompteurId, numCompteur, date, accessToken));
+  // }
 
 }

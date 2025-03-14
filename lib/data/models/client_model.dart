@@ -34,6 +34,19 @@ class ClientModel {
       actif: json['actif'] ?? 0,
     );
   }
+  factory ClientModel.fromMap(Map<String, dynamic> map) {
+    return ClientModel(
+      id: map['id'] ?? 0,
+      nom: map['nom'] ?? '',
+      prenom: map['prenom'] ?? '',
+      adresse: map['adresse'] ?? '',
+      commune: map['commune'] ?? '',
+      region: map['region'] ?? '',
+      telephone_1: map['telephone_1'] ?? '',
+      telephone_2: map['telephone_2'],
+      actif: map['actif'] ?? 0,
+    );
+  }
 
 
   Map<String, dynamic> toJson() => {

@@ -1,10 +1,14 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:image/image.dart' as img;
+import 'package:path/path.dart' as path;
 import 'package:path/path.dart' as path;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/missions/missions_event.dart';
 import 'package:application_rano/blocs/missions/missions_state.dart';
 import 'package:application_rano/data/repositories/missions_repository.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:image/image.dart' as img;
 
 class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
   final MissionsRepository missionsRepository;
@@ -18,10 +22,11 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
 
   void _onLoadMissions(LoadMissions event, Emitter<MissionsState> emit) async {
     try {
+      emit(MissionsLoading());
+
       final missions = await missionsRepository.fetchMissions();
       print("Nombre total de missions: ${missions.length}");
       print("Détails des missions: $missions");
-      emit(MissionsLoading(missions));
       emit(MissionsLoaded(missions));
     } catch (e) {
       print(e.toString());
@@ -76,16 +81,30 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
     try {
       final Directory appDirectory = await getApplicationDocumentsDirectory();
       final String assetsDirectory = '${appDirectory.path}/assets/images';
-      print("eeee ${appDirectory.path}/assets/images");
       final bool assetsExists = await Directory(assetsDirectory).exists();
       if (!assetsExists) {
         await Directory(assetsDirectory).create(recursive: true);
       }
-      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-      String destinationPath = path.join(assetsDirectory, fileName);
-      await File(imagePath).copy(destinationPath);
-      print('Image copiée dans le répertoire d\'assets/images avec succès.');
-      return destinationPath;
+
+      // Compress the image
+      File imageFile = File(imagePath);
+      Uint8List imageBytes = await imageFile.readAsBytes();
+      img.Image? image = img.decodeImage(imageBytes);
+      if (image != null) {
+        img.Image compressedImage = img.copyResize(image, width: 800); // Adjust dimensions as needed
+
+        // Save compressed image to assets directory
+        String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+        String destinationPath = path.join(assetsDirectory, fileName);
+        File compressedFile = File(destinationPath);
+        await compressedFile.writeAsBytes(img.encodeJpg(compressedImage, quality: 85)); // Adjust quality as needed
+
+        print('Image compressée et copiée dans le répertoire d\'assets/images avec succès.');
+        return destinationPath;
+      } else {
+        print('Failed to decode image.');
+        return null;
+      }
     } catch (e) {
       print('Erreur lors de la copie de l\'image dans le répertoire d\'assets/images: $e');
       return null;
@@ -94,10 +113,10 @@ class MissionsBloc extends Bloc<MissionsEvent, MissionsState> {
 
   void _onSyncMissions(SyncMissionsEvent event, Emitter<MissionsState> emit) async {
     try {
+      emit(MissionsLoading());
       final missions = await missionsRepository.fetchMissions();
       print("Nombre total de missions: ${missions.length}");
       print("Détails des missions: $missions");
-      emit(MissionsLoading(missions));
       emit(MissionsLoaded(missions));
     } catch (e) {
       emit(MissionsLoadFailure(e.toString()));

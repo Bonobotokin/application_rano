@@ -1,6 +1,8 @@
 import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image/image.dart' as img;
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application_rano/blocs/auth/auth_bloc.dart';
 import 'package:application_rano/blocs/missions/missions_bloc.dart';
@@ -9,14 +11,13 @@ import 'package:application_rano/blocs/missions/missions_state.dart';
 import 'package:application_rano/data/models/missions_model.dart';
 import 'package:application_rano/ui/layouts/app_layout.dart';
 import 'package:application_rano/blocs/auth/auth_state.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:application_rano/blocs/clients/client_bloc.dart';
 import 'package:application_rano/blocs/clients/client_event.dart';
 import 'package:intl/intl.dart';
-import 'package:application_rano/ui/routing/routes.dart';
-import 'package:get/get.dart';
 import '../shared/DateFormatter.dart';
 import '../shared/MaskedTextField.dart';
+import '../routing/routes.dart';
+import 'package:get/get.dart';
 
 class MissionsPage extends StatefulWidget {
   const MissionsPage({Key? key}) : super(key: key);
@@ -62,7 +63,7 @@ class _MissionsPageState extends State<MissionsPage> {
               BlocBuilder<MissionsBloc, MissionsState>(
                 builder: (context, state) {
                   if (state is MissionsLoading) {
-                    return _buildMissionListWidget(state.missions, authState);
+                    return _buildLoadingState(context);
                   } else if (state is MissionsLoaded) {
                     return _buildMissionListWidget(state.missions, authState);
                   } else if (state is MissionsLoadFailure) {
@@ -107,6 +108,14 @@ class _MissionsPageState extends State<MissionsPage> {
     return date.year == now.year && date.month == now.month;
   }
 
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
+      child: CircularProgressIndicator(
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // Couleur bleue pour la bordure
+        backgroundColor: Colors.white, // Fond blanc
+      ),
+    );
+  }
   Widget _buildMissionListWidget(
       List<MissionModel> missions, AuthState authState) {
 
@@ -321,6 +330,7 @@ class _MissionsPageState extends State<MissionsPage> {
     String dateValue = formattedDate;
 
     late String _imagePath = ''; // Déclaration du chemin de l'image à l'intérieur de la méthode
+    bool _isLoading = false; // État de chargement
 
     final formKey = GlobalKey<FormState>();
 
@@ -331,7 +341,7 @@ class _MissionsPageState extends State<MissionsPage> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text(
-                'Nouveaux consommation de ${mission.numCompteur}, ${mission.adresseClient} - $formattedDate',
+                'Nouvelle consommation de ${mission.numCompteur}, ${mission.adresseClient} - $formattedDate',
                 style: const TextStyle(fontSize: 16),
               ),
               content: SingleChildScrollView(
@@ -355,27 +365,15 @@ class _MissionsPageState extends State<MissionsPage> {
                         },
                       ),
                       const SizedBox(height: 10),
-                      MaskedTextField( // Utiliser le widget MaskedTextField pour la date
-                        mask: 'xxxx-xx-xx', // Masque pour le format YYYY-MM-DD
+                      TextFormField(
                         controller: dateController,
-                        inputDecoration: InputDecoration(
-                          labelText: 'Date', // Label de la date
-                          border: InputBorder.none, // Supprime toutes les bordures par défaut
-                          enabledBorder: UnderlineInputBorder( // Ajoute seulement la bordure inférieure
-                            borderSide: BorderSide(color: Colors.grey), // Couleur de la bordure inférieure
-                          ),
-                          filled: true,
-                          fillColor: Colors.transparent,
-                          hintStyle: TextStyle(color: Colors.black),
-                          labelStyle: TextStyle(color: Color(0xFF012225)),
-                          floatingLabelBehavior: FloatingLabelBehavior.never,
-                        ),
-                        onChanged: (value) {
-                          dateValue = value; // Mettre à jour la valeur de la date
-                        },
+                        decoration: const InputDecoration(labelText: 'Date'),
+                        readOnly: true,
                       ),
                       const SizedBox(height: 10),
-                      if (_imagePath.isNotEmpty)
+                      if (_isLoading)
+                        CircularProgressIndicator(), // Indicateur de chargement
+                      if (_imagePath.isNotEmpty && !_isLoading)
                         Image.file(
                           File(_imagePath),
                           width: 100,
@@ -384,10 +382,13 @@ class _MissionsPageState extends State<MissionsPage> {
                       const SizedBox(height: 10),
                       ElevatedButton.icon(
                         onPressed: () async {
-                          // _imagePath = await _getImage();
+                          setState(() {
+                            _isLoading = true; // Affiche l'indicateur de chargement
+                          });
                           String? imagePath = await _getImage();
                           setState(() {
                             _imagePath = imagePath ?? ''; // Mettre à jour le chemin de l'image
+                            _isLoading = false; // Masque l'indicateur de chargement
                           });
                         },
                         icon: const Icon(Icons.camera_alt),
@@ -422,22 +423,17 @@ class _MissionsPageState extends State<MissionsPage> {
                                 } else {
                                   String volumeValue = volumeController.text;
                                   String dateValue = dateController.text;
-                                  DateTime parsedDate =
-                                  DateFormat('dd-MM-yyyy').parse(dateValue);
-                                  String formattedDate =
-                                  DateFormat('yyyy-MM-dd').format(parsedDate);
+                                  DateTime parsedDate = DateFormat('dd-MM-yyyy').parse(dateValue);
+                                  String formattedDate = DateFormat('yyyy-MM-dd').format(parsedDate);
                                   try {
                                     if (isUpdate) {
                                       BlocProvider.of<MissionsBloc>(context).add(
                                         UpdateMission(
                                           missionId: mission.numCompteur.toString(),
-                                          adresseClient:
-                                          mission.adresseClient.toString(),
+                                          adresseClient: mission.adresseClient.toString(),
                                           consoValue: volumeValue,
                                           date: formattedDate,
-                                          accessToken: authState is AuthSuccess
-                                              ? authState.userInfo.lastToken ?? ''
-                                              : '',
+                                          accessToken: authState is AuthSuccess ? authState.userInfo.lastToken ?? '' : '',
                                           imageCompteur: _imagePath,
                                         ),
                                       );
@@ -445,13 +441,10 @@ class _MissionsPageState extends State<MissionsPage> {
                                       BlocProvider.of<MissionsBloc>(context).add(
                                         AddMission(
                                           missionId: mission.numCompteur.toString(),
-                                          adresseClient:
-                                          mission.adresseClient.toString(),
+                                          adresseClient: mission.adresseClient.toString(),
                                           consoValue: volumeValue,
                                           date: formattedDate,
-                                          accessToken: authState is AuthSuccess
-                                              ? authState.userInfo.lastToken ?? ''
-                                              : '',
+                                          accessToken: authState is AuthSuccess ? authState.userInfo.lastToken ?? '' : '',
                                           imageCompteur: _imagePath,
                                         ),
                                       );
@@ -464,17 +457,13 @@ class _MissionsPageState extends State<MissionsPage> {
                                     );
                                     BlocProvider.of<MissionsBloc>(context).add(
                                       LoadMissions(
-                                        accessToken: authState is AuthSuccess
-                                            ? authState.userInfo.lastToken ?? ''
-                                            : '',
+                                        accessToken: authState is AuthSuccess ? authState.userInfo.lastToken ?? '' : '',
                                       ),
                                     ); // Recharge la liste des missions
                                   } catch (e) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text(
-                                          'Erreur lors de la ${isUpdate ? 'modification' : 'création'} de la mission: $e',
-                                        ),
+                                        content: Text('Erreur lors de la ${isUpdate ? 'modification' : 'création'} de la mission: $e'),
                                       ),
                                     );
                                   }
@@ -500,24 +489,61 @@ class _MissionsPageState extends State<MissionsPage> {
     );
   }
 
-
   Future<String?> _getImage() async {
-  try {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      return pickedFile.path;
+      String imagePath = pickedFile.path;
+      print('Chemin de l\'image avant compression : $imagePath');
+
+      File imageFile = File(imagePath);
+      int originalSize = await imageFile.length();
+      print('Taille de l\'image avant compression : ${originalSize ~/ 1024} KB');
+
+      String? compressedImagePath = await _resizeAndCompressImage(imagePath);
+
+      if (compressedImagePath != null) {
+        File compressedImage = File(compressedImagePath);
+        int compressedSize = await compressedImage.length();
+        print('Chemin de l\'image après compression : $compressedImagePath');
+        print('Taille de l\'image après compression : ${compressedSize ~/ 1024} KB');
+      } else {
+        print('Erreur lors de la compression de l\'image.');
+      }
+
+      return compressedImagePath;
     } else {
       print('Aucune image sélectionnée.');
       return null;
     }
-  } catch (e) {
-    print('Erreur lors de la prise de la photo: $e');
-    return null;
   }
-}
 
+  Future<String?> _resizeAndCompressImage(String imagePath) async {
+    try {
+      File imageFile = File(imagePath);
+      img.Image? originalImage = img.decodeImage(await imageFile.readAsBytes());
 
+      if (originalImage != null) {
+        int newWidth = (originalImage.width * 0.8).toInt();
+        int newHeight = (originalImage.height * 0.8).toInt();
+
+        img.Image resizedImage = img.copyResize(originalImage, width: newWidth, height: newHeight);
+
+        List<int> compressedImageBytes = img.encodeJpg(resizedImage, quality: 80);
+
+        File compressedImage = File('${imageFile.parent.path}/compressed_image.jpg');
+        await compressedImage.writeAsBytes(compressedImageBytes);
+
+        return compressedImage.path;
+      } else {
+        print('Erreur lors du décodage de l\'image.');
+        return null;
+      }
+    } catch (e) {
+      print('Erreur lors de la manipulation de l\'image : $e');
+      return null;
+    }
+  }
 
 }

@@ -74,7 +74,7 @@ class SyncFactureService {
         stopwatch.start();
 
         try {
-          final durationInSecond = await _syncFacture.syncFactureTable(accessToken, idReleve);
+          await _syncFacture.syncFactureTable(accessToken, idReleve);
           stopwatch.stop();
           int durationInSeconds = stopwatch.elapsed.inSeconds;
           totalDurationInSeconds += durationInSeconds;
@@ -97,8 +97,6 @@ class SyncFactureService {
     }
   }
 
-
-
   Future<List<Map<String, dynamic>>> getAllReleves() async {
     try {
       final Database db = await NiADatabases().database;
@@ -110,8 +108,8 @@ class SyncFactureService {
 
       // Requête SQL pour obtenir les relevés avec état "Impayé" et date_releve dans le mois et l'année en cours
       final List<Map<String, dynamic>> rows = await db.rawQuery(
-        'SELECT * FROM releves WHERE strftime("%Y", date_releve) = ? AND strftime("%m", date_releve) = ?',
-        [currentYear, currentMonth],
+        'SELECT * FROM releves WHERE strftime("%Y", date_releve) = ? AND strftime("%m", date_releve) = ? AND etatFacture = ?',
+        [currentYear, currentMonth, 'Impayé'],
       );
 
       // Imprimer les relevés récupérés
@@ -135,6 +133,7 @@ class SyncFactureService {
         tasks.add(process(item));
       }
     }
+    await Future.wait(tasks); // Attendre que toutes les tâches de ce lot soient terminées
     return tasks;
   }
 }

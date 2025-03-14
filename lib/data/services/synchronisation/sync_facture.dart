@@ -35,11 +35,14 @@ class SyncFacture {
     }
   }
 
-  Future<void> _fetchFactureDataFromEndPoint( String? accessToken, int idReleve, Transaction txn) async {
-
+  Future<void> _fetchFactureDataFromEndPoint(
+      String? accessToken,
+      int idReleve,
+      Transaction txn
+      ) async {
     print("ID Releve: $idReleve");
     print("AccessToken Facture: $accessToken");
-    String baseUrl = 'http://89.116.38.149:8000/api'; // Déclarez baseUrl comme une variable locale
+    String baseUrl = 'https://app.eatc.me/api'; // Déclarez baseUrl comme une variable locale
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/facture?id_releve=$idReleve'),
@@ -49,7 +52,7 @@ class SyncFacture {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final factureData = data['facture'];
-        print("facture geting start");
+        print("facture getting start");
         final facture = FactureModel(
           id: factureData['id'],
           relevecompteurId: factureData['relevecompteur_id'] ?? 0,
@@ -66,18 +69,13 @@ class SyncFacture {
           statut: factureData['statut'] ?? '',
         );
 
-        // Enregistrer ou mettre à jour les données de la facture dans la base de données locale
+        print("Enregistrement des données dans la base locale");
         await _saveDataRepositoryLocale.saveFactureData([facture], txn);
-      } else if (response.statusCode == 404) {
-        // La facture n'existe pas sur le serveur
-        print('La facture n\'existe pas sur le serveur.');
       } else {
-        // Erreur lors de la récupération des données de la facture
-        throw Exception('Failed to fetch facture data: ${response.statusCode}');
+        throw Exception('Erreur de la requête HTTP: ${response.statusCode}');
       }
     } catch (error) {
-      // Gérer les erreurs de récupération des données de la facture
-      throw Exception('Failed to fetch facture data: $error');
+      throw Exception('Erreur de récupération des données de la facture: $error');
     }
   }
 }

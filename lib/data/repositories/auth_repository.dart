@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:application_rano/data/models/user.dart';
 import 'package:application_rano/data/repositories/local/authentification_locale.dart';
@@ -21,7 +22,7 @@ class AuthRepository {
     bool isConnected = userId != null; // Vérifie si userId est non-null
 
 
-    print("eto verrifie Users $userId");
+    debugPrint("eto verrifie Users $userId");
 
     if (isConnected) {
       // L'utilisateur est connecté, vous pouvez effectuer d'autres actions ici
@@ -29,13 +30,13 @@ class AuthRepository {
       // et les retourner sous forme d'objet User
 
       // Pour l'exemple, nous allons simplement imprimer un message
-      print('L\'utilisateur est connecté !');
+      debugPrint('L\'utilisateur est connecté !');
 
       // Retourner les informations de l'utilisateur, ou null si elles ne sont pas disponibles
       return User(/* Ajoutez les informations de l'utilisateur ici */);
     } else {
       // L'utilisateur n'est pas connecté
-      print('L\'utilisateur n\'est pas connecté !');
+      debugPrint('L\'utilisateur n\'est pas connecté !');
 
       // Retourner null ou effectuer d'autres actions selon vos besoins
       return null;
@@ -46,7 +47,7 @@ class AuthRepository {
   Future<User?> login(String phoneNumber, String password) async {
     try {
       if (baseUrl.trim().isEmpty) {
-        print("authentification locale");
+        debugPrint("authentification locale");
         return AuthenticationLocale().authenticate(phoneNumber, password);
       } else {
         final response = await http.post(
@@ -63,7 +64,7 @@ class AuthRepository {
         if (response.statusCode == 200) {
           final Map<String, dynamic> responseData = jsonDecode(response.body);
           final User user = User.fromJson(responseData['info_utilisateur']);
-          print("User a insetre : $responseData['info_utilisateur']");
+          debugPrint("User a insetre : $responseData['info_utilisateur']");
           await saveDataRepositoryLocale.saveUserToLocalDatabase(
               user); // Appeler la méthode locale pour enregistrer l'utilisateur
 
@@ -93,12 +94,11 @@ class AuthRepository {
           Uri.parse('$baseUrl/accueil'),
           headers: {'Authorization': 'Bearer $accessToken'},
         );
-        print(response);
         if (response.statusCode == 200) {
           final homeModel = HomeModel.fromJson(jsonDecode(response.body));
           await saveDataRepositoryLocale.saveHomeDataToLocalDatabase(
               homeModel); // Enregistrer les données d'accueil localement
-          print("homeMOdel $homeModel");
+          debugPrint("homeMOdel $homeModel");
           return jsonDecode(response.body);
         } else {
           throw Exception('Failed to fetch home data: ${response.statusCode}');
@@ -123,7 +123,7 @@ class AuthRepository {
         };
       } else {
         final response = await http.get(
-          Uri.parse('http://89.116.38.149:8000/api/releverClient?num_compteur=$numCompteur'),
+          Uri.parse('https://app.eatc.me/api/releverClient?num_compteur=$numCompteur'),
           headers: {'Authorization': 'Bearer $accessToken'},
         );
         if (response.statusCode == 200) {
@@ -189,13 +189,13 @@ class AuthRepository {
               imageCompteur: releve['image_compteur'] is String ?  ? releve['image_compteur'] : '',
             );
           }).toList();
-
-          print('Client Details { :');
-          print('Compteur Data: $compteurData');
-          print('Contra Data: $contratData');
-          print('client Data: $clientData');
-          print('Releves Data: $relevesData');
-          print('Client Details } ');
+          //
+          // debugPrint('Client Details { :');
+          // debugPrint('Compteur Data: $compteurData');
+          // debugPrint('Contra Data: $contratData');
+          // debugPrint('client Data: $clientData');
+          // debugPrint('Releves Data: $relevesData');
+          // debugPrint('Client Details } ');
 
           return {
             'compteur': compteur,
