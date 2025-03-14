@@ -18,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Étape 2 : Configurer Java
+      # Étape 2 : Configurer Java (JDK 21)
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
@@ -29,14 +29,18 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.3' # Remplace par ta version de Flutter
+          flutter-version: '3.19.3' # Ta version actuelle
           channel: 'stable'
+
+      # Étape 4 : Vérifier Flutter
+      - name: Check Flutter version
+        run: flutter --version
 
       # Étape 5 : Récupérer les dépendances
       - name: Get dependencies
         run: flutter pub get
 
-      # Étape 8 : Extraire la version depuis pubspec.yaml
+      # Étape 6 : Extraire la version depuis pubspec.yaml
       - name: Extract version from pubspec.yaml
         id: version
         run: |
@@ -44,19 +48,27 @@ jobs:
           echo "Extracted version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      # Étape 9 : Construire l'APK release
+      # Étape 7 : Construire l'APK release
       - name: Build APK
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release
+          ls -la build/app/outputs/flutter-apk/  # Vérifie que l'APK existe
 
-      # Étape 10 : Renommer l'APK avec la version
+      # Étape 8 : Renommer l'APK avec la version
       - name: Rename APK
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-v$VERSION-release.apk
+          if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-v$VERSION-release.apk
+            echo "APK renamed to: app-v$VERSION-release.apk"
+          else
+            echo "Error: APK not found!"
+            exit 1
+          fi
 
-      # Étape 11 : Publier l'APK renommée
+      # Étape 9 : Publier l'APK renommée
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: app-v${{ steps.version.outputs.version }}-release-apk
           path: build/app/outputs/flutter-apk/app-v${{ steps.version.outputs.version }}-release.apk
