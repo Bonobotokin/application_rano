@@ -14,27 +14,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Étape 1 : Cloner le dépôt
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Étape 2 : Configurer Java (JDK 21)
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
           java-version: '21'
 
+      # Étape 3 : Configurer Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.3'
+          flutter-version: '3.19.3' # Ta version actuelle
           channel: 'stable'
 
+      # Étape 4 : Vérifier Flutter
       - name: Check Flutter version
         run: flutter --version
 
+      # Étape 5 : Récupérer les dépendances
       - name: Get dependencies
         run: flutter pub get
 
+      # Étape 6 : Extraire la version depuis pubspec.yaml
       - name: Extract version from pubspec.yaml
         id: version
         run: |
@@ -42,41 +48,27 @@ jobs:
           echo "Extracted version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      # Étape 7 : Construire l'APK release
       - name: Build APK
         run: |
           flutter build apk --release
-          ls -la build/app/outputs/flutter-apk/
+          ls -la build/app/outputs/flutter-apk/  # Vérifie que l'APK existe
 
+      # Étape 8 : Renommer l'APK avec la version
       - name: Rename APK
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
-            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-v$VERSION-release.apk
-            echo "APK renamed to: app-v$VERSION-release.apk"
+            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/Ranoo-v$VERSION-release.apk
+            echo "APK renamed to: Ranoo-v$VERSION-release.apk"
           else
             echo "Error: APK not found!"
             exit 1
           fi
 
-      # Nouvelle étape : Créer une release
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Étape 9 : Publier l'APK renommée
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          release_name: Release v${{ steps.version.outputs.version }}
-          draft: false
-          prerelease: false
-
-      # Nouvelle étape : Uploader l’APK dans la release
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/app/outputs/flutter-apk/app-v${{ steps.version.outputs.version }}-release.apk
-          asset_name: app-v${{ steps.version.outputs.version }}-release.apk
-          asset_content_type: application/vnd.android.package-archive
+          name: app-v${{ steps.version.outputs.version }}-release-apk
+          path: build/app/outputs/flutter-apk/app-v${{ steps.version.outputs.version }}-release.apk
