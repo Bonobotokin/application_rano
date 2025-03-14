@@ -6,14 +6,12 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_bloc.dart';
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
-import 'package:application_rano/data/models/anomalie_model.dart';
 import 'package:application_rano/data/models/client_model.dart';
 import 'package:application_rano/data/repositories/anomalie/anomalie_repository.dart';
 import 'package:image/image.dart' as img;
-import 'package:path_provider/path_provider.dart';
 
 class NewAnomalyPage extends StatefulWidget {
-  const NewAnomalyPage({Key? key}) : super(key: key);
+  const NewAnomalyPage({super.key});
 
   @override
   _NewAnomalyPageState createState() => _NewAnomalyPageState();
@@ -30,7 +28,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
   final TextEditingController _communeController = TextEditingController();
 
   DateTime currentDate = DateTime.now();
-  List<File> _images = [];
+  final List<File> _images = [];
   final ImagePicker _picker = ImagePicker();
   late DateFormat _dateFormat;
 
@@ -52,11 +50,11 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       if (mounted) {
         setState(() {
           _clients = clients;
-          print("Clients fetched: $_clients");
+          debugPrint("Clients fetched: $_clients");
         });
       }
     } catch (error) {
-      print('Error fetching clients: $error');
+      debugPrint('Error fetching clients: $error');
     }
   }
 
@@ -64,7 +62,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Nouvelle Anomalie'),
+        title: const Text('Nouvelle Anomalie'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -73,7 +71,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
           children: [
             _buildImagePicker(),
             _buildFormFields(),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildSaveButton(),
           ],
         ),
@@ -92,7 +90,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
             itemBuilder: (BuildContext context, int index) {
               if (index == _images.length && _images.length < 5) {
                 return _compressingImage
-                    ? Container(
+                    ? const SizedBox(
                   width: 100,
                   height: 100,
                   child: Center(
@@ -100,7 +98,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
                   ),
                 )
                     : IconButton(
-                  icon: Icon(Icons.camera_alt),
+                  icon: const Icon(Icons.camera_alt),
                   onPressed: _takePicture,
                 );
               }
@@ -108,7 +106,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
                 onTap: () => _showOptionsDialog(index),
                 onLongPress: () => _showLongPressOptions(index),
                 child: Padding(
-                  padding: EdgeInsets.only(right: 8.0),
+                  padding: const EdgeInsets.only(right: 8.0),
                   child: Stack(
                     children: [
                       Image.file(
@@ -121,7 +119,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
                         Positioned.fill(
                           child: Container(
                             color: Colors.black.withOpacity(0.5),
-                            child: Center(
+                            child: const Center(
                               child: CircularProgressIndicator(),
                             ),
                           ),
@@ -140,21 +138,21 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
   Widget _buildFormFields() {
     return Column(
       children: [
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         _buildTextField('Type Anomalie', _typeController),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         _buildDateField('Date', _dateController),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(child: _buildTextField('Longitude', _longitudeController)),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(child: _buildTextField('Latitude', _latitudeController)),
           ],
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         _buildDescriptionField('Description', _descriptionController),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         _buildClientDropdown(),
       ],
     );
@@ -198,14 +196,14 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       decoration: InputDecoration(
         labelText: label,
         hintText: label,
-        contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         filled: true,
         fillColor: Colors.grey[200],
-        hintStyle: TextStyle(color: Colors.grey),
-        labelStyle: TextStyle(color: Color(0xFF012225)),
+        hintStyle: const TextStyle(color: Colors.grey),
+        labelStyle: const TextStyle(color: Color(0xFF012225)),
         floatingLabelBehavior: FloatingLabelBehavior.never,
       ),
     );
@@ -218,14 +216,14 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       decoration: InputDecoration(
         labelText: 'Description',
         hintText: 'Entrez la description de l\'anomalie',
-        contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         filled: true,
         fillColor: Colors.grey[200],
-        hintStyle: TextStyle(color: Colors.grey),
-        labelStyle: TextStyle(color: Color(0xFF012225)),
+        hintStyle: const TextStyle(color: Colors.grey),
+        labelStyle: const TextStyle(color: Color(0xFF012225)),
         floatingLabelBehavior: FloatingLabelBehavior.never,
       ),
     );
@@ -237,7 +235,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       items: _clients.map((ClientModel client) {
         return DropdownMenuItem<ClientModel>(
           value: client,
-          child: Text('${client.nom}'),
+          child: Text(client.nom),
         );
       }).toList(),
       onChanged: (ClientModel? newValue) {
@@ -249,14 +247,14 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       decoration: InputDecoration(
         labelText: 'Client',
         hintText: 'Sélectionnez un client',
-        contentPadding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         filled: true,
         fillColor: Colors.grey[200],
-        hintStyle: TextStyle(color: Colors.grey),
-        labelStyle: TextStyle(color: Color(0xFF012225)),
+        hintStyle: const TextStyle(color: Colors.grey),
+        labelStyle: const TextStyle(color: Color(0xFF012225)),
         floatingLabelBehavior: FloatingLabelBehavior.never,
       ),
     );
@@ -266,13 +264,13 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
     return ElevatedButton(
       onPressed: _compressingImage ? null : _saveAnomaly,
       style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: 16.0),
+        padding: const EdgeInsets.symmetric(vertical: 16.0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
         backgroundColor: Colors.blue,
       ),
-      child: Text(
+      child: const Text(
         'Enregistrer',
         style: TextStyle(
           fontSize: 18.0,
@@ -294,21 +292,11 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
 
     if (type.isEmpty || date.isEmpty || description.isEmpty  ) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez remplir tous les champs.')),
+        const SnackBar(content: Text('Veuillez remplir tous les champs.')),
       );
       return;
     }
 
-    AnomalieModel newAnomaly = AnomalieModel(
-      typeMc: type,
-      dateDeclaration: date,
-      longitudeMc: longitude,
-      latitudeMc: latitude,
-      descriptionMc: description,
-      clientDeclare: client,
-      cpCommune: cpCommune,
-      commune: commune,
-    );
 
     context.read<AnomalieBLoc>().add(AddAnomalie(
       typeMc: type,
@@ -335,15 +323,15 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Options'),
-          content: Text('Voulez-vous supprimer ou remplacer cette image?'),
+          title: const Text('Options'),
+          content: const Text("Voulez-vous supprimer ou remplacer cette image?"),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 _replaceImage(index);
               },
-              child: Text('Remplacer'),
+              child: const Text('Remplacer'),
             ),
             TextButton(
               onPressed: () {
@@ -352,7 +340,7 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
                   _images.removeAt(index);
                 });
               },
-              child: Text('Supprimer'),
+              child: const Text('Supprimer'),
             ),
           ],
         );
@@ -368,8 +356,8 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.delete),
-              title: Text('Supprimer'),
+              leading: const Icon(Icons.delete),
+              title: const Text('Supprimer'),
               onTap: () {
                 Navigator.pop(context);
                 setState(() {
@@ -378,8 +366,8 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.photo_library),
-              title: Text('Remplacer'),
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Remplacer'),
               onTap: () {
                 Navigator.pop(context);
                 _replaceImage(index);
@@ -397,11 +385,11 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
 
     if (pickedFile != null) {
       String imagePath = pickedFile.path;
-      print('Chemin de l\'image avant compression : $imagePath');
+      debugPrint('Chemin de l\'image avant compression : $imagePath');
 
       File imageFile = File(imagePath);
       int originalSize = await imageFile.length();
-      print('Taille de l\'image avant compression : ${originalSize ~/ 1024} KB');
+      debugPrint('Taille de l\'image avant compression : ${originalSize ~/ 1024} KB');
 
       setState(() {
         _compressingImage = true;
@@ -416,17 +404,17 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       if (compressedImagePath != null) {
         File compressedImage = File(compressedImagePath);
         int compressedSize = await compressedImage.length();
-        print('Chemin de l\'image après compression : $compressedImagePath');
-        print('Taille de l\'image après compression : ${compressedSize ~/ 1024} KB');
+        debugPrint('Chemin de l\'image après compression : $compressedImagePath');
+        debugPrint('Taille de l\'image après compression : ${compressedSize ~/ 1024} KB');
 
         setState(() {
           _images.add(compressedImage);
         });
       } else {
-        print('Erreur lors de la compression de l\'image.');
+        debugPrint('Erreur lors de la compression de l\'image.');
       }
     } else {
-      print('Aucune image sélectionnée.');
+      debugPrint('Aucune image sélectionnée.');
     }
   }
 
@@ -440,19 +428,21 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
         int newHeight = (originalImage.height * 0.8).toInt();
 
         img.Image resizedImage = img.copyResize(originalImage, width: newWidth, height: newHeight);
-
         List<int> compressedImageBytes = img.encodeJpg(resizedImage, quality: 80);
 
-        File compressedImage = File('${imageFile.parent.path}/compressed_image.jpg');
+        // Générer un nom de fichier unique avec un timestamp
+        String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+        String compressedFileName = 'compressed_image_$timestamp.jpg';
+        File compressedImage = File('${imageFile.parent.path}/$compressedFileName');
         await compressedImage.writeAsBytes(compressedImageBytes);
 
         return compressedImage.path;
       } else {
-        print('Erreur lors du décodage de l\'image.');
+        debugPrint('Erreur lors du décodage de l\'image.');
         return null;
       }
     } catch (e) {
-      print('Erreur lors de la manipulation de l\'image : $e');
+      debugPrint('Erreur lors de la manipulation de l\'image : $e');
       return null;
     }
   }
@@ -461,11 +451,11 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
       String imagePath = pickedFile.path;
-      print('Chemin de l\'image avant compression : $imagePath');
+      debugPrint('Chemin de l\'image avant compression : $imagePath');
 
       File imageFile = File(imagePath);
       int originalSize = await imageFile.length();
-      print('Taille de l\'image avant compression : ${originalSize ~/ 1024} KB');
+      debugPrint('Taille de l\'image avant compression : ${originalSize ~/ 1024} KB');
 
       setState(() {
         _compressingImage = true;
@@ -480,17 +470,17 @@ class _NewAnomalyPageState extends State<NewAnomalyPage> {
       if (compressedImagePath != null) {
         File compressedImage = File(compressedImagePath);
         int compressedSize = await compressedImage.length();
-        print('Chemin de l\'image après compression : $compressedImagePath');
-        print('Taille de l\'image après compression : ${compressedSize ~/ 1024} KB');
+        debugPrint('Chemin de l\'image après compression : $compressedImagePath');
+        debugPrint('Taille de l\'image après compression : ${compressedSize ~/ 1024} KB');
 
         setState(() {
           _images[index] = compressedImage;
         });
       } else {
-        print('Erreur lors de la compression de l\'image.');
+        debugPrint('Erreur lors de la compression de l\'image.');
       }
     } else {
-      print('Aucune image sélectionnée.');
+      debugPrint('Aucune image sélectionnée.');
     }
   }
 }
