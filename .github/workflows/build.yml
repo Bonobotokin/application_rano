@@ -71,4 +71,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-v${{ steps.version.outputs.version }}-release-apk
-          path: build/app/outputs/flutter-apk/app-v${{ steps.version.outputs.version }}-release.apk
+          path: build/app/outputs/flutter-apk/Ranoo-v${{ steps.version.outputs.version }}-release.apk
