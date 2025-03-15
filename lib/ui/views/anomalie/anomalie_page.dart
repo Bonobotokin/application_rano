@@ -267,12 +267,26 @@ class AnomaliePageState extends State<AnomaliePage> {
                           fontSize: 16,
                           color: statusColor,
                         )),
-                    Text('Longitude: ${anomalie.longitudeMc}'),
-                    Text('Altitude: ${anomalie.latitudeMc}'),
-                    Text('Description : ${anomalie.descriptionMc}'),
-                    Text('Client : ${anomalie.clientDeclare}'),
-                    Text('Commune : ${anomalie.commune} '),
-                    Text('Cp Commune : ${anomalie.cpCommune}'),
+                    if (anomalie.longitudeMc != null && anomalie.longitudeMc!.isNotEmpty) // Condition pour Longitude
+                      Text('Longitude: ${anomalie.longitudeMc}'),
+                    if (anomalie.latitudeMc != null && anomalie.latitudeMc!.isNotEmpty) // Condition pour Altitude
+                      Text('Altitude: ${anomalie.latitudeMc}'),
+                    RichText( // Remplacement avec RichText
+                      text: TextSpan(
+                        style: DefaultTextStyle.of(context).style,
+                        children: [
+                          const TextSpan(
+                            text: 'Description : ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          TextSpan(
+                            text: anomalie.descriptionMc ?? 'Aucune description',
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (anomalie.clientDeclare != null && anomalie.clientDeclare!.isNotEmpty)
+                      Text('Client : ${anomalie.clientDeclare}'),
                     Text(
                       'Date: ${(anomalie.dateDeclaration != null || anomalie.dateDeclaration != '' || DateFormatter.isValidFrenchDate(anomalie.dateDeclaration!)) ? DateFormatter.formatFrenchDate(anomalie.dateDeclaration!) : 'Erreur de date'}',
                       style: TextStyle(
