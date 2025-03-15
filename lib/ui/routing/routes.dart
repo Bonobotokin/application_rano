@@ -10,7 +10,7 @@ import 'package:application_rano/ui/views/missions_page.dart';
 import 'package:application_rano/ui/views/clients/detail_compteur_page.dart';
 import 'package:application_rano/ui/views/clients/client_info_page.dart';
 import 'package:application_rano/ui/views/clients/payement_facture.dart';
-import 'package:application_rano/ui/views/anomalie/anomaliePage.dart';
+import 'package:application_rano/ui/views/anomalie/anomalie_page.dart';
 
 class AppRoutes {
   static const String logo = '/logo';
