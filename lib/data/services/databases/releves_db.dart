@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-class releves_db {
+class RelevesDb {
   Future<void> createTable(Database db) async {
     try {
       await db.execute('''

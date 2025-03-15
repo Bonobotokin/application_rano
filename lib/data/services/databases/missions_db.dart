@@ -1,6 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 
-class missions_db {
+class MissionDb {
   Future<void> createTable(Database db) async {
     try {
       await db.execute('''

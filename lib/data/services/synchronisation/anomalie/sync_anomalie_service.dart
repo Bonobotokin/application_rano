@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:application_rano/data/repositories/commentaire/CommentaireRepositoryLocale.dart';
+import 'package:application_rano/data/services/databases/nia_databases.dart';
 import 'package:application_rano/data/services/synchronisation/commentaire_data.dart';
 import 'package:application_rano/data/services/synchronisation/sync_commentaire.dart';
 import 'package:flutter/foundation.dart';
@@ -103,6 +104,11 @@ class SyncAnomalieService {
       final startTime = DateTime.now();
 
       debugPrint("Début de la synchronisation des anomalies");
+
+      // Nettoyer la table anomalie locale avant de récupérer les données
+      final db = await NiADatabases().database;
+      await db.delete('anomalie');
+      debugPrint("Table anomalie locale nettoyée");
 
       final List<AnomalieModel> anomalies = await _fetchAnomalieDataFromEndpoint('https://app.eatc.me/api', accessToken);
 

@@ -1,21 +1,21 @@
 import 'dart:io';
+import 'package:application_rano/data/services/databases/anomalie_db.dart';
 import 'package:application_rano/data/services/databases/commentaireDb.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:application_rano/data/services/databases/acceuilDb.dart';
-import 'package:application_rano/data/services/databases/missionsDb.dart';
+import 'package:application_rano/data/services/databases/acceuil_db.dart';
+import 'package:application_rano/data/services/databases/missions_db.dart';
 import 'package:application_rano/data/services/databases/usersDb.dart';
 import 'package:application_rano/data/services/databases/compteursDb.dart';
-import 'package:application_rano/data/services/databases/commentaireDb.dart';
 import 'package:application_rano/data/services/databases/contratDb.dart';
 import 'package:application_rano/data/services/databases/clientDb.dart';
-import 'package:application_rano/data/services/databases/relevesDb.dart';
+import 'package:application_rano/data/services/databases/releves_db.dart';
 import 'package:application_rano/data/services/databases/last_connectedDb.dart';
 import 'package:application_rano/data/services/databases/synchroDb.dart';
-import 'package:application_rano/data/services/databases/factureDb.dart';
+import 'package:application_rano/data/services/databases/facture_db.dart';
 import 'package:application_rano/data/services/databases/facturePaymentDb.dart';
-import 'package:application_rano/data/services/databases/anomalieDb.dart';
 import 'package:application_rano/data/services/databases/photoAnomalieDb.dart';
 
 class NiADatabases {
@@ -36,7 +36,7 @@ class NiADatabases {
 
   Future<Database> initDatabase() async {
     final path = await getDatabasePath();
-    print("le path de DB est : $path ");
+    debugPrint("le path de DB est : $path ");
     try {
       var database = await openDatabase(
         path,
@@ -50,7 +50,7 @@ class NiADatabases {
       await database.query("sqlite_master", where: "type = 'table'");
 
       for (Map<String, dynamic> table in tables) {
-        print(table["name"]);
+        debugPrint(table["name"]);
       }
 
       return database;
@@ -63,17 +63,17 @@ class NiADatabases {
     try {
       await db.transaction((txn) async {
         await users_db().createTable(db);
-        await acceuil_db().createTable(db);
-        await missions_db().createTable(db);
+        await AcceuilDb().createTable(db);
+        await MissionDb().createTable(db);
         await compteurs_db().createTable(db);
         await client_db().createTable(db);
         await contrat_db().createTable(db);
-        await releves_db().createTable(db);
+        await RelevesDb().createTable(db);
         await last_connected_db().createTable(db);
         await synchro_db().createTable(db);
-        await facture_db().createTable(db);
+        await FacturesDb().createTable(db);
         await facture_payment_db().createTable(db);
-        await anomalie_db().createTable(db);
+        await AnomalieDb().createTable(db);
         await photo_anomalie_db().createTable(db);
         await commentaire_db().createTable(db);
       });

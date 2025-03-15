@@ -1,6 +1,6 @@
   import 'package:sqflite/sqflite.dart';
 
-class facture_db {
+class FacturesDb {
   Future<void> createTable(Database db) async {
     try {
       await db.execute('''

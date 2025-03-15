@@ -1,5 +1,5 @@
 import 'package:sqflite/sqflite.dart';
-class acceuil_db {
+class AcceuilDb {
   Future<void> createTable(Database db) async {
     try {
       await db.execute('''

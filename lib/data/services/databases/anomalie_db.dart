@@ -1,5 +1,5 @@
 import 'package:sqflite/sqflite.dart';
-class anomalie_db {
+class AnomalieDb {
   Future<void> createTable(Database db) async {
     try {
       await db.execute('''
