@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
 import 'package:application_rano/blocs/anomalies/anomalie_event.dart';
@@ -26,11 +26,11 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
 
       emit(AnomalieLoading()); // Émettre l'état de chargement
       final anomalie = await anomalieRepository.fetchAnomaleData(event.accessToken);
-      print("eto anomalie Page $anomalie");
+      debugPrint("eto anomalie Page $anomalie");
 
       emit(AnomalieLoaded(anomalie));
     } catch (error) {
-      print('Failed to load Anomalie: $error');
+      debugPrint('Failed to load Anomalie: $error');
       emit(AnomalieError('Failed to load Anomalie: $error'));
     }
   }
@@ -38,23 +38,22 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
 
   void _onAddAnomalie(AddAnomalie event, Emitter emit) async {
     try {
+      emit(AnomalieLoading()); // Émettre l'état de chargement pour indiquer l'action en cours
+
       String dateStr = event.dateDeclaration;
       DateFormat inputFormat = DateFormat("dd-MM-yyyy");
       DateFormat outputFormat = DateFormat("yyyy-MM-dd");
-
       DateTime date = inputFormat.parse(dateStr);
       String formattedDate = outputFormat.format(date);
 
       List<String?> newImagePaths = [];
       for (String? imagePath in event.imagePaths) {
         String? newImagePath = await _copyImageToAssetsDirectory(imagePath);
-        if (newImagePath != null) {
-          newImagePaths.add(newImagePath); // Ajouter le nouveau chemin d'image à la liste
-        }
+        if (newImagePath != null) newImagePaths.add(newImagePath);
       }
 
-      // Appeler la méthode createAnomalie avec la liste des nouveaux chemins d'image
-      final anomalie = await anomalieRepository.createAnomalie(
+      // Ajouter l'anomalie via le repository
+      await anomalieRepository.createAnomalie(
         event.typeMc,
         formattedDate,
         event.longitudeMc,
@@ -63,14 +62,17 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
         event.clientDeclare,
         event.cpCommune,
         event.commune,
-        newImagePaths, // Utiliser la liste des nouveaux chemins d'image
+        newImagePaths,
       );
 
+      // Recharger toutes les anomalies après l'ajout
+      final updatedAnomalies = await anomalieRepository.fetchAnomaleData(event.accessToken);
+      debugPrint("Liste mise à jour après ajout : $updatedAnomalies");
 
-      print("les images data : $newImagePaths"); // Afficher les nouveaux chemins d'image
-
+      // Émettre l'état avec la liste mise à jour
+      emit(AnomalieLoaded(updatedAnomalies));
     } catch (error) {
-      // En cas d'erreur, émettez un état d'erreur avec un message approprié
+      debugPrint('Erreur lors de l\'ajout de l\'anomalie : $error');
       emit(AnomalieError('Failed to add Anomalie: $error'));
     }
   }
@@ -103,7 +105,7 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
         newImagePaths.add(await _copyImageToAssetsDirectory(event.anomalieItem.photoAnomalie5!));
       }
       // Appeler la méthode createAnomalie avec la liste des nouveaux chemins d'image
-      final anomalie = await anomalieRepository.updateAnomalie(
+      await anomalieRepository.updateAnomalie(
         event.anomalieItem.idMc,
         event.anomalieItem.typeMc,
         formattedDate,
@@ -122,36 +124,6 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
       emit(AnomalieError('Failed to add Anomalie: $error'));
     }
   }
-
-
-  // Future<String?> _copyImageToAssetsDirectory(String? imagePath) async {
-  //   try {
-  //     // Obtenir le répertoire d'assets/images
-  //     final Directory appDirectory = await getApplicationDocumentsDirectory();
-  //     final String assetsDirectory = '${appDirectory.path}/assets/images';
-  //
-  //     // Vérifier si le répertoire d'assets/images/anomalie existe, sinon le créer
-  //     final bool assetsExists = await Directory(assetsDirectory).exists();
-  //     if (!assetsExists) {
-  //       await Directory(assetsDirectory).create(recursive: true);
-  //     }
-  //
-  //     // Générer un nom de fichier abrégé en utilisant la date actuelle
-  //     final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
-  //
-  //     // Copier l'image dans le répertoire d'assets/images
-  //     String destinationPath = path.join(assetsDirectory, fileName);
-  //     await File(imagePath!).copy(destinationPath);
-  //
-  //     print('Image copiée dans le répertoire d\'assets/images avec succès.');
-  //
-  //     return destinationPath; // Retourner le chemin de l'image copiée
-  //   } catch (e) {
-  //     print('Erreur lors de la copie de l\'image dans le répertoire d\'assets/images: $e');
-  //     return null; // Retourner null en cas d'erreur
-  //   }
-  // }
-
 
   Future<String?> _copyImageToAssetsDirectory(String? imagePath) async {
     try {
@@ -195,15 +167,15 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
         // Écrire l'image compressée dans le répertoire d'assets/images
         File(destinationPath).writeAsBytesSync(compressedBytes);
 
-        print('Image compressée et copiée dans le répertoire d\'assets/images avec succès.');
+        debugPrint('Image compressée et copiée dans le répertoire d\'assets/images avec succès.');
 
         return destinationPath; // Retourner le chemin de l'image compressée
       } else {
-        print('Erreur: Impossible de décoder l\'image.');
+        debugPrint('Erreur: Impossible de décoder l\'image.');
         return null; // Retourner null en cas d'erreur de décodage de l'image
       }
     } catch (e) {
-      print('Erreur lors de la compression et copie de l\'image: $e');
+      debugPrint('Erreur lors de la compression et copie de l\'image: $e');
       return null; // Retourner null en cas d'erreur
     }
   }
@@ -211,15 +183,15 @@ class AnomalieBLoc extends Bloc<AnomalieEvent, AnomalieState>{
   void _onGetUpdateAnomalie(GetUpdateAnomalie event, Emitter emit) async {
     try {
 
-      print("verrifiIdMC : ${event.idMc}");
+      debugPrint("verrifiIdMC : ${event.idMc}");
       final anomalieList = await anomalieRepository.fetchAnomaleDataByIdMc(event.idMc);
-      print("teto : $anomalieList");
+      debugPrint("teto : $anomalieList");
       final anomalie = anomalieList.isNotEmpty ? anomalieList.first : null;
 
       // Vérifiez si l'anomalie a été récupérée avec succès
       if (anomalie != null) {
         // Émettez l'état AnomalieLoaded avec l'anomalie récupérée
-        print("mandea $anomalie");
+        debugPrint("mandea $anomalie");
         emit(AnomalieUpdateLoading([anomalie]));
         emit(AnomalieUpdateLoaded([anomalie]));
       } else {

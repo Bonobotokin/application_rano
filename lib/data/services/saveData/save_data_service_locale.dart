@@ -20,12 +20,12 @@ import '../../repositories/local/missions_repository_locale.dart';
 
 class SaveDataRepositoryLocale {
 
-  final MissionsRepositoryLocale _missionsRepositoryLocale;
-  final ReleverRepository _releverRepository;
-  final FactureLocalRepository _factureLocalRepository;
-  SaveDataRepositoryLocale() : _missionsRepositoryLocale = MissionsRepositoryLocale(),
-        _releverRepository = ReleverRepository(),
-  _factureLocalRepository = FactureLocalRepository();
+  final MissionsRepositoryLocale missionsRepositoryLocale;
+  final ReleverRepository releverRepository;
+  final FactureLocalRepository factureLocalRepository;
+  SaveDataRepositoryLocale() : missionsRepositoryLocale = MissionsRepositoryLocale(),
+        releverRepository = ReleverRepository(),
+  factureLocalRepository = FactureLocalRepository();
   Future<void> saveUserToLocalDatabase(User user) async {
     try {
       final Database db = await NiADatabases().database;
@@ -140,18 +140,18 @@ class SaveDataRepositoryLocale {
               (mission) => mission.numCompteur == missionOnline.numCompteur,
           orElse: () => MissionModel(), // Utiliser null pour indiquer qu'aucune mission n'existe
         );
-        debugPrint("verrifie missionExiste ${existingMission}");
+        debugPrint("verrifie missionExiste $existingMission");
         try {
           if (existingMission.numCompteur != null) {
 
             // Si existingMission n'est pas null, vous pouvez accéder à ses propriétés en toute sécurité
             debugPrint('Données existantes de mission : $existingMission');
-            final updatedata = await _updateMission(txn, missionOnline);
+            await _updateMission(txn, missionOnline);
             debugPrint('Données de mission mises à jour avec succès dans la base de données locale : $missionOnline');
           } else {
             // Si existingMission est null, vous devez gérer ce cas
             debugPrint('Aucune donnée existante de mission trouvée.');
-            final inserte = await _insertMission(txn, missionOnline);
+            await _insertMission(txn, missionOnline);
             debugPrint('Données de mission enregistrées avec succès dans la base de données locale : $missionOnline');
           }
 
@@ -317,7 +317,7 @@ class SaveDataRepositoryLocale {
 
     final List<Map<String, dynamic>> localRelever = await ReleverRepository().getAllReleves(db);
 
-    debugPrint("localRelever ${localRelever}");
+    debugPrint("localRelever $localRelever");
     // Vérifier si les données locales existent
     // if (localRelever == null || localRelever.isEmpty) {
       // Les données locales sont vides, procédez à la synchronisation
@@ -331,7 +331,7 @@ class SaveDataRepositoryLocale {
               orElse: () => <String, dynamic>{}, // Retourne une map vide par défaut si aucun relevé n'est trouvé
             );
 
-            debugPrint("vérifie relevéExiste ${existingRelever}");
+            debugPrint("vérifie relevéExiste $existingRelever");
 
             // Modifier l'image du compteur si nécessaire
             String modifiedImageCompteur = releverDataOnline.imageCompteur;
@@ -339,7 +339,7 @@ class SaveDataRepositoryLocale {
               modifiedImageCompteur = releverDataOnline.imageCompteur.replaceAll("/media/compteurs/${releverDataOnline.compteurId}/", "/data/user/0/com.example.application_rano/app_flutter/assets/images/");
             }
 
-            if (existingRelever != null && existingRelever.isNotEmpty) {
+            if (existingRelever.isNotEmpty) {
               // Si le relevé existe déjà, mettez à jour les données
               debugPrint('Données existantes de relevé : $existingRelever');
               await _updateRelever(txn, releverDataOnline, modifiedImageCompteur);
@@ -453,7 +453,7 @@ class SaveDataRepositoryLocale {
             'facture_paiment',
             {
               'facture_id': factureId,
-              'relevecompteur_id': factureOnline.relevecompteurId ?? 0,
+              'relevecompteur_id': factureOnline.relevecompteurId,
               'paiement': factureOnline.montantPayer.toInt(),
               'date_paiement': DateFormat('yyyy-MM-dd').format(now),
               'statut': statutPaiement,
@@ -628,7 +628,7 @@ class SaveDataRepositoryLocale {
     for (final commentaire in commentaires) {
       try {
         // Convertir la date en chaîne ISO 8601 pour la comparaison
-        final dateSuivieIso = commentaire.dateSuivie.toIso8601String();
+        commentaire.dateSuivie.toIso8601String();
 
         // Rechercher un enregistrement existant
         final existingRows = await db.query(

@@ -260,18 +260,25 @@ class AnomaliePageState extends State<AnomaliePage> {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 10),
-                    Text('Statut: $status',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: statusColor,
-                        )),
-                    if (anomalie.longitudeMc != null && anomalie.longitudeMc!.isNotEmpty) // Condition pour Longitude
+                    const SizedBox(height: 10), // Espace initial conservé
+                    Text(
+                      'Statut: $status',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: statusColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (anomalie.longitudeMc != null && anomalie.longitudeMc!.isNotEmpty)
                       Text('Longitude: ${anomalie.longitudeMc}'),
-                    if (anomalie.latitudeMc != null && anomalie.latitudeMc!.isNotEmpty) // Condition pour Altitude
+                    if (anomalie.longitudeMc != null && anomalie.longitudeMc!.isNotEmpty)
+                      const SizedBox(height: 8),
+                    if (anomalie.latitudeMc != null && anomalie.latitudeMc!.isNotEmpty)
                       Text('Altitude: ${anomalie.latitudeMc}'),
-                    RichText( // Remplacement avec RichText
+                    if (anomalie.latitudeMc != null && anomalie.latitudeMc!.isNotEmpty)
+                      const SizedBox(height: 8),
+                    RichText(
                       text: TextSpan(
                         style: DefaultTextStyle.of(context).style,
                         children: [
@@ -285,8 +292,11 @@ class AnomaliePageState extends State<AnomaliePage> {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 8),
                     if (anomalie.clientDeclare != null && anomalie.clientDeclare!.isNotEmpty)
                       Text('Client : ${anomalie.clientDeclare}'),
+                    if (anomalie.clientDeclare != null && anomalie.clientDeclare!.isNotEmpty)
+                      const SizedBox(height: 8),
                     Text(
                       'Date: ${(anomalie.dateDeclaration != null || anomalie.dateDeclaration != '' || DateFormatter.isValidFrenchDate(anomalie.dateDeclaration!)) ? DateFormatter.formatFrenchDate(anomalie.dateDeclaration!) : 'Erreur de date'}',
                       style: TextStyle(
@@ -295,6 +305,7 @@ class AnomaliePageState extends State<AnomaliePage> {
                         color: statusColor,
                       ),
                     ),
+                    const SizedBox(height: 8), // Espace final avant les photos
                   ],
                 ),
               ),

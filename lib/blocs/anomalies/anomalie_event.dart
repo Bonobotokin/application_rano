@@ -28,6 +28,7 @@ class AddAnomalie extends AnomalieEvent {
   final String commune;
   final String status;
   final List<String?> imagePaths;
+  final String accessToken;
 
   const AddAnomalie({
     required this.typeMc,
@@ -40,6 +41,7 @@ class AddAnomalie extends AnomalieEvent {
     required this.commune,
     required this.status,
     required this.imagePaths,
+    required this.accessToken,
   });
 
   @override
@@ -79,7 +81,7 @@ class GetUpdateAnomalie extends AnomalieEvent {
 class UpdateAnomalie extends AnomalieEvent {
   final AnomalieModel anomalieItem; // L'objet anomalieItem avec les valeurs mises à jour
 
-  UpdateAnomalie({
+  const UpdateAnomalie({
     required this.anomalieItem,
   });
 }

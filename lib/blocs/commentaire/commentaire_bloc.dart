@@ -1,7 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'commentaire_event.dart';
 import 'commentaire_state.dart';
-import 'package:application_rano/data/models/commentaire_model.dart';
 import 'package:application_rano/data/repositories/commentaire/CommentaireRepositoryLocale.dart';
 
 class CommentaireBLoc extends Bloc<CommentaireEvent, CommentaireState> {
@@ -17,13 +17,13 @@ class CommentaireBLoc extends Bloc<CommentaireEvent, CommentaireState> {
     try {
       emit(CommentaireLoading());
       final result = await commentaireRepositoryLocale.getCommentaireData(event.idMc);
-      print("liste COmmentaire ${result}");
+      debugPrint("liste COmmentaire $result");
       final commentaires = result['commentaires'];
       final idSuivie = result['idSuivie'];
       emit(CommentaireLoaded(commentaires, event.idMc, idSuivie));
 
     } catch (error) {
-      print(error);
+      debugPrint(error.toString());
       emit(CommentaireFailed('Failed to load Commentaire: $error'));
     }
   }
@@ -31,7 +31,7 @@ class CommentaireBLoc extends Bloc<CommentaireEvent, CommentaireState> {
   void _onAddCommentaire(AddCommentaire event, Emitter<CommentaireState> emit) async {
     try {
       // Add the comment to the repository
-      print("data ${event.idMc}");
+      debugPrint("data ${event.idMc}");
       await commentaireRepositoryLocale.addCommentaire(
         event.idMc,
         event.idSuivie,
@@ -40,7 +40,7 @@ class CommentaireBLoc extends Bloc<CommentaireEvent, CommentaireState> {
 
       // Reload the comments after adding
       final result = await commentaireRepositoryLocale.getCommentaireData(event.idMc);
-      print("data Teste ${result}");
+      debugPrint("data Teste $result");
       final commentaires = result['commentaires'];
       final idSuivie = result['idSuivie'];
       emit(CommentaireLoading());
