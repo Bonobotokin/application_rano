@@ -2,11 +2,8 @@ name: Build and Publish Flutter Release APK
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*'  # Déclenche sur les tags commençant par "v" (ex. v1.0.0)
 
 jobs:
   build:
@@ -29,7 +26,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.3' # Ta version actuelle
+          flutter-version: '3.19.3'
           channel: 'stable'
 
       # Étape 4 : Vérifier Flutter
@@ -40,59 +37,60 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # Étape 6 : Mettre à jour la version dans pubspec.yaml
-      - name: Update version in pubspec.yaml
-        run: |
-          # Récupérer le dernier tag commençant par "v", trié par version sémantique
-          TAG=$(git tag -l "v*" | sort -V | tail -n 1)
-          if [ -z "$TAG" ]; then
-            echo "Aucun tag commençant par 'v' trouvé. Utilisation de v1.0.2 par défaut."
-            TAG="v1.0.2"
-          fi
-
-          # Supprimer le préfixe 'v' si présent (ex. v1.0.2 -> 1.0.2)
-          VERSION=${TAG#v}
-
-          # Récupérer le nombre de commits depuis le dernier tag (ou depuis le début si pas de tag)
-          if [ "$TAG" = "v1.0.2" ] && ! git rev-parse "$TAG" >/dev/null 2>&1; then
-            BUILD_NUMBER=$(git rev-list HEAD --count)
-          else
-            BUILD_NUMBER=$(git rev-list "${TAG}"..HEAD --count)
-          fi
-
-          # Mettre à jour pubspec.yaml
-          sed -i "s/version: .*/version: $VERSION+$BUILD_NUMBER/" pubspec.yaml
-          echo "Version mise à jour dans pubspec.yaml : $VERSION+$BUILD_NUMBER"
-
-      # Étape 7 : Extraire la version depuis pubspec.yaml
-      - name: Extract version from pubspec.yaml
+      # Étape 6 : Extraire la version depuis le tag
+      - name: Extract version from tag
         id: version
         run: |
-          VERSION=$(grep 'version:' pubspec.yaml | awk '{print $2}' | cut -d'+' -f1)
-          echo "Extracted version: $VERSION"
+          TAG=${GITHUB_REF#refs/tags/}  # Extrait le tag (ex. v1.0.0)
+          VERSION=${TAG#v}              # Supprime le "v" (ex. 1.0.0)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Extracted version: $VERSION"
+
+      # Étape 7 : Mettre à jour la version dans pubspec.yaml
+      - name: Update version in pubspec.yaml
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          BUILD_NUMBER=$(git rev-list HEAD --count)  # Numéro de build basé sur tous les commits
+          sed -i "s/version: .*/version: $VERSION+$BUILD_NUMBER/" pubspec.yaml
+          echo "Version mise à jour dans pubspec.yaml : $VERSION+$BUILD_NUMBER"
 
       # Étape 8 : Construire l'APK release
       - name: Build APK
         run: |
           flutter build apk --release
-          ls -la build/app/outputs/flutter-apk/  # Vérifie que l'APK existe
+          ls -la build/app/outputs/flutter-apk/
 
       # Étape 9 : Renommer l'APK avec la version
       - name: Rename APK
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
-            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/Ranoo-v$VERSION-release.apk
-            echo "APK renamed to: Ranoo-v$VERSION-release.apk"
+            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/Ranoo-v$VERSION-eatc-release.apk
+            echo "APK renamed to: Ranoo-v$VERSION-eatc-release.apk"
           else
             echo "Error: APK not found!"
             exit 1
           fi
 
-      # Étape 10 : Publier l'APK renommée
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      # Étape 10 : Créer une GitHub Release et uploader l'APK
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: app-v${{ steps.version.outputs.version }}-Agent-release-apk
-          path: build/app/outputs/flutter-apk/Ranoo-v${{ steps.version.outputs.version }}-release.apk
+          tag_name: ${{ github.ref }}  # Utilise le tag poussé (ex. v1.0.0)
+          release_name: Release ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          body: "Release APK for version ${{ steps.version.outputs.version }}"
+
+      # Étape 11 : Uploader l'APK dans la release
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/Ranoo-v${{ steps.version.outputs.version }}-eatc-release.apk
+          asset_name: Ranoo-v${{ steps.version.outputs.version }}-eatc-release.apk
+          asset_content_type: application/vnd.android.package-archive
