@@ -65,8 +65,8 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
-            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/Ranoo-v$VERSION-Agent-release.apk
-            echo "APK renamed to: Ranoo-v$VERSION-Agent-release.apk"
+            mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/Ranoo-v$VERSION-eatc-release.apk
+            echo "APK renamed to: Ranoo-v$VERSION-eatc-release.apk"
           else
             echo "Error: APK not found!"
             exit 1
