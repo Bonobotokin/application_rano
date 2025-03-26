@@ -3,10 +3,10 @@ name: Build and Publish Flutter Release APK
 on:
   push:
     branches:
-      - develop
+      - main
   pull_request:
     branches:
-      - develop
+      - main
 
 jobs:
   build:
@@ -40,7 +40,31 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      # Étape 6 : Extraire la version depuis pubspec.yaml
+      # Étape 6 : Mettre à jour la version dans pubspec.yaml
+      - name: Update version in pubspec.yaml
+        run: |
+          # Récupérer le dernier tag commençant par "v", trié par version sémantique
+          TAG=$(git tag -l "v*" | sort -V | tail -n 1)
+          if [ -z "$TAG" ]; then
+            echo "Aucun tag commençant par 'v' trouvé. Utilisation de v1.0.2 par défaut."
+            TAG="v1.0.2"
+          fi
+
+          # Supprimer le préfixe 'v' si présent (ex. v1.0.2 -> 1.0.2)
+          VERSION=${TAG#v}
+
+          # Récupérer le nombre de commits depuis le dernier tag (ou depuis le début si pas de tag)
+          if [ "$TAG" = "v1.0.2" ] && ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            BUILD_NUMBER=$(git rev-list HEAD --count)
+          else
+            BUILD_NUMBER=$(git rev-list "${TAG}"..HEAD --count)
+          fi
+
+          # Mettre à jour pubspec.yaml
+          sed -i "s/version: .*/version: $VERSION+$BUILD_NUMBER/" pubspec.yaml
+          echo "Version mise à jour dans pubspec.yaml : $VERSION+$BUILD_NUMBER"
+
+      # Étape 7 : Extraire la version depuis pubspec.yaml
       - name: Extract version from pubspec.yaml
         id: version
         run: |
@@ -48,13 +72,13 @@ jobs:
           echo "Extracted version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      # Étape 7 : Construire l'APK release
+      # Étape 8 : Construire l'APK release
       - name: Build APK
         run: |
           flutter build apk --release
           ls -la build/app/outputs/flutter-apk/  # Vérifie que l'APK existe
 
-      # Étape 8 : Renommer l'APK avec la version
+      # Étape 9 : Renommer l'APK avec la version
       - name: Rename APK
         run: |
           VERSION="${{ steps.version.outputs.version }}"
@@ -66,9 +90,9 @@ jobs:
             exit 1
           fi
 
-      # Étape 9 : Publier l'APK renommée
+      # Étape 10 : Publier l'APK renommée
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-v${{ steps.version.outputs.version }}-release-apk
+          name: app-v${{ steps.version.outputs.version }}-Agent-release-apk
           path: build/app/outputs/flutter-apk/Ranoo-v${{ steps.version.outputs.version }}-release.apk
