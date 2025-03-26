@@ -21,7 +21,7 @@ class LoginPage extends StatelessWidget {
     final HomeBloc homeBloc = BlocProvider.of<HomeBloc>(context);
 
     return Scaffold(
-      backgroundColor: Colors.green,
+      backgroundColor: Colors.blueGrey,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthSuccess) {
